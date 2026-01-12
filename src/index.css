@@ -2,95 +2,157 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Tempora Design System - Light Mode */
+    --background: 0 0% 98%;
+    --foreground: 240 10% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 10% 10%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Vibrant Violet/Indigo */
+    --primary: 258 90% 62%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Soft purple tint */
+    --secondary: 258 40% 96%;
+    --secondary-foreground: 258 90% 40%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 5% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 258 60% 94%;
+    --accent-foreground: 258 90% 40%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Success - Timer active */
+    --success: 145 80% 42%;
+    --success-foreground: 0 0% 100%;
 
-    --radius: 0.5rem;
+    /* Warning - Trial */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    --sidebar-background: 0 0% 98%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 258 90% 62%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --radius: 0.75rem;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Timer specific */
+    --timer-glow: 258 90% 62%;
+    --timer-active-glow: 145 80% 50%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 240 5% 26%;
+    --sidebar-primary: 258 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 258 40% 96%;
+    --sidebar-accent-foreground: 258 90% 40%;
+    --sidebar-border: 240 6% 92%;
+    --sidebar-ring: 258 90% 62%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Client colors palette */
+    --client-coral: 12 90% 65%;
+    --client-orange: 28 95% 58%;
+    --client-amber: 45 95% 50%;
+    --client-lime: 84 80% 45%;
+    --client-emerald: 160 75% 40%;
+    --client-teal: 175 70% 42%;
+    --client-cyan: 195 90% 48%;
+    --client-blue: 220 90% 55%;
+    --client-indigo: 245 85% 60%;
+    --client-violet: 270 85% 60%;
+    --client-purple: 285 80% 55%;
+    --client-pink: 330 85% 60%;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(258 90% 62%), hsl(285 80% 55%));
+    --gradient-hero: linear-gradient(135deg, hsl(258 90% 62%) 0%, hsl(220 90% 55%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(145 80% 42%), hsl(160 75% 40%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(258 40% 99%) 100%);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Tempora Design System - Dark Mode */
+    --background: 240 10% 6%;
+    --foreground: 0 0% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 9%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 9%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Primary - Bright violet for dark mode */
+    --primary: 258 85% 68%;
+    --primary-foreground: 240 10% 6%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary */
+    --secondary: 258 30% 18%;
+    --secondary-foreground: 258 85% 75%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 8% 15%;
+    --muted-foreground: 240 5% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 258 30% 18%;
+    --accent-foreground: 258 85% 75%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 145 70% 48%;
+    --success-foreground: 240 10% 6%;
+
+    --warning: 38 85% 55%;
+    --warning-foreground: 240 10% 6%;
+
+    --border: 240 8% 18%;
+    --input: 240 8% 18%;
+    --ring: 258 85% 68%;
+
+    /* Timer specific */
+    --timer-glow: 258 85% 68%;
+    --timer-active-glow: 145 70% 55%;
+
+    /* Sidebar */
+    --sidebar-background: 240 10% 8%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 258 85% 68%;
+    --sidebar-primary-foreground: 240 10% 6%;
+    --sidebar-accent: 258 30% 18%;
+    --sidebar-accent-foreground: 258 85% 75%;
+    --sidebar-border: 240 8% 15%;
+    --sidebar-ring: 258 85% 68%;
+
+    /* Client colors - slightly adjusted for dark mode */
+    --client-coral: 12 85% 60%;
+    --client-orange: 28 90% 55%;
+    --client-amber: 45 90% 48%;
+    --client-lime: 84 75% 45%;
+    --client-emerald: 160 70% 42%;
+    --client-teal: 175 65% 45%;
+    --client-cyan: 195 85% 50%;
+    --client-blue: 220 85% 58%;
+    --client-indigo: 245 80% 62%;
+    --client-violet: 270 80% 62%;
+    --client-purple: 285 75% 58%;
+    --client-pink: 330 80% 62%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(258 85% 68%), hsl(285 75% 58%));
+    --gradient-hero: linear-gradient(135deg, hsl(258 85% 68%) 0%, hsl(220 85% 58%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(145 70% 48%), hsl(160 70% 42%));
+    --gradient-card: linear-gradient(180deg, hsl(240 10% 9%) 0%, hsl(258 20% 10%) 100%);
   }
 }
 
@@ -100,6 +162,77 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Timer pulse animation */
+  .timer-pulse {
+    animation: timer-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes timer-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--timer-active-glow) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 12px hsl(var(--timer-active-glow) / 0);
+    }
+  }
+
+  /* Subtle float animation */
+  .float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glass effect */
+  .glass {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Soft shadow */
+  .shadow-soft {
+    box-shadow: 0 4px 24px -2px hsl(var(--foreground) / 0.08);
+  }
+
+  /* Primary glow */
+  .glow-primary {
+    box-shadow: 0 0 40px -8px hsl(var(--primary) / 0.35);
+  }
+
+  /* Success glow for active timer */
+  .glow-success {
+    box-shadow: 0 0 40px -8px hsl(var(--success) / 0.4);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
