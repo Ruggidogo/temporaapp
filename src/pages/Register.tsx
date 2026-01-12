@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Clock, Mail, Lock, User, ArrowRight, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Register() {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,23 +18,65 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (password.length < 6) {
+      toast({
+        title: "Password troppo corta",
+        description: "La password deve essere di almeno 6 caratteri",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     
-    // TODO: Implement actual registration
-    setTimeout(() => {
-      toast({
-        title: "Registrazione",
-        description: "Funzionalità in arrivo! Stiamo preparando tutto per te.",
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            full_name: name.trim(),
+          },
+        },
       });
+
+      if (error) throw error;
+
+      toast({
+        title: "Account creato! 🎉",
+        description: "Benvenuto in Tempora!",
+      });
+      navigate('/onboarding');
+    } catch (error: any) {
+      toast({
+        title: "Errore di registrazione",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleGoogleSignup = () => {
-    toast({
-      title: "Google Signup",
-      description: "Funzionalità in arrivo!",
-    });
+  const handleGoogleSignup = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/onboarding`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const benefits = [
@@ -44,7 +88,7 @@ export default function Register() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left side - Benefits */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-[hsl(285_80%_55%)] p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary-glow p-12 flex-col justify-between">
         <Link to="/" className="flex items-center gap-2 font-bold text-xl text-primary-foreground">
           <div className="w-8 h-8 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
             <Clock className="w-4 h-4 text-primary-foreground" />
@@ -84,7 +128,7 @@ export default function Register() {
         {/* Mobile header */}
         <header className="p-6 lg:hidden">
           <Link to="/" className="flex items-center gap-2 font-bold text-xl w-fit">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(285_80%_55%)] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
               <Clock className="w-4 h-4 text-primary-foreground" />
             </div>
             <span>Tempora</span>
@@ -175,11 +219,11 @@ export default function Register() {
                     <Input
                       id="password"
                       type="password"
-                      placeholder="Minimo 8 caratteri"
+                      placeholder="Minimo 6 caratteri"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10"
-                      minLength={8}
+                      minLength={6}
                       required
                     />
                   </div>
