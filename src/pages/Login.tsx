@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,35 +7,66 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Clock, Mail, Lock, ArrowRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // TODO: Implement actual login
-    setTimeout(() => {
-      toast({
-        title: "Login",
-        description: "Funzionalità in arrivo! Stiamo preparando tutto per te.",
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
       });
+
+      if (error) throw error;
+
+      toast({
+        title: "Benvenuto! 👋",
+        description: "Accesso effettuato con successo",
+      });
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "Errore di accesso",
+        description: error.message === "Invalid login credentials" 
+          ? "Email o password non corretti" 
+          : error.message,
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    toast({
-      title: "Google Login",
-      description: "Funzionalità in arrivo!",
-    });
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleMagicLink = () => {
-    if (!email) {
+  const handleMagicLink = async () => {
+    if (!email.trim()) {
       toast({
         title: "Email richiesta",
         description: "Inserisci la tua email per ricevere il magic link.",
@@ -43,10 +74,31 @@ export default function Login() {
       });
       return;
     }
-    toast({
-      title: "Magic Link",
-      description: "Funzionalità in arrivo!",
-    });
+
+    setMagicLinkLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Magic Link inviato! ✨",
+        description: "Controlla la tua email e clicca sul link per accedere.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setMagicLinkLoading(false);
+    }
   };
 
   return (
@@ -54,7 +106,7 @@ export default function Login() {
       {/* Header */}
       <header className="p-6">
         <Link to="/" className="flex items-center gap-2 font-bold text-xl w-fit">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(285_80%_55%)] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
             <Clock className="w-4 h-4 text-primary-foreground" />
           </div>
           <span>Tempora</span>
@@ -157,9 +209,10 @@ export default function Login() {
               variant="ghost" 
               className="w-full mt-4 text-sm"
               onClick={handleMagicLink}
+              disabled={magicLinkLoading}
             >
               <Mail className="w-4 h-4 mr-2" />
-              Accedi con Magic Link
+              {magicLinkLoading ? "Invio in corso..." : "Accedi con Magic Link"}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground mt-6">
