@@ -1,70 +1,49 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { 
-  Play, 
-  Square, 
-  Clock, 
-  Plus, 
+import {
+  Play,
+  Square,
+  Clock,
+  Plus,
   ChevronDown,
-  RotateCcw,
   Keyboard,
   Edit2,
   Trash2,
-  Copy
+  Loader2,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { cn } from "@/lib/utils";
+import { useTimer } from "@/hooks/useTimer";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
-// Mock data for demo
-const mockClients = [
-  { id: "1", name: "Acme Corp", color: "violet" },
-  { id: "2", name: "TechStart", color: "blue" },
-  { id: "3", name: "Design Studio", color: "pink" },
-];
+interface Client {
+  id: string;
+  name: string;
+  color: string;
+}
 
-const mockTodayEntries = [
-  { 
-    id: "1", 
-    client: mockClients[0], 
-    description: "Sviluppo landing page", 
-    duration: 7200, 
-    startTime: "09:00",
-    endTime: "11:00"
-  },
-  { 
-    id: "2", 
-    client: mockClients[1], 
-    description: "Meeting kickoff progetto", 
-    duration: 3600, 
-    startTime: "11:30",
-    endTime: "12:30"
-  },
-  { 
-    id: "3", 
-    client: mockClients[2], 
-    description: "Review wireframes", 
-    duration: 5400, 
-    startTime: "14:00",
-    endTime: "15:30"
-  },
-];
-
-const colorClasses: Record<string, string> = {
-  violet: "bg-client-violet",
-  blue: "bg-client-blue",
-  pink: "bg-client-pink",
-  emerald: "bg-client-emerald",
-  orange: "bg-client-orange",
-  amber: "bg-client-amber",
-};
+interface TimeEntry {
+  id: string;
+  client_id: string | null;
+  description: string | null;
+  duration_seconds: number | null;
+  start_time: string;
+  end_time: string | null;
+  date: string;
+}
 
 function formatTime(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
 function formatDuration(seconds: number): string {
@@ -76,138 +55,263 @@ function formatDuration(seconds: number): string {
   return `${minutes}m`;
 }
 
+function formatTimeOfDay(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleTimeString("it-IT", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function Dashboard() {
-  const [isRunning, setIsRunning] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [selectedClient, setSelectedClient] = useState(mockClients[0]);
-  const [description, setDescription] = useState("");
+  const { user } = useAuth();
+  const timer = useTimer();
+
+  const [clients, setClients] = useState<Client[]>([]);
+  const [todayEntries, setTodayEntries] = useState<TimeEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Timer logic
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRunning) {
-      interval = setInterval(() => {
-        setElapsedTime((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRunning]);
+  const selectedClient = clients.find((c) => c.id === timer.clientId) || null;
 
-  // Update document title when timer is running
-  useEffect(() => {
-    if (isRunning) {
-      document.title = `${formatTime(elapsedTime)} - Tempora`;
-    } else {
-      document.title = "Dashboard - Tempora";
+  // Fetch clients and today's entries
+  const fetchData = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const today = new Date().toISOString().split("T")[0];
+
+      const [clientsRes, entriesRes] = await Promise.all([
+        supabase
+          .from("clients")
+          .select("id, name, color")
+          .eq("user_id", user.id)
+          .order("name"),
+        supabase
+          .from("time_entries")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("date", today)
+          .order("start_time", { ascending: false }),
+      ]);
+
+      if (clientsRes.error) throw clientsRes.error;
+      if (entriesRes.error) throw entriesRes.error;
+
+      setClients(clientsRes.data || []);
+      setTodayEntries(entriesRes.data || []);
+
+      // Auto-select first client if none selected
+      if (!timer.clientId && clientsRes.data && clientsRes.data.length > 0) {
+        timer.setClientId(clientsRes.data[0].id);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-    return () => {
-      document.title = "Tempora";
-    };
-  }, [isRunning, elapsedTime]);
+  }, [user, timer.clientId, timer.setClientId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Refetch when timer stops
+  useEffect(() => {
+    if (!timer.isRunning && !timer.saving) {
+      fetchData();
+    }
+  }, [timer.isRunning, timer.saving, fetchData]);
 
   // Keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space" && e.target === document.body) {
         e.preventDefault();
-        setIsRunning((prev) => !prev);
+        handleStartStop();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [timer.isRunning, timer.clientId, timer.description]);
 
-  const handleStartStop = useCallback(() => {
-    if (isRunning) {
-      // Stop timer - would save entry here
-      setIsRunning(false);
-      setElapsedTime(0);
-      setDescription("");
+  const handleStartStop = useCallback(async () => {
+    if (timer.isRunning) {
+      await timer.stop();
     } else {
-      setIsRunning(true);
+      timer.start(timer.clientId, timer.description);
     }
-  }, [isRunning]);
+  }, [timer]);
 
-  const totalTodaySeconds = mockTodayEntries.reduce((acc, entry) => acc + entry.duration, 0);
+  const handleDeleteEntry = async (entryId: string) => {
+    if (!user) return;
+
+    setDeletingId(entryId);
+    try {
+      const { error } = await supabase
+        .from("time_entries")
+        .delete()
+        .eq("id", entryId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setTodayEntries((prev) => prev.filter((e) => e.id !== entryId));
+      toast({
+        title: "Eliminato",
+        description: "Voce eliminata con successo",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const totalTodaySeconds = todayEntries.reduce(
+    (acc, entry) => acc + (entry.duration_seconds || 0),
+    0
+  );
+
+  const getClientById = (id: string | null) =>
+    clients.find((c) => c.id === id) || null;
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-8">
         {/* Timer Card */}
-        <Card 
-          variant={isRunning ? "timer-active" : "timer"}
+        <Card
+          variant={timer.isRunning ? "timer-active" : "timer"}
           className={cn(
             "relative overflow-hidden transition-all duration-500",
-            isRunning && "timer-pulse"
+            timer.isRunning && "timer-pulse"
           )}
         >
           {/* Client color bar */}
-          <div className={cn("absolute top-0 left-0 right-0 h-1", colorClasses[selectedClient.color])} />
-          
+          {selectedClient && (
+            <div
+              className="absolute top-0 left-0 right-0 h-1"
+              style={{ backgroundColor: selectedClient.color }}
+            />
+          )}
+
           <CardContent className="pt-8 pb-8">
             <div className="flex flex-col items-center">
               {/* Client selector */}
               <div className="relative mb-6">
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-2 text-sm"
-                  onClick={() => setShowClientDropdown(!showClientDropdown)}
-                >
-                  <div className={cn("w-3 h-3 rounded-full", colorClasses[selectedClient.color])} />
-                  <span>{selectedClient.name}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-                
-                {showClientDropdown && (
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 bg-card border rounded-lg shadow-lg py-2 z-10 animate-scale-in">
-                    {mockClients.map((client) => (
-                      <button
-                        key={client.id}
-                        className="w-full px-4 py-2 flex items-center gap-3 hover:bg-muted transition-colors text-sm"
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setShowClientDropdown(false);
-                        }}
-                      >
-                        <div className={cn("w-3 h-3 rounded-full", colorClasses[client.color])} />
-                        {client.name}
-                      </button>
-                    ))}
-                    <div className="border-t my-2" />
-                    <button className="w-full px-4 py-2 flex items-center gap-3 hover:bg-muted transition-colors text-sm text-primary">
-                      <Plus className="w-4 h-4" />
-                      Nuovo cliente
-                    </button>
-                  </div>
+                {clients.length > 0 ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 text-sm"
+                      onClick={() => setShowClientDropdown(!showClientDropdown)}
+                      disabled={timer.isRunning}
+                    >
+                      {selectedClient ? (
+                        <>
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: selectedClient.color }}
+                          />
+                          <span>{selectedClient.name}</span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          Seleziona cliente
+                        </span>
+                      )}
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+
+                    {showClientDropdown && (
+                      <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 bg-card border rounded-lg shadow-lg py-2 z-10 animate-scale-in">
+                        {clients.map((client) => (
+                          <button
+                            key={client.id}
+                            className="w-full px-4 py-2 flex items-center gap-3 hover:bg-muted transition-colors text-sm"
+                            onClick={() => {
+                              timer.setClientId(client.id);
+                              setShowClientDropdown(false);
+                            }}
+                          >
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: client.color }}
+                            />
+                            {client.name}
+                          </button>
+                        ))}
+                        <div className="border-t my-2" />
+                        <Link
+                          to="/clients"
+                          className="w-full px-4 py-2 flex items-center gap-3 hover:bg-muted transition-colors text-sm text-primary"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Nuovo cliente
+                        </Link>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link to="/clients">
+                    <Button variant="outline" size="sm">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Aggiungi cliente
+                    </Button>
+                  </Link>
                 )}
               </div>
 
               {/* Timer display */}
-              <div className={cn(
-                "font-mono text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 transition-all",
-                isRunning ? "text-success" : "text-foreground"
-              )}>
-                {formatTime(elapsedTime)}
+              <div
+                className={cn(
+                  "font-mono text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 transition-all",
+                  timer.isRunning ? "text-success" : "text-foreground"
+                )}
+              >
+                {formatTime(timer.elapsedTime)}
               </div>
 
               {/* Description input */}
               <Input
                 placeholder="Su cosa stai lavorando?"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={timer.description}
+                onChange={(e) => timer.setDescription(e.target.value)}
                 className="max-w-md text-center border-dashed mb-8"
+                disabled={timer.isRunning}
               />
 
               {/* Action buttons */}
               <div className="flex gap-4">
                 <Button
-                  variant={isRunning ? "timer-stop" : "timer"}
+                  variant={timer.isRunning ? "timer-stop" : "timer"}
                   size="lg"
                   onClick={handleStartStop}
+                  disabled={timer.saving}
                   className="min-w-[140px]"
                 >
-                  {isRunning ? (
+                  {timer.saving ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : timer.isRunning ? (
                     <>
                       <Square className="w-5 h-5 fill-current" />
                       Stop
@@ -219,7 +323,7 @@ export default function Dashboard() {
                     </>
                   )}
                 </Button>
-                <Button variant="timer-manual" size="lg">
+                <Button variant="timer-manual" size="lg" disabled>
                   <Clock className="w-5 h-5" />
                   Manuale
                 </Button>
@@ -234,105 +338,116 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" size="sm" className="text-xs">
-            <RotateCcw className="w-3 h-3 mr-1" />
-            Riprendi ultimo
-          </Button>
-          <Button variant="outline" size="sm" className="text-xs">
-            Sviluppo landing page
-          </Button>
-          <Button variant="outline" size="sm" className="text-xs">
-            Meeting kickoff
-          </Button>
-        </div>
-
         {/* Today's entries */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold">Oggi</h2>
               <p className="text-sm text-muted-foreground">
-                Totale: <span className="font-medium text-foreground">{formatDuration(totalTodaySeconds)}</span>
+                Totale:{" "}
+                <span className="font-medium text-foreground">
+                  {formatDuration(totalTodaySeconds)}
+                </span>
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              {mockClients.map((client) => {
-                const clientTime = mockTodayEntries
-                  .filter((e) => e.client.id === client.id)
-                  .reduce((acc, e) => acc + e.duration, 0);
-                const percentage = (clientTime / totalTodaySeconds) * 100;
-                if (percentage === 0) return null;
-                return (
-                  <div 
-                    key={client.id}
-                    className="flex items-center gap-1 text-xs"
-                    title={`${client.name}: ${formatDuration(clientTime)}`}
-                  >
-                    <div 
-                      className={cn("h-2 rounded-full", colorClasses[client.color])}
-                      style={{ width: `${Math.max(percentage * 0.8, 8)}px` }}
+            {clients.length > 0 && todayEntries.length > 0 && (
+              <div className="flex items-center gap-1">
+                {clients.map((client) => {
+                  const clientTime = todayEntries
+                    .filter((e) => e.client_id === client.id)
+                    .reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+                  if (clientTime === 0) return null;
+                  const percentage = (clientTime / totalTodaySeconds) * 100;
+                  return (
+                    <div
+                      key={client.id}
+                      className="h-2 rounded-full"
+                      style={{
+                        backgroundColor: client.color,
+                        width: `${Math.max(percentage * 0.8, 8)}px`,
+                      }}
+                      title={`${client.name}: ${formatDuration(clientTime)}`}
                     />
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Timeline */}
           <div className="space-y-3">
-            {mockTodayEntries.length === 0 ? (
+            {todayEntries.length === 0 ? (
               <Card variant="default" className="text-center py-12">
-                <p className="text-muted-foreground mb-2">Nessuna attività oggi.</p>
-                <p className="text-sm text-muted-foreground">Pronto a iniziare? 🚀</p>
+                <p className="text-muted-foreground mb-2">
+                  Nessuna attività oggi.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Pronto a iniziare? 🚀
+                </p>
               </Card>
             ) : (
-              mockTodayEntries.map((entry) => (
-                <Card 
-                  key={entry.id} 
-                  variant="interactive"
-                  className="group"
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      {/* Color indicator */}
-                      <div className={cn("w-1 h-12 rounded-full", colorClasses[entry.client.color])} />
-                      
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium truncate">{entry.client.name}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {entry.description}
-                        </p>
-                      </div>
+              todayEntries.map((entry) => {
+                const client = getClientById(entry.client_id);
+                return (
+                  <Card key={entry.id} variant="interactive" className="group">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        {/* Color indicator */}
+                        <div
+                          className="w-1 h-12 rounded-full"
+                          style={{
+                            backgroundColor: client?.color || "#94a3b8",
+                          }}
+                        />
 
-                      {/* Time info */}
-                      <div className="text-right">
-                        <div className="text-sm font-medium">{formatDuration(entry.duration)}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {entry.startTime} - {entry.endTime}
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium truncate">
+                              {client?.name || "Senza cliente"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {entry.description || "Nessuna descrizione"}
+                          </p>
+                        </div>
+
+                        {/* Time info */}
+                        <div className="text-right">
+                          <div className="text-sm font-medium">
+                            {formatDuration(entry.duration_seconds || 0)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatTimeOfDay(entry.start_time)}
+                            {entry.end_time &&
+                              ` - ${formatTimeOfDay(entry.end_time)}`}
+                          </div>
+                        </div>
+
+                        {/* Actions (visible on hover) */}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon-sm" disabled>
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive"
+                            onClick={() => handleDeleteEntry(entry.id)}
+                            disabled={deletingId === entry.id}
+                          >
+                            {deletingId === entry.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                          </Button>
                         </div>
                       </div>
-
-                      {/* Actions (visible on hover) */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon-sm">
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                        <Button variant="ghost" size="icon-sm">
-                          <Copy className="w-3 h-3" />
-                        </Button>
-                        <Button variant="ghost" size="icon-sm" className="text-destructive">
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                    </CardContent>
+                  </Card>
+                );
+              })
             )}
           </div>
         </div>
