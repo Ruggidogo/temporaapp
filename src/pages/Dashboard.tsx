@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { ManualEntryDialog } from "@/components/dashboard/ManualEntryDialog";
 import { cn } from "@/lib/utils";
 import { useTimer } from "@/hooks/useTimer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -72,6 +73,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [manualDialogOpen, setManualDialogOpen] = useState(false);
+  const [savingManual, setSavingManual] = useState(false);
 
   const selectedClient = clients.find((c) => c.id === timer.clientId) || null;
 
@@ -147,6 +150,59 @@ export default function Dashboard() {
       timer.start(timer.clientId, timer.description);
     }
   }, [timer]);
+
+  const handleManualEntry = async (data: {
+    date: Date;
+    startTime: string;
+    endTime: string;
+    clientId: string | null;
+    description: string;
+  }) => {
+    if (!user) return;
+    setSavingManual(true);
+
+    try {
+      const dateStr = data.date.toISOString().split("T")[0];
+      const [startH, startM] = data.startTime.split(":").map(Number);
+      const [endH, endM] = data.endTime.split(":").map(Number);
+
+      const startDate = new Date(data.date);
+      startDate.setHours(startH, startM, 0, 0);
+
+      const endDate = new Date(data.date);
+      endDate.setHours(endH, endM, 0, 0);
+
+      const durationSeconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
+
+      const { error } = await supabase.from("time_entries").insert({
+        user_id: user.id,
+        client_id: data.clientId,
+        description: data.description || null,
+        date: dateStr,
+        start_time: startDate.toISOString(),
+        end_time: endDate.toISOString(),
+        duration_seconds: durationSeconds,
+        entry_type: "manual",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Salvato",
+        description: "Voce inserita con successo",
+      });
+      setManualDialogOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSavingManual(false);
+    }
+  };
 
   const handleDeleteEntry = async (entryId: string) => {
     if (!user) return;
@@ -323,7 +379,12 @@ export default function Dashboard() {
                     </>
                   )}
                 </Button>
-                <Button variant="timer-manual" size="lg" disabled>
+                <Button
+                  variant="timer-manual"
+                  size="lg"
+                  onClick={() => setManualDialogOpen(true)}
+                  disabled={timer.isRunning}
+                >
                   <Clock className="w-5 h-5" />
                   Manuale
                 </Button>
@@ -451,6 +512,15 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* Manual Entry Dialog */}
+        <ManualEntryDialog
+          open={manualDialogOpen}
+          onOpenChange={setManualDialogOpen}
+          onSubmit={handleManualEntry}
+          clients={clients}
+          isLoading={savingManual}
+        />
       </div>
     </DashboardLayout>
   );
