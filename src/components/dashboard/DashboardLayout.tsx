@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
@@ -14,6 +14,9 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -31,6 +34,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, profile } = useAuth();
+
+  const trialDaysRemaining = useMemo(() => {
+    if (!profile?.trial_ends_at) return null;
+    const now = new Date();
+    const trialEnd = new Date(profile.trial_ends_at);
+    const diffMs = trialEnd.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  }, [profile?.trial_ends_at]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen flex bg-muted/30">
@@ -82,11 +101,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </nav>
 
         {/* Trial badge */}
-        {sidebarOpen && (
+        {sidebarOpen && profile?.plan === "trial" && trialDaysRemaining !== null && (
           <div className="p-4 border-t">
-            <div className="px-3 py-2 rounded-lg bg-warning/10 text-warning text-xs">
+            <div className={cn(
+              "px-3 py-2 rounded-lg text-xs",
+              trialDaysRemaining <= 3 
+                ? "bg-destructive/10 text-destructive" 
+                : "bg-warning/10 text-warning"
+            )}>
               <p className="font-medium">Trial gratuito</p>
-              <p className="text-warning/80">12 giorni rimanenti</p>
+              <p className={trialDaysRemaining <= 3 ? "text-destructive/80" : "text-warning/80"}>
+                {trialDaysRemaining === 0 
+                  ? "Scade oggi!" 
+                  : trialDaysRemaining === 1 
+                    ? "1 giorno rimanente" 
+                    : `${trialDaysRemaining} giorni rimanenti`}
+              </p>
             </div>
           </div>
         )}
@@ -95,16 +125,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="p-4 border-t">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-medium text-primary">M</span>
+              <span className="text-sm font-medium text-primary">
+                {profile?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
+              </span>
             </div>
             {sidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Mario Rossi</p>
-                <p className="text-xs text-muted-foreground truncate">mario@esempio.com</p>
+                <p className="text-sm font-medium truncate">{profile?.name || "Utente"}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
             )}
             {sidebarOpen && (
-              <Button variant="ghost" size="icon-sm">
+              <Button variant="ghost" size="icon-sm" onClick={handleLogout}>
                 <LogOut className="w-4 h-4" />
               </Button>
             )}
