@@ -7,6 +7,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useScrollAnimation, useScrollAnimationGroup } from "@/hooks/useScrollAnimation";
+import { useParallax } from "@/hooks/useParallax";
 
 const features = [
   {
@@ -65,11 +66,35 @@ export function FeaturesSection() {
   const { ref: featuresRef, isVisible: featuresVisible, getItemStyle } = useScrollAnimationGroup(features.length, 100);
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation();
 
+  // Parallax effects
+  const parallaxSlow = useParallax({ speed: 0.1, direction: "up" });
+  const parallaxMedium = useParallax({ speed: 0.18, direction: "down" });
+
   return (
     <section className="py-28 md:py-36 bg-gradient-to-b from-muted/30 via-muted/50 to-background relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-1/4 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
+      {/* Background decoration with parallax */}
+      <div 
+        className="absolute top-1/4 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxSlow}px)` }}
+      />
+      <div 
+        className="absolute bottom-1/4 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxMedium}px)` }}
+      />
+
+      {/* Floating shapes with parallax */}
+      <div 
+        className="absolute top-20 left-[5%] w-24 h-24 rounded-full border border-primary/10 hidden lg:block transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxSlow * 2}px) rotate(${parallaxSlow * 0.1}deg)` }}
+      />
+      <div 
+        className="absolute top-1/2 right-[8%] w-16 h-16 rounded-xl border border-purple-500/10 hidden lg:block transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxMedium * 1.5}px) rotate(${-parallaxMedium * 0.15}deg)` }}
+      />
+      <div 
+        className="absolute bottom-32 left-[12%] w-20 h-20 rounded-2xl border border-emerald-500/10 hidden lg:block transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxSlow * 1.8}px) rotate(${parallaxSlow * 0.08}deg)` }}
+      />
       
       <div className="container relative">
         <div 
