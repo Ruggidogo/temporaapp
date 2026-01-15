@@ -33,6 +33,7 @@ import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { EditEntryDialog } from "@/components/timesheet/EditEntryDialog";
 import { DeleteEntryDialog } from "@/components/timesheet/DeleteEntryDialog";
+import { ExportMenu } from "@/components/timesheet/ExportMenu";
 
 interface Client {
   id: string;
@@ -71,7 +72,7 @@ function formatTimeOfDay(isoString: string): string {
 }
 
 export default function Timesheet() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clients, setClients] = useState<Client[]>([]);
@@ -337,6 +338,14 @@ export default function Timesheet() {
                 ))}
               </SelectContent>
             </Select>
+            <ExportMenu
+              entries={entries}
+              clients={clients}
+              dateRange={dateRange}
+              userName={profile?.name || user?.email || "Utente"}
+              logoUrl={(profile as any)?.logo_url}
+              selectedClientId={selectedClient}
+            />
           </div>
         </div>
 

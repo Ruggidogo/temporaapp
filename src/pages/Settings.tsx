@@ -6,17 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { User, Briefcase, Users, Save, LogOut } from "lucide-react";
+import { User, Briefcase, Users, Save, LogOut, FileText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { LogoUpload } from "@/components/settings/LogoUpload";
 
 export default function Settings() {
   const { user, profile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [workType, setWorkType] = useState<"freelancer" | "team">("freelancer");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
 
@@ -24,6 +26,7 @@ export default function Settings() {
     if (profile) {
       setName(profile.name || "");
       setWorkType((profile.work_type as "freelancer" | "team") || "freelancer");
+      setLogoUrl((profile as any).logo_url || null);
     }
   }, [profile]);
 
@@ -189,6 +192,31 @@ export default function Settings() {
                 <Save className="w-4 h-4 mr-2" />
                 {loading ? "Salvataggio..." : "Salva modifiche"}
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Export Settings Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Esportazione
+              </CardTitle>
+              <CardDescription>
+                Personalizza i tuoi documenti esportati
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {user && (
+                <LogoUpload
+                  userId={user.id}
+                  currentLogoUrl={logoUrl}
+                  onLogoChange={(url) => {
+                    setLogoUrl(url);
+                    refreshProfile();
+                  }}
+                />
+              )}
             </CardContent>
           </Card>
 
