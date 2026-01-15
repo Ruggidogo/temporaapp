@@ -88,6 +88,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
+          logo_url: string | null
           name: string | null
           onboarding_completed: boolean
           plan: string
@@ -101,6 +102,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          logo_url?: string | null
           name?: string | null
           onboarding_completed?: boolean
           plan?: string
@@ -114,6 +116,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          logo_url?: string | null
           name?: string | null
           onboarding_completed?: boolean
           plan?: string
