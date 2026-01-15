@@ -59,6 +59,8 @@ function generatePdf(
   clientTotals: Record<string, { name: string; color: string; seconds: number; value: number }>,
   totalSeconds: number,
   totalValue: number,
+  timeEntries: TimeEntry[],
+  clientsMap: Record<string, Client>,
   selectedClientName?: string
 ): string {
   const doc = new jsPDF();
@@ -120,26 +122,26 @@ function generatePdf(
   doc.setTextColor(100, 116, 139);
   doc.text("Valore totale", 150, yPos + 28, { align: "center" });
   
-  // Table
+  // Client summary table
   yPos += 50;
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Dettaglio per cliente", 20, yPos);
+  doc.text("Riepilogo per cliente", 20, yPos);
   
   yPos += 8;
   
-  const tableData = Object.values(clientTotals)
+  const clientTableData = Object.values(clientTotals)
     .sort((a, b) => b.seconds - a.seconds)
     .map(c => [c.name, formatDuration(c.seconds), `€${c.value.toFixed(2)}`]);
   
   // Add total row
-  tableData.push(["Totale", formatDuration(totalSeconds), `€${totalValue.toFixed(2)}`]);
+  clientTableData.push(["Totale", formatDuration(totalSeconds), `€${totalValue.toFixed(2)}`]);
   
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: yPos,
     head: [['Cliente', 'Ore', 'Valore']],
-    body: tableData,
+    body: clientTableData,
     theme: 'grid',
     headStyles: {
       fillColor: [248, 250, 252],
@@ -150,30 +152,92 @@ function generatePdf(
     bodyStyles: {
       fontSize: 10,
     },
-    footStyles: {
-      fillColor: [240, 244, 255],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold',
-    },
     columnStyles: {
       0: { cellWidth: 90 },
       1: { cellWidth: 45, halign: 'right' },
       2: { cellWidth: 45, halign: 'right' },
     },
     didParseCell: function(data: any) {
-      // Make last row (totals) bold
-      if (data.row.index === tableData.length - 1) {
+      if (data.row.index === clientTableData.length - 1) {
         data.cell.styles.fontStyle = 'bold';
         data.cell.styles.fillColor = [240, 244, 255];
       }
     },
   });
   
+  // Detailed activities table
+  let detailY = (doc as any).lastAutoTable.finalY + 15;
+  
+  // Check if we need a new page
+  if (detailY > 250) {
+    doc.addPage();
+    detailY = 20;
+  }
+  
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("Dettaglio attività", 20, detailY);
+  
+  detailY += 8;
+  
+  // Prepare detailed entries data
+  const detailedData = timeEntries
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(entry => {
+      const client = entry.client_id ? clientsMap[entry.client_id] : null;
+      const clientName = client?.name || "Senza cliente";
+      const description = entry.description || "-";
+      const truncatedDesc = description.length > 40 ? description.substring(0, 37) + "..." : description;
+      return [
+        formatDate(entry.date),
+        clientName,
+        truncatedDesc,
+        formatDuration(entry.duration_seconds || 0)
+      ];
+    });
+  
+  autoTable(doc, {
+    startY: detailY,
+    head: [['Data', 'Cliente', 'Descrizione', 'Durata']],
+    body: detailedData,
+    theme: 'striped',
+    headStyles: {
+      fillColor: [99, 102, 241],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 9,
+    },
+    bodyStyles: {
+      fontSize: 9,
+    },
+    columnStyles: {
+      0: { cellWidth: 30 },
+      1: { cellWidth: 40 },
+      2: { cellWidth: 80 },
+      3: { cellWidth: 25, halign: 'right' },
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252],
+    },
+    margin: { left: 20, right: 20 },
+  });
+  
   // Footer
-  const finalY = (doc as any).lastAutoTable.finalY + 20;
-  doc.setFontSize(10);
-  doc.setTextColor(148, 163, 184);
-  doc.text("Report generato con Tempora", 105, finalY, { align: "center" });
+  const finalY = (doc as any).lastAutoTable.finalY + 15;
+  
+  // Check if footer fits on current page
+  const pageHeight = doc.internal.pageSize.height;
+  if (finalY > pageHeight - 20) {
+    doc.addPage();
+    doc.setFontSize(10);
+    doc.setTextColor(148, 163, 184);
+    doc.text("Report generato con Tempora", 105, 20, { align: "center" });
+  } else {
+    doc.setFontSize(10);
+    doc.setTextColor(148, 163, 184);
+    doc.text("Report generato con Tempora", 105, finalY, { align: "center" });
+  }
   
   // Return base64 string
   return doc.output('datauristring').split(',')[1];
@@ -379,6 +443,8 @@ const handler = async (req: Request): Promise<Response> => {
           clientTotals,
           totalSeconds,
           totalValue,
+          timeEntries,
+          clientsMap,
           selectedClient?.name
         );
         
