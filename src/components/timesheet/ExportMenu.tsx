@@ -6,9 +6,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
-import { exportToCSV, exportToPDF } from "@/lib/export-timesheet";
+import { Download, FileText, FileSpreadsheet } from "lucide-react";
+import { exportToCSV } from "@/lib/export-timesheet";
 import { toast } from "@/hooks/use-toast";
+import { ExportPDFDialog } from "./ExportPDFDialog";
 
 interface Client {
   id: string;
@@ -44,7 +45,7 @@ export function ExportMenu({
   logoUrl,
   selectedClientId,
 }: ExportMenuProps) {
-  const [exporting, setExporting] = useState(false);
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
 
   const handleExportCSV = () => {
     if (entries.length === 0) {
@@ -71,7 +72,7 @@ export function ExportMenu({
     });
   };
 
-  const handleExportPDF = async () => {
+  const handleOpenPDFDialog = () => {
     if (entries.length === 0) {
       toast({
         title: "Nessun dato",
@@ -80,56 +81,39 @@ export function ExportMenu({
       });
       return;
     }
-
-    setExporting(true);
-
-    try {
-      await exportToPDF({
-        entries,
-        clients,
-        dateRange,
-        userName,
-        logoUrl,
-        selectedClientId,
-      });
-
-      toast({
-        title: "PDF esportato",
-        description: "Il file è stato scaricato con successo.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante l'esportazione.",
-        variant: "destructive",
-      });
-    } finally {
-      setExporting(false);
-    }
+    setPdfDialogOpen(true);
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" disabled={exporting}>
-          {exporting ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
-          )}
-          Esporta
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleExportPDF} disabled={exporting}>
-          <FileText className="w-4 h-4 mr-2" />
-          Esporta PDF
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleExportCSV}>
-          <FileSpreadsheet className="w-4 h-4 mr-2" />
-          Esporta CSV
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+            Esporta
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={handleOpenPDFDialog}>
+            <FileText className="w-4 h-4 mr-2" />
+            Esporta PDF
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleExportCSV}>
+            <FileSpreadsheet className="w-4 h-4 mr-2" />
+            Esporta CSV
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ExportPDFDialog
+        open={pdfDialogOpen}
+        onOpenChange={setPdfDialogOpen}
+        entries={entries}
+        clients={clients}
+        dateRange={dateRange}
+        userName={userName}
+        logoUrl={logoUrl}
+      />
+    </>
   );
 }
