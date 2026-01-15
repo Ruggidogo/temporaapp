@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import temporaLogoLight from "@/assets/tempora-logo-light.svg";
 import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
 import temporaIcon from "@/assets/tempora-icon.svg";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -173,14 +174,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             )}
             {sidebarOpen && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleLogout}
-                className="hover:bg-destructive/10 hover:text-destructive rounded-xl"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <ThemeToggle />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleLogout}
+                  className="hover:bg-destructive/10 hover:text-destructive rounded-xl"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -200,14 +204,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             className="h-9 hidden dark:block"
           />
         </Link>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="rounded-xl"
-        >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="rounded-xl"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
       </div>
 
       {/* Mobile menu */}
