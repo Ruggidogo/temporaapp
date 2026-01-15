@@ -1,63 +1,84 @@
 import { Link } from "react-router-dom";
-import { Clock, Heart } from "lucide-react";
+import { Heart, Twitter, Linkedin, Github } from "lucide-react";
+import temporaLogo from "@/assets/tempora-logo-light.svg";
+import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
 
 export function Footer() {
+  const socialLinks = [
+    { icon: Twitter, href: "#", label: "Twitter" },
+    { icon: Linkedin, href: "#", label: "LinkedIn" },
+    { icon: Github, href: "#", label: "GitHub" },
+  ];
+
+  const footerLinks = {
+    Prodotto: ["Funzionalità", "Prezzi", "Integrazioni", "Roadmap"],
+    Risorse: ["Blog", "Guide", "Supporto", "API Docs"],
+    Legale: ["Privacy", "Termini", "Cookie"],
+  };
+
   return (
-    <footer className="border-t bg-muted/30">
-      <div className="container py-12 md:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <footer className="border-t border-border/50 bg-gradient-to-b from-background to-muted/30">
+      <div className="container py-16 md:py-20">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 font-bold text-xl mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(285_80%_55%)] flex items-center justify-center">
-                <Clock className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span>Tempora</span>
+          <div className="col-span-2">
+            <Link to="/" className="inline-block mb-6 group">
+              <img 
+                src={temporaLogo} 
+                alt="Tempora" 
+                className="h-8 dark:hidden transition-transform group-hover:scale-105"
+              />
+              <img 
+                src={temporaLogoDark} 
+                alt="Tempora" 
+                className="h-8 hidden dark:block transition-transform group-hover:scale-105"
+              />
             </Link>
-            <p className="text-sm text-muted-foreground">
-              Time tracking semplice e bello per freelancer e team.
+            <p className="text-muted-foreground mb-6 max-w-xs leading-relaxed">
+              Time tracking semplice e bello per freelancer e team che vogliono lavorare meglio.
             </p>
+            <div className="flex gap-3">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  aria-label={social.label}
+                  className="w-10 h-10 rounded-xl bg-muted/50 border border-border/50 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border transition-all duration-200"
+                >
+                  <social.icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
           </div>
 
-          {/* Product */}
-          <div>
-            <h4 className="font-semibold mb-4">Prodotto</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/" className="hover:text-foreground transition-colors">Funzionalità</Link></li>
-              <li><Link to="/" className="hover:text-foreground transition-colors">Prezzi</Link></li>
-              <li><Link to="/" className="hover:text-foreground transition-colors">Integrazioni</Link></li>
-              <li><Link to="/" className="hover:text-foreground transition-colors">Roadmap</Link></li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h4 className="font-semibold mb-4">Risorse</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/" className="hover:text-foreground transition-colors">Blog</Link></li>
-              <li><Link to="/" className="hover:text-foreground transition-colors">Guide</Link></li>
-              <li><Link to="/" className="hover:text-foreground transition-colors">Supporto</Link></li>
-              <li><Link to="/" className="hover:text-foreground transition-colors">API Docs</Link></li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="font-semibold mb-4">Legale</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/" className="hover:text-foreground transition-colors">Privacy</Link></li>
-              <li><Link to="/" className="hover:text-foreground transition-colors">Termini</Link></li>
-              <li><Link to="/" className="hover:text-foreground transition-colors">Cookie</Link></li>
-            </ul>
-          </div>
+          {/* Links */}
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title}>
+              <h4 className="font-semibold mb-5 text-foreground">{title}</h4>
+              <ul className="space-y-3">
+                {links.map((link) => (
+                  <li key={link}>
+                    <Link 
+                      to="/" 
+                      className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm"
+                    >
+                      {link}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-12 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-16 pt-8 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             © 2026 Tempora. Tutti i diritti riservati.
           </p>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            Fatto con <Heart className="w-4 h-4 text-destructive fill-current" /> in Italia
+          <p className="text-sm text-muted-foreground flex items-center gap-2">
+            Fatto con 
+            <Heart className="w-4 h-4 text-red-500 fill-current animate-pulse" /> 
+            in Italia
           </p>
         </div>
       </div>

@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { 
   Timer, 
   Users, 
@@ -6,8 +5,6 @@ import {
   FileText, 
   Palette, 
   Zap,
-  Clock,
-  Target
 } from "lucide-react";
 
 const features = [
@@ -15,57 +12,61 @@ const features = [
     icon: Timer,
     title: "Timer con un click",
     description: "Inizia a tracciare in un secondo. Stop. È tutto qui.",
-    color: "text-client-violet",
-    bgColor: "bg-client-violet/10",
+    gradient: "from-violet-500 to-purple-600",
+    shadowColor: "shadow-violet-500/25",
   },
   {
     icon: Users,
     title: "Gestione clienti",
     description: "Organizza i tuoi clienti con colori distintivi e tariffe orarie.",
-    color: "text-client-blue",
-    bgColor: "bg-client-blue/10",
+    gradient: "from-blue-500 to-cyan-500",
+    shadowColor: "shadow-blue-500/25",
   },
   {
     icon: BarChart3,
     title: "Report intelligenti",
     description: "Visualizza dove va il tuo tempo con grafici interattivi.",
-    color: "text-client-emerald",
-    bgColor: "bg-client-emerald/10",
+    gradient: "from-emerald-500 to-teal-500",
+    shadowColor: "shadow-emerald-500/25",
   },
   {
     icon: FileText,
     title: "Export professionale",
     description: "PDF brandizzati pronti da inviare ai tuoi clienti.",
-    color: "text-client-orange",
-    bgColor: "bg-client-orange/10",
+    gradient: "from-orange-500 to-amber-500",
+    shadowColor: "shadow-orange-500/25",
   },
   {
     icon: Palette,
     title: "Design delightful",
     description: "Un'interfaccia che è un piacere usare ogni giorno.",
-    color: "text-client-pink",
-    bgColor: "bg-client-pink/10",
+    gradient: "from-pink-500 to-rose-500",
+    shadowColor: "shadow-pink-500/25",
   },
   {
     icon: Zap,
     title: "Veloce come te",
     description: "Shortcut tastiera e azioni rapide per i power user.",
-    color: "text-client-amber",
-    bgColor: "bg-client-amber/10",
+    gradient: "from-amber-500 to-yellow-500",
+    shadowColor: "shadow-amber-500/25",
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section className="py-24 md:py-32 bg-muted/30">
-      <div className="container">
-        <div className="text-center max-w-2xl mx-auto mb-16 animate-fade-in">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+    <section className="py-28 md:py-36 bg-gradient-to-b from-muted/30 via-muted/50 to-background relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-1/4 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
+      
+      <div className="container relative">
+        <div className="text-center max-w-3xl mx-auto mb-20">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 animate-fade-in">
             Tutto quello che serve.
             <br />
             <span className="text-muted-foreground">Niente di più.</span>
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '100ms' }}>
             Tempora è progettato per essere semplice ma potente. 
             Ogni funzionalità è pensata per farti risparmiare tempo.
           </p>
@@ -73,25 +74,27 @@ export function FeaturesSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <Card 
+            <div 
               key={feature.title} 
-              variant="feature"
-              className="group animate-fade-in"
+              className="group relative animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <CardContent className="p-6">
-                <div className={`inline-flex p-3 rounded-xl ${feature.bgColor} mb-4 transition-transform group-hover:scale-110`}>
-                  <feature.icon className={`w-6 h-6 ${feature.color}`} />
+              {/* Hover glow */}
+              <div className={`absolute -inset-0.5 bg-gradient-to-r ${feature.gradient} rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
+              
+              <div className="relative h-full p-8 rounded-2xl border border-border/50 bg-gradient-to-b from-card to-card/50 backdrop-blur-sm hover:border-border transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                <div className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${feature.gradient} mb-6 shadow-lg ${feature.shadowColor} transition-transform group-hover:scale-110 duration-300`}>
+                  <feature.icon className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </CardContent>
-            </Card>
+                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+              </div>
+            </div>
           ))}
         </div>
 
         {/* Stats */}
-        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8">
           {[
             { value: "2s", label: "per iniziare a tracciare" },
             { value: "14", label: "giorni di prova gratuita" },
@@ -100,13 +103,13 @@ export function FeaturesSection() {
           ].map((stat, index) => (
             <div 
               key={stat.label} 
-              className="text-center animate-fade-in"
+              className="text-center p-6 rounded-2xl bg-gradient-to-b from-card/50 to-transparent border border-border/30 animate-fade-in hover:border-border/50 transition-colors"
               style={{ animationDelay: `${(index + 6) * 100}ms` }}
             >
-              <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">
+              <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent mb-3">
                 {stat.value}
               </div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
+              <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
             </div>
           ))}
         </div>
