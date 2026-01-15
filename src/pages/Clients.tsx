@@ -10,7 +10,8 @@ import {
   Pencil,
   Trash2,
   Users,
-  Loader2
+  Loader2,
+  Mail
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ import {
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ClientDialog, ClientFormData } from "@/components/clients/ClientDialog";
 import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
+import { SendReportDialog } from "@/components/reports/SendReportDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -42,7 +44,9 @@ export default function Clients() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [reportClientId, setReportClientId] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -275,6 +279,16 @@ export default function Clients() {
                         Modifica
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        onClick={() => {
+                          setReportClientId(client.id);
+                          setReportDialogOpen(true);
+                        }}
+                        className="rounded-lg"
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Invia report
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={() => openDeleteDialog(client)}
                         className="text-destructive focus:text-destructive rounded-lg"
                       >
@@ -368,6 +382,17 @@ export default function Clients() {
         onConfirm={handleDelete}
         clientName={selectedClient?.name || ""}
         isLoading={saving}
+      />
+
+      {/* Send Report Dialog */}
+      <SendReportDialog
+        open={reportDialogOpen}
+        onOpenChange={(open) => {
+          setReportDialogOpen(open);
+          if (!open) setReportClientId(undefined);
+        }}
+        clients={clients}
+        defaultClientId={reportClientId}
       />
     </DashboardLayout>
   );
