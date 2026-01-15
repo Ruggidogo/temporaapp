@@ -1,0 +1,41 @@
+<svg width="280" height="80" viewBox="0 0 280 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="50%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+    <linearGradient id="innerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#C084FC"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Icon -->
+  <g transform="translate(0, 0)">
+    <!-- Outer Ring -->
+    <circle cx="40" cy="40" r="37" stroke="url(#logoGradient)" stroke-width="3" fill="none"/>
+    
+    <!-- Inner Circle -->
+    <circle cx="40" cy="40" r="29" fill="url(#logoGradient)" fill-opacity="0.1"/>
+    
+    <!-- Clock Marks -->
+    <circle cx="40" cy="12" r="3" fill="url(#logoGradient)"/>
+    <circle cx="68" cy="40" r="3" fill="url(#logoGradient)"/>
+    <circle cx="40" cy="68" r="3" fill="url(#logoGradient)"/>
+    <circle cx="12" cy="40" r="3" fill="url(#logoGradient)"/>
+    
+    <!-- Hour Hand -->
+    <line x1="40" y1="40" x2="40" y2="21" stroke="url(#logoGradient)" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Minute Hand -->
+    <line x1="40" y1="40" x2="57" y2="30" stroke="url(#innerGradient)" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Center Dot -->
+    <circle cx="40" cy="40" r="5" fill="url(#logoGradient)"/>
+    <circle cx="40" cy="40" r="2.5" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- Wordmark -->
+  <text x="95" y="52" font-family="Outfit, -apple-system, BlinkMacSystemFont, sans-serif" font-size="36" font-weight="700" letter-spacing="-0.02em" fill="#0A0A0B">Tempora</text>
+</svg>

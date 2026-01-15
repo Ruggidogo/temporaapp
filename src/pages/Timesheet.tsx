@@ -308,22 +308,22 @@ export default function Timesheet() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
+      <div className="p-6 lg:p-8 max-w-6xl mx-auto space-y-6 animate-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Timesheet</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold tracking-tight">Timesheet</h1>
+            <p className="text-muted-foreground mt-1">
               Visualizza le tue registrazioni orarie
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Select value={selectedClient} onValueChange={setSelectedClient}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card/50">
                 <SelectValue placeholder="Filtra cliente" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="all">Tutti i clienti</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
@@ -350,51 +350,48 @@ export default function Timesheet() {
         </div>
 
         {/* Navigation */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="week">Settimana</SelectItem>
-                    <SelectItem value="month">Mese</SelectItem>
-                  </SelectContent>
-                </Select>
+        <div className="card-premium p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                <SelectTrigger className="w-[140px] rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="week">Settimana</SelectItem>
+                  <SelectItem value="month">Mese</SelectItem>
+                </SelectContent>
+              </Select>
 
-                <Button variant="outline" size="sm" onClick={goToToday}>
-                  Oggi
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={navigatePrevious}>
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <span className="text-sm font-medium min-w-[180px] text-center capitalize">
-                  {periodLabel}
-                </span>
-                <Button variant="outline" size="icon" onClick={navigateNext}>
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Totale:</span>
-                <span className="font-semibold">{formatDuration(totalSeconds)}</span>
-              </div>
+              <Button variant="outline" size="sm" onClick={goToToday} className="rounded-xl">
+                Oggi
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="icon" onClick={navigatePrevious} className="rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/30">
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-semibold min-w-[200px] text-center capitalize px-4 py-2 bg-muted/50 rounded-xl">
+                {periodLabel}
+              </span>
+              <Button variant="outline" size="icon" onClick={navigateNext} className="rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/30">
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl border border-primary/20">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-sm text-muted-foreground">Totale:</span>
+              <span className="font-bold text-primary">{formatDuration(totalSeconds)}</span>
+            </div>
+          </div>
+        </div>
 
         {/* Timesheet Grid */}
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
+        <div className="card-premium overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[140px]">Giorno</TableHead>
@@ -512,54 +509,49 @@ export default function Timesheet() {
                 </TableBody>
               </Table>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
         {/* Summary by client */}
         {selectedClient === "all" && clients.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Riepilogo per cliente</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {clients.map((client) => {
-                  const clientTotal = entries
-                    .filter((e) => e.client_id === client.id)
-                    .reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
-                  
-                  if (clientTotal === 0) return null;
-                  
-                  const percentage = totalSeconds > 0 
-                    ? Math.round((clientTotal / totalSeconds) * 100) 
-                    : 0;
+          <div className="card-premium p-6">
+            <h3 className="text-lg font-semibold mb-4">Riepilogo per cliente</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {clients.map((client) => {
+                const clientTotal = entries
+                  .filter((e) => e.client_id === client.id)
+                  .reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+                
+                if (clientTotal === 0) return null;
+                
+                const percentage = totalSeconds > 0 
+                  ? Math.round((clientTotal / totalSeconds) * 100) 
+                  : 0;
 
-                  return (
-                    <div
-                      key={client.id}
-                      className="p-4 rounded-lg border bg-card"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: client.color }}
-                        />
-                        <span className="font-medium text-sm truncate">
-                          {client.name}
-                        </span>
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {formatDuration(clientTotal)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {percentage}% del totale
-                      </div>
+                return (
+                  <div
+                    key={client.id}
+                    className="p-4 rounded-2xl border bg-gradient-to-br from-card to-muted/30 hover-lift"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: client.color }}
+                      />
+                      <span className="font-semibold text-sm truncate">
+                        {client.name}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                    <div className="text-2xl font-bold text-gradient">
+                      {formatDuration(clientTotal)}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {percentage}% del totale
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* Edit Entry Dialog */}
