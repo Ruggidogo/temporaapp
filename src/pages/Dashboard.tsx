@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ManualEntryDialog } from "@/components/dashboard/ManualEntryDialog";
+import { TrialBanner } from "@/components/dashboard/TrialBanner";
 import { cn } from "@/lib/utils";
 import { useTimer } from "@/hooks/useTimer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -250,6 +251,8 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-8 animate-in">
+        {/* Trial Banner */}
+        <TrialBanner />
         {/* Timer Card - Premium Design */}
         <div
           className={cn(

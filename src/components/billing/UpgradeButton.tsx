@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonProps } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Crown, Loader2, Sparkles, Check, ExternalLink } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
-interface UpgradeButtonProps {
-  variant?: "default" | "compact" | "banner";
-  className?: string;
+interface UpgradeButtonProps extends Omit<ButtonProps, 'onClick' | 'variant'> {
+  upgradeVariant?: "default" | "compact" | "banner";
+  children?: React.ReactNode;
 }
 
-export function UpgradeButton({ variant = "default", className }: UpgradeButtonProps) {
+export function UpgradeButton({ upgradeVariant = "default", className, size, children, ...props }: UpgradeButtonProps) {
   const [loading, setLoading] = useState(false);
   const { subscription } = useAuth();
 
@@ -61,7 +61,7 @@ export function UpgradeButton({ variant = "default", className }: UpgradeButtonP
 
   // If already subscribed, show manage button
   if (subscription.subscribed) {
-    if (variant === "compact") {
+    if (upgradeVariant === "compact") {
       return (
         <Button
           variant="outline"
@@ -101,7 +101,7 @@ export function UpgradeButton({ variant = "default", className }: UpgradeButtonP
   }
 
   // Upgrade button variants
-  if (variant === "compact") {
+  if (upgradeVariant === "compact") {
     return (
       <Button
         size="sm"
@@ -124,7 +124,7 @@ export function UpgradeButton({ variant = "default", className }: UpgradeButtonP
     );
   }
 
-  if (variant === "banner") {
+  if (upgradeVariant === "banner") {
     return (
       <div className={cn("relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 p-6", className)}>
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -164,17 +164,23 @@ export function UpgradeButton({ variant = "default", className }: UpgradeButtonP
     <Button
       onClick={handleUpgrade}
       disabled={loading}
+      size={size}
       className={cn(
         "bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25",
         className
       )}
+      {...props}
     >
       {loading ? (
         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      ) : children ? (
+        children
       ) : (
-        <Crown className="w-4 h-4 mr-2" />
+        <>
+          <Crown className="w-4 h-4 mr-2" />
+          Passa a Pro
+        </>
       )}
-      Passa a Pro
     </Button>
   );
 }
