@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -392,124 +391,125 @@ export default function Timesheet() {
         <div className="card-premium overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[140px]">Giorno</TableHead>
-                    <TableHead>Attività</TableHead>
-                    <TableHead className="w-[100px] text-right">Totale</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {days.map((day) => {
-                    const dateKey = format(day, "yyyy-MM-dd");
-                    const dayEntries = entriesByDay.get(dateKey) || [];
-                    const dayTotal = totalByDay.get(dateKey) || 0;
-                    const isToday = isSameDay(day, new Date());
-                    const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[140px]">Giorno</TableHead>
+                  <TableHead>Attività</TableHead>
+                  <TableHead className="w-[100px] text-right">Totale</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {days.map((day) => {
+                  const dateKey = format(day, "yyyy-MM-dd");
+                  const dayEntries = entriesByDay.get(dateKey) || [];
+                  const dayTotal = totalByDay.get(dateKey) || 0;
+                  const isToday = isSameDay(day, new Date());
+                  const isWeekend = day.getDay() === 0 || day.getDay() === 6;
 
-                    return (
-                      <TableRow
-                        key={dateKey}
-                        className={cn(
-                          isToday && "bg-primary/5",
-                          isWeekend && !isToday && "bg-muted/30"
-                        )}
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex flex-col">
-                            <span className={cn(
-                              "capitalize",
-                              isToday && "text-primary font-semibold"
-                            )}>
-                              {format(day, "EEEE", { locale: it })}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {format(day, "d MMMM", { locale: it })}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {dayEntries.length === 0 ? (
-                            <span className="text-muted-foreground text-sm">-</span>
-                          ) : (
-                            <div className="space-y-2">
-                              {dayEntries.map((entry) => {
-                                const client = getClientById(entry.client_id);
-                                return (
-                                  <div
-                                    key={entry.id}
-                                    className="flex items-center gap-3 py-1 group"
-                                  >
-                                    <div
-                                      className="w-2 h-2 rounded-full flex-shrink-0"
-                                      style={{
-                                        backgroundColor: client?.color || "#94a3b8",
-                                      }}
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-sm font-medium">
-                                          {client?.name || "Senza cliente"}
-                                        </span>
-                                        <Badge variant="outline" className="text-xs">
-                                          {formatDuration(entry.duration_seconds || 0)}
-                                        </Badge>
-                                      </div>
-                                      {entry.description && (
-                                        <p className="text-xs text-muted-foreground truncate">
-                                          {entry.description}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                      {formatTimeOfDay(entry.start_time)}
-                                      {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
-                                    </span>
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                          <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
-                                          <Pencil className="h-4 w-4 mr-2" />
-                                          Modifica
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() => setDeletingEntry(entry)}
-                                          className="text-destructive focus:text-destructive"
-                                        >
-                                          <Trash2 className="h-4 w-4 mr-2" />
-                                          Elimina
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
+                  return (
+                    <TableRow
+                      key={dateKey}
+                      className={cn(
+                        "transition-colors",
+                        isToday && "bg-primary/5",
+                        isWeekend && !isToday && "bg-muted/30"
+                      )}
+                    >
+                      <TableCell className="font-medium">
+                        <div className="flex flex-col">
                           <span className={cn(
-                            "font-medium",
-                            dayTotal > 0 ? "text-foreground" : "text-muted-foreground"
+                            "capitalize font-semibold",
+                            isToday && "text-primary"
                           )}>
-                            {dayTotal > 0 ? formatDuration(dayTotal) : "-"}
+                            {format(day, "EEEE", { locale: it })}
                           </span>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                          <span className="text-xs text-muted-foreground">
+                            {format(day, "d MMMM", { locale: it })}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {dayEntries.length === 0 ? (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        ) : (
+                          <div className="space-y-2">
+                            {dayEntries.map((entry) => {
+                              const client = getClientById(entry.client_id);
+                              return (
+                                <div
+                                  key={entry.id}
+                                  className="flex items-center gap-3 py-1.5 group"
+                                >
+                                  <div
+                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    style={{
+                                      backgroundColor: client?.color || "#94a3b8",
+                                    }}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-medium">
+                                        {client?.name || "Senza cliente"}
+                                      </span>
+                                      <Badge variant="outline" className="text-xs rounded-full">
+                                        {formatDuration(entry.duration_seconds || 0)}
+                                      </Badge>
+                                    </div>
+                                    {entry.description && (
+                                      <p className="text-xs text-muted-foreground truncate">
+                                        {entry.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                    {formatTimeOfDay(entry.start_time)}
+                                    {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
+                                  </span>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"
+                                      >
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="rounded-xl">
+                                      <DropdownMenuItem onClick={() => setEditingEntry(entry)} className="rounded-lg">
+                                        <Pencil className="h-4 w-4 mr-2" />
+                                        Modifica
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => setDeletingEntry(entry)}
+                                        className="text-destructive focus:text-destructive rounded-lg"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Elimina
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className={cn(
+                          "font-semibold",
+                          dayTotal > 0 ? "text-foreground" : "text-muted-foreground"
+                        )}>
+                          {dayTotal > 0 ? formatDuration(dayTotal) : "-"}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
+        </div>
 
         {/* Summary by client */}
         {selectedClient === "all" && clients.length > 0 && (

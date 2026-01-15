@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { User, Briefcase, Users, Save, LogOut, FileText } from "lucide-react";
+import { User, Briefcase, Users, Save, LogOut, FileText, Settings2, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -104,27 +103,30 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-2xl">
+      <div className="p-6 lg:p-8 max-w-2xl mx-auto animate-in">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Impostazioni</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Impostazioni</h1>
           <p className="text-muted-foreground mt-1">
             Gestisci il tuo profilo e le preferenze
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 stagger-children">
           {/* Profile Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Profilo
-              </CardTitle>
-              <CardDescription>
-                Modifica le informazioni del tuo account
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <div className="card-premium p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg">Profilo</h2>
+                <p className="text-sm text-muted-foreground">
+                  Modifica le informazioni del tuo account
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
               {/* Name */}
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
@@ -135,6 +137,7 @@ export default function Settings() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   maxLength={100}
+                  className="rounded-xl h-12 bg-card/50"
                 />
               </div>
 
@@ -146,14 +149,14 @@ export default function Settings() {
                   type="email"
                   value={user?.email || ""}
                   disabled
-                  className="bg-muted"
+                  className="rounded-xl h-12 bg-muted"
                 />
                 <p className="text-xs text-muted-foreground">
                   L'email non può essere modificata
                 </p>
               </div>
 
-              <Separator />
+              <Separator className="my-6" />
 
               {/* Work Type */}
               <div className="space-y-3">
@@ -165,83 +168,102 @@ export default function Settings() {
                 >
                   <Label
                     htmlFor="freelancer"
-                    className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
+                    className="flex items-center gap-4 p-5 border-2 rounded-2xl cursor-pointer hover:bg-muted/50 transition-all has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 has-[[data-state=checked]]:shadow-primary/10 has-[[data-state=checked]]:shadow-lg"
                   >
                     <RadioGroupItem value="freelancer" id="freelancer" />
-                    <Briefcase className="w-5 h-5 text-muted-foreground" />
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Briefcase className="w-5 h-5 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium">Freelancer</p>
+                      <p className="font-semibold">Freelancer</p>
                       <p className="text-xs text-muted-foreground">Lavoro da solo</p>
                     </div>
                   </Label>
                   <Label
                     htmlFor="team"
-                    className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
+                    className="flex items-center gap-4 p-5 border-2 rounded-2xl cursor-pointer hover:bg-muted/50 transition-all has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 has-[[data-state=checked]]:shadow-primary/10 has-[[data-state=checked]]:shadow-lg"
                   >
                     <RadioGroupItem value="team" id="team" />
-                    <Users className="w-5 h-5 text-muted-foreground" />
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-primary" />
+                    </div>
                     <div>
-                      <p className="font-medium">Team</p>
+                      <p className="font-semibold">Team</p>
                       <p className="text-xs text-muted-foreground">Lavoro in squadra</p>
                     </div>
                   </Label>
                 </RadioGroup>
               </div>
 
-              <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto">
-                <Save className="w-4 h-4 mr-2" />
+              <Button 
+                onClick={handleSave} 
+                disabled={loading} 
+                className="btn-gradient rounded-xl h-12"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
                 {loading ? "Salvataggio..." : "Salva modifiche"}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Export Settings Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Esportazione
-              </CardTitle>
-              <CardDescription>
-                Personalizza i tuoi documenti esportati
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {user && (
-                <LogoUpload
-                  userId={user.id}
-                  currentLogoUrl={logoUrl}
-                  onLogoChange={(url) => {
-                    setLogoUrl(url);
-                    refreshProfile();
-                  }}
-                />
-              )}
-            </CardContent>
-          </Card>
+          <div className="card-premium p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-success/20 to-emerald-500/20 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-success" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg">Esportazione</h2>
+                <p className="text-sm text-muted-foreground">
+                  Personalizza i tuoi documenti esportati
+                </p>
+              </div>
+            </div>
+            
+            {user && (
+              <LogoUpload
+                userId={user.id}
+                currentLogoUrl={logoUrl}
+                onLogoChange={(url) => {
+                  setLogoUrl(url);
+                  refreshProfile();
+                }}
+              />
+            )}
+          </div>
 
-          {/* Account Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-destructive flex items-center gap-2">
-                <LogOut className="w-5 h-5" />
-                Sessione
-              </CardTitle>
-              <CardDescription>
-                Gestisci la tua sessione attiva
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                variant="destructive"
-                onClick={handleLogout}
-                disabled={logoutLoading}
-              >
+          {/* Session Card */}
+          <div className="card-premium p-6 border-destructive/20">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+                <LogOut className="w-5 h-5 text-destructive" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg text-destructive">Sessione</h2>
+                <p className="text-sm text-muted-foreground">
+                  Gestisci la tua sessione attiva
+                </p>
+              </div>
+            </div>
+            
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              disabled={logoutLoading}
+              className="rounded-xl h-12"
+            >
+              {logoutLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
                 <LogOut className="w-4 h-4 mr-2" />
-                {logoutLoading ? "Disconnessione..." : "Esci dall'account"}
-              </Button>
-            </CardContent>
-          </Card>
+              )}
+              {logoutLoading ? "Disconnessione..." : "Esci dall'account"}
+            </Button>
+          </div>
         </div>
       </div>
     </DashboardLayout>
