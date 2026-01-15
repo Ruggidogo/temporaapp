@@ -12,10 +12,12 @@ import {
   Trash2,
   Loader2,
   Sparkles,
+  Mail,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ManualEntryDialog } from "@/components/dashboard/ManualEntryDialog";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
+import { SendReportDialog } from "@/components/reports/SendReportDialog";
 import { cn } from "@/lib/utils";
 import { useTimer } from "@/hooks/useTimer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +29,7 @@ interface Client {
   id: string;
   name: string;
   color: string;
+  email: string | null;
 }
 
 interface TimeEntry {
@@ -75,6 +78,7 @@ export default function Dashboard() {
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [savingManual, setSavingManual] = useState(false);
 
   const selectedClient = clients.find((c) => c.id === timer.clientId) || null;
@@ -88,7 +92,7 @@ export default function Dashboard() {
       const [clientsRes, entriesRes] = await Promise.all([
         supabase
           .from("clients")
-          .select("id, name, color")
+          .select("id, name, color, email")
           .eq("user_id", user.id)
           .order("name"),
         supabase
@@ -424,7 +428,19 @@ export default function Dashboard() {
                 </span>
               </p>
             </div>
-            {clients.length > 0 && todayEntries.length > 0 && (
+            <div className="flex items-center gap-3">
+              {todayEntries.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setReportDialogOpen(true)}
+                  className="rounded-xl hover:bg-primary/10 hover:border-primary/30"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Invia report
+                </Button>
+              )}
+              {clients.length > 0 && todayEntries.length > 0 && (
               <div className="flex items-center gap-1.5 p-2 bg-muted/50 rounded-full">
                 {clients.map((client) => {
                   const clientTime = todayEntries
@@ -445,7 +461,8 @@ export default function Dashboard() {
                   );
                 })}
               </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Timeline */}
@@ -535,6 +552,14 @@ export default function Dashboard() {
         onSubmit={handleManualEntry}
         clients={clients}
         isLoading={savingManual}
+      />
+
+      {/* Send Report Dialog */}
+      <SendReportDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        clients={clients}
+        defaultPeriod="today"
       />
     </DashboardLayout>
   );

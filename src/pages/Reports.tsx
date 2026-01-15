@@ -31,6 +31,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { SendReportDialog } from "@/components/reports/SendReportDialog";
 import { cn } from "@/lib/utils";
 import { 
   PieChart, 
@@ -56,6 +57,7 @@ interface Client {
   id: string;
   name: string;
   color: string;
+  email: string | null;
   hourly_rate: number | null;
 }
 
@@ -116,6 +118,7 @@ export default function Reports() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [showFilters, setShowFilters] = useState(false);
   const [hoveredClient, setHoveredClient] = useState<string | null>(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   
   const [clients, setClients] = useState<Client[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
@@ -294,6 +297,7 @@ export default function Reports() {
             <Button 
               variant="outline"
               className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all"
+              onClick={() => setReportDialogOpen(true)}
             >
               <Mail className="w-4 h-4 mr-2" />
               Invia report
@@ -721,6 +725,13 @@ export default function Reports() {
           </div>
         </div>
       </div>
+
+      <SendReportDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        clients={clients}
+        defaultClientId={selectedClient !== "all" ? selectedClient : undefined}
+      />
     </DashboardLayout>
   );
 }
