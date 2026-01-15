@@ -1,8 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Shield, Zap, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function PricingSection() {
+  const { ref: titleRef, isVisible: titleVisible } = useScrollAnimation();
+  const { ref: cardRef, isVisible: cardVisible } = useScrollAnimation();
+  const { ref: trustRef, isVisible: trustVisible } = useScrollAnimation();
+
   const features = [
     "Timer illimitato",
     "Clienti e progetti illimitati",
@@ -21,19 +26,34 @@ export function PricingSection() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
       
       <div className="container relative">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 animate-fade-in">
+        <div 
+          ref={titleRef}
+          className="text-center max-w-3xl mx-auto mb-16 transition-all duration-700"
+          style={{
+            opacity: titleVisible ? 1 : 0,
+            transform: titleVisible ? "translateY(0)" : "translateY(40px)",
+          }}
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Un prezzo semplice.
             <br />
             <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">Zero sorprese.</span>
           </h2>
-          <p className="text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <p className="text-xl text-muted-foreground">
             Inizia con 14 giorni gratuiti, poi scegli se continuare. 
             Nessuna carta richiesta per provare.
           </p>
         </div>
 
-        <div className="max-w-lg mx-auto animate-scale-in" style={{ animationDelay: '200ms' }}>
+        <div 
+          ref={cardRef}
+          className="max-w-lg mx-auto transition-all duration-1000"
+          style={{
+            opacity: cardVisible ? 1 : 0,
+            transform: cardVisible ? "translateY(0) scale(1)" : "translateY(50px) scale(0.95)",
+            transitionDelay: "200ms",
+          }}
+        >
           <div className="relative">
             {/* Glow effect */}
             <div className="absolute -inset-1 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-3xl blur-xl opacity-30" />
@@ -69,7 +89,15 @@ export function PricingSection() {
                 {/* Features */}
                 <ul className="space-y-4 mb-10">
                   {features.map((feature, index) => (
-                    <li key={feature} className="flex items-center gap-4 animate-fade-in" style={{ animationDelay: `${(index + 3) * 50}ms` }}>
+                    <li 
+                      key={feature} 
+                      className="flex items-center gap-4 transition-all duration-500"
+                      style={{
+                        opacity: cardVisible ? 1 : 0,
+                        transform: cardVisible ? "translateX(0)" : "translateX(-20px)",
+                        transitionDelay: `${(index + 4) * 80}ms`,
+                      }}
+                    >
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-success to-emerald-400 flex items-center justify-center shadow-lg shadow-success/30">
                         <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                       </div>
@@ -94,7 +122,14 @@ export function PricingSection() {
         </div>
 
         {/* Trust badges */}
-        <div className="mt-20 text-center">
+        <div 
+          ref={trustRef}
+          className="mt-20 text-center transition-all duration-700"
+          style={{
+            opacity: trustVisible ? 1 : 0,
+            transform: trustVisible ? "translateY(0)" : "translateY(30px)",
+          }}
+        >
           <p className="text-sm text-muted-foreground mb-6 font-medium">Pagamenti sicuri e protetti</p>
           <div className="flex items-center justify-center gap-8">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted/50 border border-border/50">

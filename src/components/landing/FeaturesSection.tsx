@@ -6,6 +6,7 @@ import {
   Palette, 
   Zap,
 } from "lucide-react";
+import { useScrollAnimation, useScrollAnimationGroup } from "@/hooks/useScrollAnimation";
 
 const features = [
   {
@@ -52,7 +53,18 @@ const features = [
   },
 ];
 
+const stats = [
+  { value: "2s", label: "per iniziare a tracciare" },
+  { value: "14", label: "giorni di prova gratuita" },
+  { value: "100%", label: "dei dati tuoi" },
+  { value: "∞", label: "progetti illimitati" },
+];
+
 export function FeaturesSection() {
+  const { ref: titleRef, isVisible: titleVisible } = useScrollAnimation();
+  const { ref: featuresRef, isVisible: featuresVisible, getItemStyle } = useScrollAnimationGroup(features.length, 100);
+  const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation();
+
   return (
     <section className="py-28 md:py-36 bg-gradient-to-b from-muted/30 via-muted/50 to-background relative overflow-hidden">
       {/* Background decoration */}
@@ -60,24 +72,31 @@ export function FeaturesSection() {
       <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
       
       <div className="container relative">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 animate-fade-in">
+        <div 
+          ref={titleRef}
+          className="text-center max-w-3xl mx-auto mb-20 transition-all duration-700"
+          style={{
+            opacity: titleVisible ? 1 : 0,
+            transform: titleVisible ? "translateY(0)" : "translateY(40px)",
+          }}
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Tutto quello che serve.
             <br />
             <span className="text-muted-foreground">Niente di più.</span>
           </h2>
-          <p className="text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <p className="text-xl text-muted-foreground">
             Tempora è progettato per essere semplice ma potente. 
             Ogni funzionalità è pensata per farti risparmiare tempo.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div ref={featuresRef} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <div 
               key={feature.title} 
-              className="group relative animate-fade-in"
-              style={{ animationDelay: `${index * 100}ms` }}
+              className="group relative"
+              style={getItemStyle(index)}
             >
               {/* Hover glow */}
               <div className={`absolute -inset-0.5 bg-gradient-to-r ${feature.gradient} rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
@@ -94,17 +113,19 @@ export function FeaturesSection() {
         </div>
 
         {/* Stats */}
-        <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { value: "2s", label: "per iniziare a tracciare" },
-            { value: "14", label: "giorni di prova gratuita" },
-            { value: "100%", label: "dei dati tuoi" },
-            { value: "∞", label: "progetti illimitati" },
-          ].map((stat, index) => (
+        <div 
+          ref={statsRef}
+          className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8"
+        >
+          {stats.map((stat, index) => (
             <div 
               key={stat.label} 
-              className="text-center p-6 rounded-2xl bg-gradient-to-b from-card/50 to-transparent border border-border/30 animate-fade-in hover:border-border/50 transition-colors"
-              style={{ animationDelay: `${(index + 6) * 100}ms` }}
+              className="text-center p-6 rounded-2xl bg-gradient-to-b from-card/50 to-transparent border border-border/30 hover:border-border/50 transition-all duration-700"
+              style={{
+                opacity: statsVisible ? 1 : 0,
+                transform: statsVisible ? "translateY(0) scale(1)" : "translateY(30px) scale(0.95)",
+                transitionDelay: `${index * 100}ms`,
+              }}
             >
               <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent mb-3">
                 {stat.value}
