@@ -165,7 +165,7 @@ function generatePdf(
     },
   });
   
-  // Detailed activities table
+  // Detailed activities table - grouped by day
   let detailY = (doc as any).lastAutoTable.finalY + 15;
   
   // Check if we need a new page
@@ -177,31 +177,65 @@ function generatePdf(
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Dettaglio attività", 20, detailY);
+  doc.text("Dettaglio attività per giorno", 20, detailY);
   
   detailY += 8;
   
-  // Prepare detailed entries data
-  const detailedData = timeEntries
+  // Group entries by date
+  const entriesByDate: Record<string, TimeEntry[]> = {};
+  timeEntries
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map(entry => {
+    .forEach(entry => {
+      if (!entriesByDate[entry.date]) {
+        entriesByDate[entry.date] = [];
+      }
+      entriesByDate[entry.date].push(entry);
+    });
+  
+  // Prepare grouped data with subtotals
+  const groupedData: (string | { content: string; styles?: any })[][] = [];
+  const subtotalRowIndices: number[] = [];
+  
+  Object.entries(entriesByDate).forEach(([date, entries]) => {
+    // Add day header row
+    const dayTotalSeconds = entries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+    
+    groupedData.push([
+      { content: `📅 ${formatDate(date)}`, styles: { fontStyle: 'bold', fillColor: [240, 244, 255], textColor: [99, 102, 241] } },
+      { content: '', styles: { fillColor: [240, 244, 255] } },
+      { content: '', styles: { fillColor: [240, 244, 255] } },
+      { content: '', styles: { fillColor: [240, 244, 255] } }
+    ]);
+    
+    // Add entries for this day
+    entries.forEach(entry => {
       const client = entry.client_id ? clientsMap[entry.client_id] : null;
       const clientName = client?.name || "Senza cliente";
       const description = entry.description || "-";
-      const truncatedDesc = description.length > 40 ? description.substring(0, 37) + "..." : description;
-      return [
-        formatDate(entry.date),
+      const truncatedDesc = description.length > 50 ? description.substring(0, 47) + "..." : description;
+      groupedData.push([
+        '',
         clientName,
         truncatedDesc,
         formatDuration(entry.duration_seconds || 0)
-      ];
+      ]);
     });
+    
+    // Add subtotal row for this day
+    subtotalRowIndices.push(groupedData.length);
+    groupedData.push([
+      { content: '', styles: { fillColor: [248, 250, 252] } },
+      { content: '', styles: { fillColor: [248, 250, 252] } },
+      { content: 'Subtotale giorno', styles: { fontStyle: 'bold', halign: 'right', fillColor: [248, 250, 252] } },
+      { content: formatDuration(dayTotalSeconds), styles: { fontStyle: 'bold', halign: 'right', fillColor: [248, 250, 252] } }
+    ]);
+  });
   
   autoTable(doc, {
     startY: detailY,
     head: [['Data', 'Cliente', 'Descrizione', 'Durata']],
-    body: detailedData,
-    theme: 'striped',
+    body: groupedData,
+    theme: 'plain',
     headStyles: {
       fillColor: [99, 102, 241],
       textColor: [255, 255, 255],
@@ -212,15 +246,19 @@ function generatePdf(
       fontSize: 9,
     },
     columnStyles: {
-      0: { cellWidth: 30 },
+      0: { cellWidth: 35 },
       1: { cellWidth: 40 },
-      2: { cellWidth: 80 },
+      2: { cellWidth: 75 },
       3: { cellWidth: 25, halign: 'right' },
     },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252],
-    },
     margin: { left: 20, right: 20 },
+    didParseCell: function(data: any) {
+      // Apply border to all body cells
+      if (data.section === 'body') {
+        data.cell.styles.lineWidth = 0.1;
+        data.cell.styles.lineColor = [226, 232, 240];
+      }
+    },
   });
   
   // Footer
