@@ -1,5 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { 
   Clock, 
   TrendingUp, 
@@ -7,12 +20,15 @@ import {
   DollarSign,
   Download,
   Mail,
-  Calendar,
+  Calendar as CalendarIcon,
   ArrowUpRight,
   ArrowDownRight,
   Sparkles,
   BarChart3,
-  PieChartIcon
+  PieChartIcon,
+  Filter,
+  X,
+  ChevronDown
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { cn } from "@/lib/utils";
@@ -30,45 +46,33 @@ import {
   Area,
   CartesianGrid
 } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from "date-fns";
+import { it } from "date-fns/locale";
+import { DateRange } from "react-day-picker";
+
+interface Client {
+  id: string;
+  name: string;
+  color: string;
+  hourly_rate: number | null;
+}
+
+interface TimeEntry {
+  id: string;
+  client_id: string | null;
+  duration_seconds: number | null;
+  date: string;
+  description: string | null;
+}
 
 const periodOptions = [
   { label: "Oggi", value: "today" },
   { label: "Settimana", value: "week" },
   { label: "Mese", value: "month" },
   { label: "Anno", value: "year" },
-];
-
-const mockStats = {
-  totalHours: 142.5,
-  avgHoursPerDay: 7.2,
-  topClient: "Acme Corp",
-  totalValue: 10687.5,
-  hoursChange: 12.5,
-  valueChange: 8.3,
-};
-
-const clientData = [
-  { name: "Acme Corp", hours: 56, color: "#8B5CF6", percentage: 39 },
-  { name: "TechStart", hours: 38, color: "#3B82F6", percentage: 27 },
-  { name: "Design Studio", hours: 32, color: "#EC4899", percentage: 22 },
-  { name: "GreenTech", hours: 16.5, color: "#10B981", percentage: 12 },
-];
-
-const weeklyData = [
-  { day: "Lun", hours: 8.5, target: 8 },
-  { day: "Mar", hours: 7.2, target: 8 },
-  { day: "Mer", hours: 9.1, target: 8 },
-  { day: "Gio", hours: 6.8, target: 8 },
-  { day: "Ven", hours: 8.0, target: 8 },
-  { day: "Sab", hours: 2.5, target: 4 },
-  { day: "Dom", hours: 0, target: 0 },
-];
-
-const monthlyTrend = [
-  { week: "Sett 1", hours: 38 },
-  { week: "Sett 2", hours: 42 },
-  { week: "Sett 3", hours: 35 },
-  { week: "Sett 4", hours: 48 },
+  { label: "Personalizzato", value: "custom" },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -78,7 +82,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-medium text-sm mb-1">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: <span className="font-semibold">{entry.value}h</span>
+            {entry.name}: <span className="font-semibold">{typeof entry.value === 'number' ? entry.value.toFixed(1) : entry.value}h</span>
           </p>
         ))}
       </div>
@@ -97,7 +101,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
           <p className="font-medium text-sm">{data.name}</p>
         </div>
         <p className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">{data.hours}h</span> ({data.percentage}%)
+          <span className="font-semibold text-foreground">{data.hours.toFixed(1)}h</span> ({data.percentage}%)
         </p>
       </div>
     );
@@ -106,38 +110,159 @@ const CustomPieTooltip = ({ active, payload }: any) => {
 };
 
 export default function Reports() {
+  const { user } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [selectedClient, setSelectedClient] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [showFilters, setShowFilters] = useState(false);
   const [hoveredClient, setHoveredClient] = useState<string | null>(null);
+  
+  const [clients, setClients] = useState<Client[]>([]);
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      
+      const [clientsRes, entriesRes] = await Promise.all([
+        supabase.from('clients').select('*').eq('user_id', user.id),
+        supabase.from('time_entries').select('*').eq('user_id', user.id)
+      ]);
+
+      if (clientsRes.data) setClients(clientsRes.data);
+      if (entriesRes.data) setTimeEntries(entriesRes.data);
+      
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [user]);
+
+  // Calculate date range based on period
+  const getDateRange = () => {
+    const today = new Date();
+    
+    if (selectedPeriod === "custom" && dateRange?.from) {
+      return {
+        start: dateRange.from,
+        end: dateRange.to || dateRange.from
+      };
+    }
+
+    switch (selectedPeriod) {
+      case "today":
+        return { start: today, end: today };
+      case "week":
+        return { start: startOfWeek(today, { locale: it }), end: endOfWeek(today, { locale: it }) };
+      case "month":
+        return { start: startOfMonth(today), end: endOfMonth(today) };
+      case "year":
+        return { start: startOfYear(today), end: endOfYear(today) };
+      default:
+        return { start: startOfMonth(today), end: endOfMonth(today) };
+    }
+  };
+
+  // Filter entries
+  const filteredEntries = timeEntries.filter(entry => {
+    const entryDate = new Date(entry.date);
+    const { start, end } = getDateRange();
+    
+    const isInRange = isWithinInterval(entryDate, { start, end });
+    const matchesClient = selectedClient === "all" || entry.client_id === selectedClient;
+    
+    return isInRange && matchesClient;
+  });
+
+  // Calculate stats
+  const totalSeconds = filteredEntries.reduce((acc, entry) => acc + (entry.duration_seconds || 0), 0);
+  const totalHours = totalSeconds / 3600;
+  
+  const { start, end } = getDateRange();
+  const daysDiff = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+  const avgHoursPerDay = totalHours / daysDiff;
+
+  // Calculate client distribution
+  const clientStats = clients.map(client => {
+    const clientEntries = filteredEntries.filter(e => e.client_id === client.id);
+    const clientSeconds = clientEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+    const hours = clientSeconds / 3600;
+    const value = client.hourly_rate ? hours * client.hourly_rate : 0;
+    return {
+      ...client,
+      hours,
+      value,
+      percentage: totalHours > 0 ? Math.round((hours / totalHours) * 100) : 0
+    };
+  }).filter(c => c.hours > 0).sort((a, b) => b.hours - a.hours);
+
+  const topClient = clientStats[0];
+  const totalValue = clientStats.reduce((acc, c) => acc + c.value, 0);
+
+  // Weekly chart data
+  const weekDays = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
+  const weeklyData = weekDays.map((day, index) => {
+    const dayEntries = filteredEntries.filter(e => {
+      const entryDate = new Date(e.date);
+      return entryDate.getDay() === (index + 1) % 7;
+    });
+    const hours = dayEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0) / 3600;
+    return { day, hours, target: index < 5 ? 8 : index === 5 ? 4 : 0 };
+  });
+
+  // Monthly trend data
+  const monthlyTrend = [1, 2, 3, 4].map(week => {
+    const weekStart = new Date(start);
+    weekStart.setDate(weekStart.getDate() + (week - 1) * 7);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    const weekEntries = filteredEntries.filter(e => {
+      const entryDate = new Date(e.date);
+      return entryDate >= weekStart && entryDate <= weekEnd;
+    });
+    const hours = weekEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0) / 3600;
+    return { week: `Sett ${week}`, hours };
+  });
+
+  const activeFiltersCount = (selectedClient !== "all" ? 1 : 0) + (selectedPeriod === "custom" && dateRange?.from ? 1 : 0);
+
+  const clearFilters = () => {
+    setSelectedClient("all");
+    setSelectedPeriod("month");
+    setDateRange(undefined);
+  };
 
   const statCards = [
     {
       title: "Ore totali",
-      value: `${mockStats.totalHours}h`,
-      change: mockStats.hoursChange,
+      value: `${totalHours.toFixed(1)}h`,
       icon: Clock,
       gradient: "from-primary to-purple-500",
       shadowColor: "shadow-primary/20",
     },
     {
       title: "Media/giorno",
-      value: `${mockStats.avgHoursPerDay}h`,
-      change: 5.2,
+      value: `${avgHoursPerDay.toFixed(1)}h`,
       icon: TrendingUp,
       gradient: "from-emerald-500 to-teal-500",
       shadowColor: "shadow-emerald-500/20",
     },
     {
       title: "Cliente top",
-      value: mockStats.topClient,
-      subtitle: "56 ore",
+      value: topClient?.name || "-",
+      subtitle: topClient ? `${topClient.hours.toFixed(1)} ore` : undefined,
       icon: Users,
       gradient: "from-violet-500 to-purple-600",
       shadowColor: "shadow-violet-500/20",
     },
     {
       title: "Valore generato",
-      value: `€${mockStats.totalValue.toLocaleString()}`,
-      change: mockStats.valueChange,
+      value: `€${totalValue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}`,
       icon: DollarSign,
       gradient: "from-amber-500 to-orange-500",
       shadowColor: "shadow-amber-500/20",
@@ -176,28 +301,180 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Period selector */}
-        <div className="relative mb-8">
-          <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-purple-500/10 to-primary/20 rounded-2xl blur-lg opacity-30" />
-          <div className="relative flex gap-2 p-1.5 bg-muted/50 backdrop-blur-sm rounded-xl border border-border/50 w-fit">
-            {periodOptions.map((period) => (
+        {/* Filters section */}
+        <div className="mb-8 space-y-4">
+          {/* Period selector */}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-purple-500/10 to-primary/20 rounded-2xl blur-lg opacity-30" />
+              <div className="relative flex gap-1 p-1.5 bg-muted/50 backdrop-blur-sm rounded-xl border border-border/50">
+                {periodOptions.map((period) => (
+                  <Button
+                    key={period.value}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedPeriod(period.value)}
+                    className={cn(
+                      "transition-all duration-300 rounded-lg px-4",
+                      selectedPeriod === period.value 
+                        ? "bg-gradient-to-r from-primary to-purple-500 text-white shadow-lg shadow-primary/30 hover:from-primary hover:to-purple-500" 
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    {period.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className={cn(
+                "border-border/50 transition-all",
+                showFilters || activeFiltersCount > 0 ? "border-primary/50 bg-primary/5" : ""
+              )}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtri
+              {activeFiltersCount > 0 && (
+                <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+                  {activeFiltersCount}
+                </span>
+              )}
+              <ChevronDown className={cn("w-4 h-4 ml-2 transition-transform", showFilters && "rotate-180")} />
+            </Button>
+
+            {activeFiltersCount > 0 && (
               <Button
-                key={period.value}
                 variant="ghost"
                 size="sm"
-                onClick={() => setSelectedPeriod(period.value)}
-                className={cn(
-                  "transition-all duration-300 rounded-lg",
-                  selectedPeriod === period.value 
-                    ? "bg-gradient-to-r from-primary to-purple-500 text-white shadow-lg shadow-primary/30 hover:from-primary hover:to-purple-500" 
-                    : "hover:bg-muted"
-                )}
+                onClick={clearFilters}
+                className="text-muted-foreground hover:text-foreground"
               >
-                <Calendar className={cn("w-4 h-4 mr-2", selectedPeriod === period.value ? "text-white" : "text-muted-foreground")} />
-                {period.label}
+                <X className="w-4 h-4 mr-1" />
+                Cancella filtri
               </Button>
-            ))}
+            )}
           </div>
+
+          {/* Advanced filters panel */}
+          {showFilters && (
+            <div className="relative animate-fade-in">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-2xl blur opacity-50" />
+              <div className="relative p-5 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
+                <div className="flex flex-wrap gap-6">
+                  {/* Client filter */}
+                  <div className="space-y-2 min-w-[200px]">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Users className="w-4 h-4 text-muted-foreground" />
+                      Cliente
+                    </label>
+                    <Select value={selectedClient} onValueChange={setSelectedClient}>
+                      <SelectTrigger className="h-11 bg-muted/50 border-border/50">
+                        <SelectValue placeholder="Tutti i clienti" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-primary to-purple-500" />
+                            Tutti i clienti
+                          </div>
+                        </SelectItem>
+                        {clients.map(client => (
+                          <SelectItem key={client.id} value={client.id}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: client.color }} 
+                              />
+                              {client.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Custom date range */}
+                  {selectedPeriod === "custom" && (
+                    <div className="space-y-2 min-w-[280px]">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+                        Periodo personalizzato
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full h-11 justify-start text-left font-normal bg-muted/50 border-border/50",
+                              !dateRange && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateRange?.from ? (
+                              dateRange.to ? (
+                                <>
+                                  {format(dateRange.from, "d MMM", { locale: it })} - {format(dateRange.to, "d MMM yyyy", { locale: it })}
+                                </>
+                              ) : (
+                                format(dateRange.from, "d MMM yyyy", { locale: it })
+                              )
+                            ) : (
+                              <span>Seleziona periodo</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={dateRange?.from}
+                            selected={dateRange}
+                            onSelect={setDateRange}
+                            numberOfMonths={2}
+                            locale={it}
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
+                </div>
+
+                {/* Active filters summary */}
+                {(selectedClient !== "all" || (selectedPeriod === "custom" && dateRange?.from)) && (
+                  <div className="mt-4 pt-4 border-t border-border/30 flex flex-wrap gap-2">
+                    {selectedClient !== "all" && (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm">
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full" 
+                          style={{ backgroundColor: clients.find(c => c.id === selectedClient)?.color }} 
+                        />
+                        <span>{clients.find(c => c.id === selectedClient)?.name}</span>
+                        <button onClick={() => setSelectedClient("all")} className="hover:text-primary">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                    {selectedPeriod === "custom" && dateRange?.from && (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm">
+                        <CalendarIcon className="w-3.5 h-3.5" />
+                        <span>
+                          {format(dateRange.from, "d MMM", { locale: it })}
+                          {dateRange.to && ` - ${format(dateRange.to, "d MMM", { locale: it })}`}
+                        </span>
+                        <button onClick={() => setDateRange(undefined)} className="hover:text-primary">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Stats cards */}
@@ -214,21 +491,6 @@ export default function Reports() {
                   <div className={cn("p-3 rounded-xl bg-gradient-to-r shadow-lg", stat.gradient, stat.shadowColor)}>
                     <stat.icon className="w-5 h-5 text-white" />
                   </div>
-                  {stat.change !== undefined && (
-                    <div className={cn(
-                      "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full",
-                      stat.change >= 0 
-                        ? "bg-success/10 text-success" 
-                        : "bg-destructive/10 text-destructive"
-                    )}>
-                      {stat.change >= 0 ? (
-                        <ArrowUpRight className="w-3 h-3" />
-                      ) : (
-                        <ArrowDownRight className="w-3 h-3" />
-                      )}
-                      {Math.abs(stat.change)}%
-                    </div>
-                  )}
                 </div>
                 <p className="text-2xl font-bold mb-1 truncate">{stat.value}</p>
                 <p className="text-sm text-muted-foreground">{stat.title}</p>
@@ -321,72 +583,82 @@ export default function Reports() {
                 </div>
               </div>
               <div className="h-[280px] flex items-center">
-                <ResponsiveContainer width="55%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={clientData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={90}
-                      paddingAngle={4}
-                      dataKey="hours"
-                      onMouseEnter={(_, index) => setHoveredClient(clientData[index].name)}
-                      onMouseLeave={() => setHoveredClient(null)}
-                    >
-                      {clientData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={entry.color}
-                          stroke="transparent"
-                          style={{
-                            filter: hoveredClient === entry.name ? 'brightness(1.2)' : 'none',
-                            transform: hoveredClient === entry.name ? 'scale(1.05)' : 'scale(1)',
-                            transformOrigin: 'center',
-                            transition: 'all 0.3s ease',
-                          }}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomPieTooltip />} />
-                    {/* Center text */}
-                    <text x="50%" y="45%" textAnchor="middle" className="fill-foreground font-bold text-2xl">
-                      {mockStats.totalHours}h
-                    </text>
-                    <text x="50%" y="58%" textAnchor="middle" className="fill-muted-foreground text-xs">
-                      Totale
-                    </text>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-3">
-                  {clientData.map((client) => (
-                    <div 
-                      key={client.name} 
-                      className={cn(
-                        "flex items-center gap-3 p-2 rounded-lg transition-all duration-300 cursor-pointer",
-                        hoveredClient === client.name ? "bg-muted/50" : "hover:bg-muted/30"
-                      )}
-                      onMouseEnter={() => setHoveredClient(client.name)}
-                      onMouseLeave={() => setHoveredClient(null)}
-                    >
-                      <div 
-                        className="w-4 h-4 rounded-lg shadow-md" 
-                        style={{ 
-                          backgroundColor: client.color,
-                          boxShadow: `0 4px 12px -2px ${client.color}40`
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{client.name}</p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs text-muted-foreground">{client.hours}h</p>
-                          <span className="text-xs text-muted-foreground">•</span>
-                          <p className="text-xs font-medium" style={{ color: client.color }}>{client.percentage}%</p>
+                {clientStats.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="55%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={clientStats}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={90}
+                          paddingAngle={4}
+                          dataKey="hours"
+                          onMouseEnter={(_, index) => setHoveredClient(clientStats[index].name)}
+                          onMouseLeave={() => setHoveredClient(null)}
+                        >
+                          {clientStats.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={entry.color}
+                              stroke="transparent"
+                              style={{
+                                filter: hoveredClient === entry.name ? 'brightness(1.2)' : 'none',
+                                transform: hoveredClient === entry.name ? 'scale(1.05)' : 'scale(1)',
+                                transformOrigin: 'center',
+                                transition: 'all 0.3s ease',
+                              }}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomPieTooltip />} />
+                        <text x="50%" y="45%" textAnchor="middle" className="fill-foreground font-bold text-2xl">
+                          {totalHours.toFixed(1)}h
+                        </text>
+                        <text x="50%" y="58%" textAnchor="middle" className="fill-muted-foreground text-xs">
+                          Totale
+                        </text>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex-1 space-y-3">
+                      {clientStats.slice(0, 5).map((client) => (
+                        <div 
+                          key={client.id} 
+                          className={cn(
+                            "flex items-center gap-3 p-2 rounded-lg transition-all duration-300 cursor-pointer",
+                            hoveredClient === client.name ? "bg-muted/50" : "hover:bg-muted/30"
+                          )}
+                          onMouseEnter={() => setHoveredClient(client.name)}
+                          onMouseLeave={() => setHoveredClient(null)}
+                        >
+                          <div 
+                            className="w-4 h-4 rounded-lg shadow-md" 
+                            style={{ 
+                              backgroundColor: client.color,
+                              boxShadow: `0 4px 12px -2px ${client.color}40`
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{client.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs text-muted-foreground">{client.hours.toFixed(1)}h</p>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <p className="text-xs font-medium" style={{ color: client.color }}>{client.percentage}%</p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                ) : (
+                  <div className="w-full flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                      <PieChartIcon className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground">Nessun dato per il periodo selezionato</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -398,13 +670,15 @@ export default function Reports() {
           <div className="relative p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold mb-1">Trend mensile</h3>
-                <p className="text-sm text-muted-foreground">Andamento delle ore lavorate nel mese</p>
+                <h3 className="text-lg font-semibold mb-1">Trend periodo</h3>
+                <p className="text-sm text-muted-foreground">Andamento delle ore lavorate</p>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20">
-                <Sparkles className="w-4 h-4 text-success" />
-                <span className="text-sm font-medium text-success">+12% vs mese scorso</span>
-              </div>
+              {totalHours > 0 && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20">
+                  <Sparkles className="w-4 h-4 text-success" />
+                  <span className="text-sm font-medium text-success">{totalHours.toFixed(1)}h totali</span>
+                </div>
+              )}
             </div>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
