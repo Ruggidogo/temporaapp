@@ -35,6 +35,7 @@ interface ReportEmailRequest {
   dateTo: string;
   clientId?: string;
   includePdf?: boolean;
+  pdfLayout?: string[];
 }
 
 function formatDuration(seconds: number): string {
@@ -51,54 +52,12 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function generatePdf(
-  senderName: string,
-  recipientName: string | undefined,
-  dateFrom: string,
-  dateTo: string,
-  clientTotals: Record<string, { name: string; color: string; seconds: number; value: number }>,
-  totalSeconds: number,
-  totalValue: number,
-  timeEntries: TimeEntry[],
-  clientsMap: Record<string, Client>,
-  selectedClientName?: string
-): string {
-  const doc = new jsPDF();
-  
-  // Header
-  doc.setFillColor(99, 102, 241);
-  doc.rect(0, 0, 210, 45, 'F');
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
-  doc.setFont("helvetica", "bold");
-  doc.text("Report Ore", 105, 22, { align: "center" });
-  
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text(`${formatDate(dateFrom)} - ${formatDate(dateTo)}`, 105, 32, { align: "center" });
-  
-  if (selectedClientName) {
-    doc.setFontSize(10);
-    doc.text(`Cliente: ${selectedClientName}`, 105, 40, { align: "center" });
+function renderSummarySection(doc: jsPDF, yPos: number, totalSeconds: number, totalValue: number): number {
+  if (yPos > 230) {
+    doc.addPage();
+    yPos = 20;
   }
   
-  // Reset text color
-  doc.setTextColor(0, 0, 0);
-  
-  // Intro text
-  let yPos = 60;
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  const greeting = recipientName ? `Ciao ${recipientName},` : 'Ciao,';
-  doc.text(greeting, 20, yPos);
-  yPos += 7;
-  doc.text(`ecco il riepilogo delle ore lavorate inviato da ${senderName}.`, 20, yPos);
-  
-  // Summary boxes
-  yPos += 20;
-  
-  // Hours box
   doc.setFillColor(240, 244, 255);
   doc.roundedRect(20, yPos, 80, 35, 3, 3, 'F');
   doc.setFontSize(22);
@@ -110,7 +69,6 @@ function generatePdf(
   doc.setTextColor(100, 116, 139);
   doc.text("Ore totali", 60, yPos + 28, { align: "center" });
   
-  // Value box
   doc.setFillColor(254, 243, 226);
   doc.roundedRect(110, yPos, 80, 35, 3, 3, 'F');
   doc.setFontSize(22);
@@ -122,8 +80,21 @@ function generatePdf(
   doc.setTextColor(100, 116, 139);
   doc.text("Valore totale", 150, yPos + 28, { align: "center" });
   
-  // Client summary table
-  yPos += 50;
+  return yPos + 50;
+}
+
+function renderClientBreakdownSection(
+  doc: jsPDF, 
+  yPos: number, 
+  clientTotals: Record<string, { name: string; color: string; seconds: number; value: number }>,
+  totalSeconds: number,
+  totalValue: number
+): number {
+  if (yPos > 220) {
+    doc.addPage();
+    yPos = 20;
+  }
+  
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
@@ -135,7 +106,6 @@ function generatePdf(
     .sort((a, b) => b.seconds - a.seconds)
     .map(c => [c.name, formatDuration(c.seconds), `€${c.value.toFixed(2)}`]);
   
-  // Add total row
   clientTableData.push(["Totale", formatDuration(totalSeconds), `€${totalValue.toFixed(2)}`]);
   
   autoTable(doc, {
@@ -165,23 +135,27 @@ function generatePdf(
     },
   });
   
-  // Detailed activities table - grouped by day
-  let detailY = (doc as any).lastAutoTable.finalY + 15;
-  
-  // Check if we need a new page
-  if (detailY > 250) {
+  return (doc as any).lastAutoTable.finalY + 15;
+}
+
+function renderDailyDetailsSection(
+  doc: jsPDF,
+  yPos: number,
+  timeEntries: TimeEntry[],
+  clientsMap: Record<string, Client>
+): number {
+  if (yPos > 220) {
     doc.addPage();
-    detailY = 20;
+    yPos = 20;
   }
   
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Dettaglio attività per giorno", 20, detailY);
+  doc.text("Dettaglio attività per giorno", 20, yPos);
   
-  detailY += 8;
+  yPos += 8;
   
-  // Group entries by date
   const entriesByDate: Record<string, TimeEntry[]> = {};
   timeEntries
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -192,12 +166,9 @@ function generatePdf(
       entriesByDate[entry.date].push(entry);
     });
   
-  // Prepare grouped data with subtotals
   const groupedData: (string | { content: string; styles?: any })[][] = [];
-  const subtotalRowIndices: number[] = [];
   
   Object.entries(entriesByDate).forEach(([date, entries]) => {
-    // Add day header row
     const dayTotalSeconds = entries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
     
     groupedData.push([
@@ -207,7 +178,6 @@ function generatePdf(
       { content: '', styles: { fillColor: [240, 244, 255] } }
     ]);
     
-    // Add entries for this day
     entries.forEach(entry => {
       const client = entry.client_id ? clientsMap[entry.client_id] : null;
       const clientName = client?.name || "Senza cliente";
@@ -221,8 +191,6 @@ function generatePdf(
       ]);
     });
     
-    // Add subtotal row for this day
-    subtotalRowIndices.push(groupedData.length);
     groupedData.push([
       { content: '', styles: { fillColor: [248, 250, 252] } },
       { content: '', styles: { fillColor: [248, 250, 252] } },
@@ -232,7 +200,7 @@ function generatePdf(
   });
   
   autoTable(doc, {
-    startY: detailY,
+    startY: yPos,
     head: [['Data', 'Cliente', 'Descrizione', 'Durata']],
     body: groupedData,
     theme: 'plain',
@@ -253,7 +221,6 @@ function generatePdf(
     },
     margin: { left: 20, right: 20 },
     didParseCell: function(data: any) {
-      // Apply border to all body cells
       if (data.section === 'body') {
         data.cell.styles.lineWidth = 0.1;
         data.cell.styles.lineColor = [226, 232, 240];
@@ -261,10 +228,73 @@ function generatePdf(
     },
   });
   
-  // Footer
-  const finalY = (doc as any).lastAutoTable.finalY + 15;
+  return (doc as any).lastAutoTable.finalY;
+}
+
+function generatePdf(
+  senderName: string,
+  recipientName: string | undefined,
+  dateFrom: string,
+  dateTo: string,
+  clientTotals: Record<string, { name: string; color: string; seconds: number; value: number }>,
+  totalSeconds: number,
+  totalValue: number,
+  timeEntries: TimeEntry[],
+  clientsMap: Record<string, Client>,
+  selectedClientName?: string,
+  pdfLayout?: string[]
+): string {
+  const doc = new jsPDF();
   
-  // Check if footer fits on current page
+  const layout = pdfLayout && pdfLayout.length > 0 
+    ? pdfLayout 
+    : ["summary", "clientBreakdown", "dailyDetails"];
+  
+  // Header
+  doc.setFillColor(99, 102, 241);
+  doc.rect(0, 0, 210, 45, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
+  doc.setFont("helvetica", "bold");
+  doc.text("Report Ore", 105, 22, { align: "center" });
+  
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${formatDate(dateFrom)} - ${formatDate(dateTo)}`, 105, 32, { align: "center" });
+  
+  if (selectedClientName) {
+    doc.setFontSize(10);
+    doc.text(`Cliente: ${selectedClientName}`, 105, 40, { align: "center" });
+  }
+  
+  doc.setTextColor(0, 0, 0);
+  
+  let yPos = 60;
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  const greeting = recipientName ? `Ciao ${recipientName},` : 'Ciao,';
+  doc.text(greeting, 20, yPos);
+  yPos += 7;
+  doc.text(`ecco il riepilogo delle ore lavorate inviato da ${senderName}.`, 20, yPos);
+  yPos += 15;
+  
+  for (const section of layout) {
+    switch (section) {
+      case "summary":
+        yPos = renderSummarySection(doc, yPos, totalSeconds, totalValue);
+        break;
+      case "clientBreakdown":
+        yPos = renderClientBreakdownSection(doc, yPos, clientTotals, totalSeconds, totalValue);
+        break;
+      case "dailyDetails":
+        yPos = renderDailyDetailsSection(doc, yPos, timeEntries, clientsMap);
+        break;
+    }
+  }
+  
+  // Footer
+  const finalY = yPos + 15;
   const pageHeight = doc.internal.pageSize.height;
   if (finalY > pageHeight - 20) {
     doc.addPage();
@@ -277,7 +307,6 @@ function generatePdf(
     doc.text("Report generato con Tempora", 105, finalY, { align: "center" });
   }
   
-  // Return base64 string
   return doc.output('datauristring').split(',')[1];
 }
 
@@ -309,7 +338,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { recipientEmail, recipientName, subject, dateFrom, dateTo, clientId, includePdf }: ReportEmailRequest = await req.json();
+    const { recipientEmail, recipientName, subject, dateFrom, dateTo, clientId, includePdf, pdfLayout }: ReportEmailRequest = await req.json();
 
     if (!recipientEmail || !dateFrom || !dateTo) {
       return new Response(JSON.stringify({ error: "Parametri mancanti" }), {
@@ -318,20 +347,17 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Fetch profile
     const { data: profile } = await supabase
       .from("profiles")
       .select("name")
       .eq("user_id", user.id)
       .single();
 
-    // Fetch clients
     const { data: clients } = await supabase
       .from("clients")
       .select("*")
       .eq("user_id", user.id);
 
-    // Fetch time entries
     let entriesQuery = supabase
       .from("time_entries")
       .select("*")
@@ -350,10 +376,8 @@ const handler = async (req: Request): Promise<Response> => {
     const clientsMap: Record<string, Client> = {};
     (clients || []).forEach(c => { clientsMap[c.id] = c; });
 
-    // Calculate totals
     const totalSeconds = timeEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
     
-    // Group by client
     const clientTotals: Record<string, { name: string; color: string; seconds: number; value: number }> = {};
     timeEntries.forEach(entry => {
       const client = entry.client_id ? clientsMap[entry.client_id] : null;
@@ -372,7 +396,6 @@ const handler = async (req: Request): Promise<Response> => {
     const senderName = profile?.name || user.email?.split("@")[0] || "Utente";
     const selectedClient = clientId ? clientsMap[clientId] : null;
 
-    // Build email HTML
     const clientRows = Object.values(clientTotals)
       .sort((a, b) => b.seconds - a.seconds)
       .map(c => `
@@ -417,7 +440,6 @@ const handler = async (req: Request): Promise<Response> => {
               ecco il riepilogo delle ore lavorate inviato da <strong>${senderName}</strong>.
             </p>
             
-            <!-- Summary boxes -->
             <div style="display: flex; gap: 16px; margin-bottom: 32px;">
               <div style="flex: 1; background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); padding: 20px; border-radius: 12px; text-align: center;">
                 <p style="margin: 0; font-size: 28px; font-weight: 700; color: #6366f1;">${formatDuration(totalSeconds)}</p>
@@ -429,7 +451,6 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
             </div>
             
-            <!-- Client breakdown -->
             <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Dettaglio per cliente</h3>
             <table style="width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
               <thead>
@@ -462,7 +483,6 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Prepare email options
     const emailOptions: any = {
       from: "Tempora <onboarding@resend.dev>",
       to: [recipientEmail],
@@ -470,7 +490,6 @@ const handler = async (req: Request): Promise<Response> => {
       html: emailHtml,
     };
 
-    // Generate and attach PDF if requested
     if (includePdf) {
       try {
         const pdfBase64 = generatePdf(
@@ -483,7 +502,8 @@ const handler = async (req: Request): Promise<Response> => {
           totalValue,
           timeEntries,
           clientsMap,
-          selectedClient?.name
+          selectedClient?.name,
+          pdfLayout
         );
         
         emailOptions.attachments = [
@@ -494,7 +514,6 @@ const handler = async (req: Request): Promise<Response> => {
         ];
       } catch (pdfError) {
         console.error("Error generating PDF:", pdfError);
-        // Continue without PDF if generation fails
       }
     }
 
