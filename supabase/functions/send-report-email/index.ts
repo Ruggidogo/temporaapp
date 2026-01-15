@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
+import autoTable from "https://esm.sh/jspdf-autotable@3.8.2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -32,6 +34,7 @@ interface ReportEmailRequest {
   dateFrom: string;
   dateTo: string;
   clientId?: string;
+  includePdf?: boolean;
 }
 
 function formatDuration(seconds: number): string {
@@ -46,6 +49,134 @@ function formatDuration(seconds: number): string {
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function generatePdf(
+  senderName: string,
+  recipientName: string | undefined,
+  dateFrom: string,
+  dateTo: string,
+  clientTotals: Record<string, { name: string; color: string; seconds: number; value: number }>,
+  totalSeconds: number,
+  totalValue: number,
+  selectedClientName?: string
+): string {
+  const doc = new jsPDF();
+  
+  // Header
+  doc.setFillColor(99, 102, 241);
+  doc.rect(0, 0, 210, 45, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
+  doc.setFont("helvetica", "bold");
+  doc.text("Report Ore", 105, 22, { align: "center" });
+  
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${formatDate(dateFrom)} - ${formatDate(dateTo)}`, 105, 32, { align: "center" });
+  
+  if (selectedClientName) {
+    doc.setFontSize(10);
+    doc.text(`Cliente: ${selectedClientName}`, 105, 40, { align: "center" });
+  }
+  
+  // Reset text color
+  doc.setTextColor(0, 0, 0);
+  
+  // Intro text
+  let yPos = 60;
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  const greeting = recipientName ? `Ciao ${recipientName},` : 'Ciao,';
+  doc.text(greeting, 20, yPos);
+  yPos += 7;
+  doc.text(`ecco il riepilogo delle ore lavorate inviato da ${senderName}.`, 20, yPos);
+  
+  // Summary boxes
+  yPos += 20;
+  
+  // Hours box
+  doc.setFillColor(240, 244, 255);
+  doc.roundedRect(20, yPos, 80, 35, 3, 3, 'F');
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(99, 102, 241);
+  doc.text(formatDuration(totalSeconds), 60, yPos + 18, { align: "center" });
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 116, 139);
+  doc.text("Ore totali", 60, yPos + 28, { align: "center" });
+  
+  // Value box
+  doc.setFillColor(254, 243, 226);
+  doc.roundedRect(110, yPos, 80, 35, 3, 3, 'F');
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(245, 158, 11);
+  doc.text(`€${totalValue.toFixed(0)}`, 150, yPos + 18, { align: "center" });
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 116, 139);
+  doc.text("Valore totale", 150, yPos + 28, { align: "center" });
+  
+  // Table
+  yPos += 50;
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("Dettaglio per cliente", 20, yPos);
+  
+  yPos += 8;
+  
+  const tableData = Object.values(clientTotals)
+    .sort((a, b) => b.seconds - a.seconds)
+    .map(c => [c.name, formatDuration(c.seconds), `€${c.value.toFixed(2)}`]);
+  
+  // Add total row
+  tableData.push(["Totale", formatDuration(totalSeconds), `€${totalValue.toFixed(2)}`]);
+  
+  (doc as any).autoTable({
+    startY: yPos,
+    head: [['Cliente', 'Ore', 'Valore']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [248, 250, 252],
+      textColor: [100, 116, 139],
+      fontStyle: 'bold',
+      fontSize: 10,
+    },
+    bodyStyles: {
+      fontSize: 10,
+    },
+    footStyles: {
+      fillColor: [240, 244, 255],
+      textColor: [0, 0, 0],
+      fontStyle: 'bold',
+    },
+    columnStyles: {
+      0: { cellWidth: 90 },
+      1: { cellWidth: 45, halign: 'right' },
+      2: { cellWidth: 45, halign: 'right' },
+    },
+    didParseCell: function(data: any) {
+      // Make last row (totals) bold
+      if (data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 244, 255];
+      }
+    },
+  });
+  
+  // Footer
+  const finalY = (doc as any).lastAutoTable.finalY + 20;
+  doc.setFontSize(10);
+  doc.setTextColor(148, 163, 184);
+  doc.text("Report generato con Tempora", 105, finalY, { align: "center" });
+  
+  // Return base64 string
+  return doc.output('datauristring').split(',')[1];
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -76,7 +207,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { recipientEmail, recipientName, subject, dateFrom, dateTo, clientId }: ReportEmailRequest = await req.json();
+    const { recipientEmail, recipientName, subject, dateFrom, dateTo, clientId, includePdf }: ReportEmailRequest = await req.json();
 
     if (!recipientEmail || !dateFrom || !dateTo) {
       return new Response(JSON.stringify({ error: "Parametri mancanti" }), {
@@ -157,6 +288,10 @@ const handler = async (req: Request): Promise<Response> => {
         </tr>
       `).join("");
 
+    const pdfNote = includePdf 
+      ? `<p style="margin: 16px 0 0 0; padding: 12px; background: #f0f4ff; border-radius: 8px; font-size: 14px; color: #6366f1;">📎 Report PDF allegato a questa email</p>`
+      : '';
+
     const emailHtml = `
       <!DOCTYPE html>
       <html>
@@ -214,6 +349,8 @@ const handler = async (req: Request): Promise<Response> => {
               </tfoot>
             </table>
             
+            ${pdfNote}
+            
             <p style="margin: 32px 0 0 0; font-size: 14px; color: #94a3b8; text-align: center;">
               Report generato con ❤️ da Tempora
             </p>
@@ -223,12 +360,41 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
+    // Prepare email options
+    const emailOptions: any = {
       from: "Tempora <onboarding@resend.dev>",
       to: [recipientEmail],
       subject: subject || `Report ore: ${formatDate(dateFrom)} - ${formatDate(dateTo)}`,
       html: emailHtml,
-    });
+    };
+
+    // Generate and attach PDF if requested
+    if (includePdf) {
+      try {
+        const pdfBase64 = generatePdf(
+          senderName,
+          recipientName,
+          dateFrom,
+          dateTo,
+          clientTotals,
+          totalSeconds,
+          totalValue,
+          selectedClient?.name
+        );
+        
+        emailOptions.attachments = [
+          {
+            filename: `report-ore-${dateFrom}-${dateTo}.pdf`,
+            content: pdfBase64,
+          },
+        ];
+      } catch (pdfError) {
+        console.error("Error generating PDF:", pdfError);
+        // Continue without PDF if generation fails
+      }
+    }
+
+    const emailResponse = await resend.emails.send(emailOptions);
 
     console.log("Email sent successfully:", emailResponse);
 

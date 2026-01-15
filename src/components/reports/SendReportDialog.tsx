@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mail, Send, Loader2, Calendar, User } from "lucide-react";
+import { Mail, Send, Loader2, Calendar, User, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns";
@@ -64,6 +65,7 @@ export function SendReportDialog({
   const [subject, setSubject] = useState("");
   const [selectedClient, setSelectedClient] = useState(defaultClientId || "all");
   const [selectedPeriod, setSelectedPeriod] = useState(defaultPeriod);
+  const [includePdf, setIncludePdf] = useState(true);
 
   const getDateRange = () => {
     const today = new Date();
@@ -130,6 +132,7 @@ export function SendReportDialog({
           dateFrom: from,
           dateTo: to,
           clientId: selectedClient !== "all" ? selectedClient : undefined,
+          includePdf,
         },
       });
 
@@ -251,6 +254,28 @@ export function SendReportDialog({
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="h-11 bg-muted/50 border-border/60"
+            />
+          </div>
+
+          {/* PDF attachment toggle */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/60">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <FileText className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <Label htmlFor="include-pdf" className="text-sm font-medium cursor-pointer">
+                  Allega PDF
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Includi il report in formato PDF
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="include-pdf"
+              checked={includePdf}
+              onCheckedChange={setIncludePdf}
             />
           </div>
         </div>
