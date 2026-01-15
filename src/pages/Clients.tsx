@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { 
   Plus, 
@@ -9,7 +8,9 @@ import {
   TrendingUp,
   MoreVertical,
   Pencil,
-  Trash2
+  Trash2,
+  Users,
+  Loader2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -52,7 +53,6 @@ export default function Clients() {
 
   const fetchClients = async () => {
     try {
-      // Fetch clients with total hours from time_entries
       const { data: clientsData, error: clientsError } = await supabase
         .from("clients")
         .select("*")
@@ -60,14 +60,12 @@ export default function Clients() {
 
       if (clientsError) throw clientsError;
 
-      // Fetch total hours per client
       const { data: entriesData, error: entriesError } = await supabase
         .from("time_entries")
         .select("client_id, duration_seconds");
 
       if (entriesError) throw entriesError;
 
-      // Calculate total hours per client
       const hoursMap: Record<string, number> = {};
       entriesData?.forEach((entry) => {
         if (entry.client_id && entry.duration_seconds) {
@@ -184,44 +182,54 @@ export default function Clients() {
     client.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-6xl mx-auto">
+      <div className="p-6 lg:p-8 max-w-6xl mx-auto animate-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold">Clienti</h1>
-            <p className="text-muted-foreground">Gestisci i tuoi clienti e progetti</p>
+            <h1 className="text-3xl font-bold tracking-tight">Clienti</h1>
+            <p className="text-muted-foreground mt-1">Gestisci i tuoi clienti e progetti</p>
           </div>
-          <Button onClick={() => { setSelectedClient(null); setDialogOpen(true); }}>
+          <Button 
+            onClick={() => { setSelectedClient(null); setDialogOpen(true); }}
+            className="btn-gradient rounded-xl"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Nuovo cliente
           </Button>
         </div>
 
         {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="relative mb-8">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Cerca cliente..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 max-w-sm"
+            className="pl-11 max-w-sm rounded-xl h-12 bg-card/50 border-border/60"
           />
         </div>
 
-        {/* Loading state */}
-        {loading && (
-          <div className="text-center py-12 text-muted-foreground">
-            Caricamento clienti...
-          </div>
-        )}
-
         {/* Empty state */}
-        {!loading && clients.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">Non hai ancora clienti</p>
-            <Button onClick={() => setDialogOpen(true)}>
+        {clients.length === 0 && (
+          <div className="card-premium text-center py-16">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-primary" />
+            </div>
+            <p className="text-lg font-medium mb-2">Non hai ancora clienti</p>
+            <p className="text-sm text-muted-foreground mb-6">Crea il tuo primo cliente per iniziare</p>
+            <Button onClick={() => setDialogOpen(true)} className="btn-gradient rounded-xl">
               <Plus className="w-4 h-4 mr-2" />
               Crea il primo cliente
             </Button>
@@ -229,97 +237,101 @@ export default function Clients() {
         )}
 
         {/* Clients grid */}
-        {!loading && clients.length > 0 && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {clients.length > 0 && (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
             {filteredClients.map((client) => (
-              <Card key={client.id} variant="interactive" className="group">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-semibold text-white"
-                        style={{ backgroundColor: client.color }}
-                      >
-                        {client.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{client.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {client.email || "Nessuna email"}
-                        </p>
-                      </div>
+              <div key={client.id} className="card-premium group hover-lift p-6">
+                <div className="flex items-start justify-between mb-5">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-lg"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${client.color}, ${client.color}cc)`,
+                        boxShadow: `0 8px 24px -4px ${client.color}40`
+                      }}
+                    >
+                      {client.name.charAt(0).toUpperCase()}
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditDialog(client)}>
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Modifica
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => openDeleteDialog(client)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Elimina
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">
-                          {client.total_hours?.toFixed(1) || "0"}h
-                        </p>
-                        <p className="text-xs text-muted-foreground">Totale ore</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">
-                          {client.hourly_rate ? `€${client.hourly_rate}/h` : "-"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Tariffa</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {client.notes && (
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {client.notes}
+                    <div>
+                      <h3 className="font-bold text-lg">{client.name}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {client.email || "Nessuna email"}
                       </p>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-xl">
+                      <DropdownMenuItem onClick={() => openEditDialog(client)} className="rounded-lg">
+                        <Pencil className="w-4 h-4 mr-2" />
+                        Modifica
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => openDeleteDialog(client)}
+                        className="text-destructive focus:text-destructive rounded-lg"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Elimina
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold">
+                        {client.total_hours?.toFixed(1) || "0"}h
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ore totali</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
+                    <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 text-success" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold">
+                        {client.hourly_rate ? `€${client.hourly_rate}` : "-"}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Tariffa/h</p>
+                    </div>
+                  </div>
+                </div>
+
+                {client.notes && (
+                  <div className="mt-4 pt-4 border-t border-border/50">
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {client.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
             ))}
 
             {/* Add new client card */}
-            <Card
-              variant="interactive"
-              className="border-dashed flex items-center justify-center min-h-[200px] cursor-pointer hover:border-primary/50"
+            <div
+              className="card-premium border-dashed border-2 flex items-center justify-center min-h-[220px] cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
               onClick={() => { setSelectedClient(null); setDialogOpen(true); }}
             >
               <div className="text-center">
-                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
-                  <Plus className="w-6 h-6 text-muted-foreground" />
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-4">
+                  <Plus className="w-7 h-7 text-muted-foreground" />
                 </div>
-                <p className="text-sm font-medium">Aggiungi cliente</p>
+                <p className="text-sm font-semibold">Aggiungi cliente</p>
               </div>
-            </Card>
+            </div>
           </div>
         )}
       </div>

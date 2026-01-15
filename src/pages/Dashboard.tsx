@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Play,
@@ -12,6 +11,7 @@ import {
   Edit2,
   Trash2,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ManualEntryDialog } from "@/components/dashboard/ManualEntryDialog";
@@ -78,7 +78,6 @@ export default function Dashboard() {
 
   const selectedClient = clients.find((c) => c.id === timer.clientId) || null;
 
-  // Fetch clients and today's entries
   const fetchData = useCallback(async () => {
     if (!user) return;
 
@@ -105,7 +104,6 @@ export default function Dashboard() {
       setClients(clientsRes.data || []);
       setTodayEntries(entriesRes.data || []);
 
-      // Auto-select first client if none selected
       if (!timer.clientId && clientsRes.data && clientsRes.data.length > 0) {
         timer.setClientId(clientsRes.data[0].id);
       }
@@ -124,14 +122,12 @@ export default function Dashboard() {
     fetchData();
   }, [fetchData]);
 
-  // Refetch when timer stops
   useEffect(() => {
     if (!timer.isRunning && !timer.saving) {
       fetchData();
     }
   }, [timer.isRunning, timer.saving, fetchData]);
 
-  // Keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space" && e.target === document.body) {
@@ -245,7 +241,7 @@ export default function Dashboard() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </DashboardLayout>
     );
@@ -253,73 +249,77 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-8">
-        {/* Timer Card */}
-        <Card
-          variant={timer.isRunning ? "timer-active" : "timer"}
+      <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-8 animate-in">
+        {/* Timer Card - Premium Design */}
+        <div
           className={cn(
-            "relative overflow-hidden transition-all duration-500",
-            timer.isRunning && "timer-pulse"
+            "card-premium relative overflow-hidden transition-all duration-500",
+            timer.isRunning && "timer-pulse shadow-success"
           )}
         >
-          {/* Client color bar */}
+          {/* Gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5" />
+          
+          {/* Client color accent bar */}
           {selectedClient && (
             <div
-              className="absolute top-0 left-0 right-0 h-1"
-              style={{ backgroundColor: selectedClient.color }}
+              className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl"
+              style={{ 
+                background: `linear-gradient(90deg, ${selectedClient.color}, ${selectedClient.color}80)` 
+              }}
             />
           )}
 
-          <CardContent className="pt-8 pb-8">
+          <div className="relative pt-10 pb-10 px-6">
             <div className="flex flex-col items-center">
               {/* Client selector */}
-              <div className="relative mb-6">
+              <div className="relative mb-8">
                 {clients.length > 0 ? (
                   <>
                     <Button
-                      variant="ghost"
-                      className="flex items-center gap-2 text-sm"
+                      variant="outline"
+                      className="flex items-center gap-3 px-5 py-2.5 rounded-2xl border-border/60 bg-card/50 hover:bg-card hover:border-primary/30 transition-all"
                       onClick={() => setShowClientDropdown(!showClientDropdown)}
                       disabled={timer.isRunning}
                     >
                       {selectedClient ? (
                         <>
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="w-3.5 h-3.5 rounded-full ring-2 ring-white/20"
                             style={{ backgroundColor: selectedClient.color }}
                           />
-                          <span>{selectedClient.name}</span>
+                          <span className="font-medium">{selectedClient.name}</span>
                         </>
                       ) : (
                         <span className="text-muted-foreground">
                           Seleziona cliente
                         </span>
                       )}
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     </Button>
 
                     {showClientDropdown && (
-                      <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 bg-card border rounded-lg shadow-lg py-2 z-10 animate-scale-in">
+                      <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 w-56 glass-premium rounded-2xl py-2 z-10 animate-scale-in">
                         {clients.map((client) => (
                           <button
                             key={client.id}
-                            className="w-full px-4 py-2 flex items-center gap-3 hover:bg-muted transition-colors text-sm"
+                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-sm"
                             onClick={() => {
                               timer.setClientId(client.id);
                               setShowClientDropdown(false);
                             }}
                           >
                             <div
-                              className="w-3 h-3 rounded-full"
+                              className="w-3.5 h-3.5 rounded-full"
                               style={{ backgroundColor: client.color }}
                             />
-                            {client.name}
+                            <span className="font-medium">{client.name}</span>
                           </button>
                         ))}
-                        <div className="border-t my-2" />
+                        <div className="border-t border-border/50 my-2" />
                         <Link
                           to="/clients"
-                          className="w-full px-4 py-2 flex items-center gap-3 hover:bg-muted transition-colors text-sm text-primary"
+                          className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-sm text-primary font-medium"
                         >
                           <Plus className="w-4 h-4" />
                           Nuovo cliente
@@ -329,7 +329,7 @@ export default function Dashboard() {
                   </>
                 ) : (
                   <Link to="/clients">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" className="rounded-2xl">
                       <Plus className="w-4 h-4 mr-2" />
                       Aggiungi cliente
                     </Button>
@@ -337,12 +337,17 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Timer display */}
+              {/* Timer display - Premium */}
               <div
                 className={cn(
-                  "font-mono text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 transition-all",
-                  timer.isRunning ? "text-success" : "text-foreground"
+                  "font-mono text-7xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-8 transition-all duration-300",
+                  timer.isRunning 
+                    ? "text-gradient" 
+                    : "text-foreground"
                 )}
+                style={{
+                  textShadow: timer.isRunning ? '0 0 60px hsl(var(--success) / 0.3)' : 'none'
+                }}
               >
                 {formatTime(timer.elapsedTime)}
               </div>
@@ -352,67 +357,72 @@ export default function Dashboard() {
                 placeholder="Su cosa stai lavorando?"
                 value={timer.description}
                 onChange={(e) => timer.setDescription(e.target.value)}
-                className="max-w-md text-center border-dashed mb-8"
+                className="max-w-md text-center border-dashed border-border/60 mb-10 rounded-2xl h-12 bg-card/50 focus:bg-card transition-colors"
                 disabled={timer.isRunning}
               />
 
               {/* Action buttons */}
               <div className="flex gap-4">
                 <Button
-                  variant={timer.isRunning ? "timer-stop" : "timer"}
                   size="lg"
                   onClick={handleStartStop}
                   disabled={timer.saving}
-                  className="min-w-[140px]"
+                  className={cn(
+                    "min-w-[160px] h-14 rounded-2xl text-base font-semibold transition-all duration-300",
+                    timer.isRunning 
+                      ? "bg-destructive hover:bg-destructive/90 shadow-lg" 
+                      : "btn-gradient"
+                  )}
                 >
                   {timer.saving ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : timer.isRunning ? (
                     <>
-                      <Square className="w-5 h-5 fill-current" />
+                      <Square className="w-5 h-5 mr-2 fill-current" />
                       Stop
                     </>
                   ) : (
                     <>
-                      <Play className="w-5 h-5 fill-current" />
-                      Start
+                      <Play className="w-5 h-5 mr-2 fill-current" />
+                      Inizia
                     </>
                   )}
                 </Button>
                 <Button
-                  variant="timer-manual"
+                  variant="outline"
                   size="lg"
                   onClick={() => setManualDialogOpen(true)}
                   disabled={timer.isRunning}
+                  className="h-14 rounded-2xl hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
                 >
-                  <Clock className="w-5 h-5" />
+                  <Clock className="w-5 h-5 mr-2" />
                   Manuale
                 </Button>
               </div>
 
               {/* Keyboard hint */}
-              <p className="mt-6 text-xs text-muted-foreground flex items-center gap-2">
-                <Keyboard className="w-3 h-3" />
-                Premi Spazio per start/stop
+              <p className="mt-8 text-xs text-muted-foreground flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-full">
+                <Keyboard className="w-3.5 h-3.5" />
+                Premi <kbd className="px-1.5 py-0.5 bg-card rounded text-[10px] font-mono border">Spazio</kbd> per start/stop
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Today's entries */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Oggi</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-xl font-bold tracking-tight">Oggi</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Totale:{" "}
-                <span className="font-medium text-foreground">
+                <span className="font-semibold text-primary">
                   {formatDuration(totalTodaySeconds)}
                 </span>
               </p>
             </div>
             {clients.length > 0 && todayEntries.length > 0 && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5 p-2 bg-muted/50 rounded-full">
                 {clients.map((client) => {
                   const clientTime = todayEntries
                     .filter((e) => e.client_id === client.id)
@@ -422,10 +432,10 @@ export default function Dashboard() {
                   return (
                     <div
                       key={client.id}
-                      className="h-2 rounded-full"
+                      className="h-2.5 rounded-full transition-all hover:scale-110"
                       style={{
                         backgroundColor: client.color,
-                        width: `${Math.max(percentage * 0.8, 8)}px`,
+                        width: `${Math.max(percentage * 0.8, 10)}px`,
                       }}
                       title={`${client.name}: ${formatDuration(clientTime)}`}
                     />
@@ -436,92 +446,93 @@ export default function Dashboard() {
           </div>
 
           {/* Timeline */}
-          <div className="space-y-3">
+          <div className="space-y-3 stagger-children">
             {todayEntries.length === 0 ? (
-              <Card variant="default" className="text-center py-12">
-                <p className="text-muted-foreground mb-2">
-                  Nessuna attività oggi.
+              <div className="card-premium text-center py-16">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-8 h-8 text-primary" />
+                </div>
+                <p className="text-lg font-medium mb-2">
+                  Nessuna attività oggi
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Pronto a iniziare? 🚀
                 </p>
-              </Card>
+              </div>
             ) : (
               todayEntries.map((entry) => {
                 const client = getClientById(entry.client_id);
                 return (
-                  <Card key={entry.id} variant="interactive" className="group">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        {/* Color indicator */}
-                        <div
-                          className="w-1 h-12 rounded-full"
-                          style={{
-                            backgroundColor: client?.color || "#94a3b8",
-                          }}
-                        />
+                  <div key={entry.id} className="card-premium group hover-lift p-5">
+                    <div className="flex items-center gap-4">
+                      {/* Color indicator */}
+                      <div
+                        className="w-1.5 h-14 rounded-full"
+                        style={{
+                          background: `linear-gradient(180deg, ${client?.color || "#94a3b8"}, ${client?.color || "#94a3b8"}60)`,
+                        }}
+                      />
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium truncate">
-                              {client?.name || "Senza cliente"}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {entry.description || "Nessuna descrizione"}
-                          </p>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold truncate">
+                            {client?.name || "Senza cliente"}
+                          </span>
                         </div>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {entry.description || "Nessuna descrizione"}
+                        </p>
+                      </div>
 
-                        {/* Time info */}
-                        <div className="text-right">
-                          <div className="text-sm font-medium">
-                            {formatDuration(entry.duration_seconds || 0)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {formatTimeOfDay(entry.start_time)}
-                            {entry.end_time &&
-                              ` - ${formatTimeOfDay(entry.end_time)}`}
-                          </div>
+                      {/* Time info */}
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-gradient">
+                          {formatDuration(entry.duration_seconds || 0)}
                         </div>
-
-                        {/* Actions (visible on hover) */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon-sm" disabled>
-                            <Edit2 className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="text-destructive"
-                            onClick={() => handleDeleteEntry(entry.id)}
-                            disabled={deletingId === entry.id}
-                          >
-                            {deletingId === entry.id ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-3 h-3" />
-                            )}
-                          </Button>
+                        <div className="text-xs text-muted-foreground">
+                          {formatTimeOfDay(entry.start_time)}
+                          {entry.end_time &&
+                            ` - ${formatTimeOfDay(entry.end_time)}`}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" disabled className="rounded-xl">
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:bg-destructive/10 rounded-xl"
+                          onClick={() => handleDeleteEntry(entry.id)}
+                          disabled={deletingId === entry.id}
+                        >
+                          {deletingId === entry.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 );
               })
             )}
           </div>
         </div>
-
-        {/* Manual Entry Dialog */}
-        <ManualEntryDialog
-          open={manualDialogOpen}
-          onOpenChange={setManualDialogOpen}
-          onSubmit={handleManualEntry}
-          clients={clients}
-          isLoading={savingManual}
-        />
       </div>
+
+      {/* Manual Entry Dialog */}
+      <ManualEntryDialog
+        open={manualDialogOpen}
+        onOpenChange={setManualDialogOpen}
+        onSubmit={handleManualEntry}
+        clients={clients}
+        isLoading={savingManual}
+      />
     </DashboardLayout>
   );
 }
