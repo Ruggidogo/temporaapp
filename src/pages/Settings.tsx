@@ -5,15 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { User, Briefcase, Users, Save, LogOut, FileText, Settings2, Loader2 } from "lucide-react";
+import { User, Briefcase, Users, Save, LogOut, FileText, Loader2, Crown, Check, Calendar, CreditCard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { LogoUpload } from "@/components/settings/LogoUpload";
+import { UpgradeButton } from "@/components/billing/UpgradeButton";
+import { format, differenceInDays } from "date-fns";
+import { it } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export default function Settings() {
-  const { user, profile, refreshProfile, signOut } = useAuth();
+  const { user, profile, subscription, refreshProfile, signOut, checkSubscription } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [workType, setWorkType] = useState<"freelancer" | "team">("freelancer");
@@ -25,9 +29,32 @@ export default function Settings() {
     if (profile) {
       setName(profile.name || "");
       setWorkType((profile.work_type as "freelancer" | "team") || "freelancer");
-      setLogoUrl((profile as any).logo_url || null);
+      setLogoUrl(profile.logo_url || null);
     }
   }, [profile]);
+
+  // Check for checkout success
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const checkoutStatus = urlParams.get('checkout');
+    
+    if (checkoutStatus === 'success') {
+      toast({
+        title: "Abbonamento attivato! 🎉",
+        description: "Benvenuto in Tempora Pro!",
+      });
+      // Remove query param
+      window.history.replaceState({}, '', window.location.pathname);
+      // Refresh subscription status
+      checkSubscription();
+    } else if (checkoutStatus === 'cancelled') {
+      toast({
+        title: "Checkout annullato",
+        description: "Puoi riprovare quando vuoi.",
+      });
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [checkSubscription]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -101,6 +128,14 @@ export default function Settings() {
     }
   };
 
+  // Calculate trial days remaining
+  const trialDaysRemaining = profile?.trial_ends_at 
+    ? Math.max(0, differenceInDays(new Date(profile.trial_ends_at), new Date()))
+    : 0;
+
+  const isPro = subscription.subscribed || profile?.plan === 'pro';
+  const isTrial = !isPro && profile?.plan === 'trial';
+
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-2xl mx-auto animate-in">
@@ -112,6 +147,107 @@ export default function Settings() {
         </div>
 
         <div className="space-y-6 stagger-children">
+          {/* Subscription Card */}
+          <div className={cn(
+            "relative overflow-hidden rounded-2xl border p-6 transition-all",
+            isPro 
+              ? "border-success/30 bg-gradient-to-br from-success/5 to-emerald-500/5" 
+              : "border-primary/30 bg-gradient-to-br from-primary/5 to-purple-500/5"
+          )}>
+            {/* Background decoration */}
+            <div className={cn(
+              "absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2",
+              isPro ? "bg-success/20" : "bg-primary/20"
+            )} />
+            
+            <div className="relative">
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg",
+                    isPro 
+                      ? "bg-gradient-to-r from-success to-emerald-400 shadow-success/30" 
+                      : "bg-gradient-to-r from-primary to-purple-500 shadow-primary/30"
+                  )}>
+                    <Crown className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-lg">
+                      {isPro ? "Tempora Pro" : "Piano Trial"}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      {isPro ? "Accesso completo a tutte le funzionalità" : "Prova gratuita"}
+                    </p>
+                  </div>
+                </div>
+                
+                {isPro && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30 text-sm font-medium text-success">
+                    <Check className="w-4 h-4" />
+                    Attivo
+                  </div>
+                )}
+              </div>
+
+              {/* Plan details */}
+              <div className="space-y-4 mb-6">
+                {isPro && subscription.subscriptionEnd && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Prossimo rinnovo:</span>
+                    <span className="font-medium">
+                      {format(new Date(subscription.subscriptionEnd), "d MMMM yyyy", { locale: it })}
+                    </span>
+                  </div>
+                )}
+                
+                {isTrial && profile?.trial_ends_at && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Trial scade:</span>
+                    <span className={cn(
+                      "font-medium",
+                      trialDaysRemaining <= 3 ? "text-warning" : ""
+                    )}>
+                      {trialDaysRemaining === 0 
+                        ? "Oggi" 
+                        : `tra ${trialDaysRemaining} giorni`}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 text-sm">
+                  <CreditCard className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Prezzo:</span>
+                  <span className="font-medium">
+                    {isPro ? "€14,99/mese" : "Gratuito (14 giorni)"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {[
+                  "Timer illimitato",
+                  "Clienti illimitati",
+                  "Report avanzati",
+                  "Export PDF/CSV"
+                ].map((feature) => (
+                  <div key={feature} className="flex items-center gap-2 text-sm">
+                    <Check className={cn(
+                      "w-4 h-4",
+                      isPro ? "text-success" : "text-primary"
+                    )} />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Action button */}
+              <UpgradeButton className="w-full" />
+            </div>
+          </div>
+
           {/* Profile Card */}
           <div className="card-premium p-6">
             <div className="flex items-center gap-3 mb-6">
