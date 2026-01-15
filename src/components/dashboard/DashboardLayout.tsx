@@ -2,7 +2,6 @@ import { ReactNode, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  Clock, 
   LayoutDashboard, 
   Users, 
   Calendar, 
@@ -11,12 +10,16 @@ import {
   Menu,
   X,
   LogOut,
-  ChevronLeft
+  ChevronLeft,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import temporaLogoLight from "@/assets/tempora-logo-light.svg";
+import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
+import temporaIcon from "@/assets/tempora-icon.svg";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -52,34 +55,51 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen flex bg-muted/30">
+    <div className="min-h-screen flex bg-mesh bg-background">
       {/* Desktop Sidebar */}
       <aside 
         className={cn(
-          "hidden lg:flex flex-col border-r bg-card transition-all duration-300",
-          sidebarOpen ? "w-64" : "w-20"
+          "hidden lg:flex flex-col border-r bg-card/80 backdrop-blur-xl transition-all duration-300 relative",
+          sidebarOpen ? "w-72" : "w-20"
         )}
+        style={{ boxShadow: 'var(--shadow-lg)' }}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b">
-          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(285_80%_55%)] flex items-center justify-center flex-shrink-0">
-              <Clock className="w-4 h-4 text-primary-foreground" />
-            </div>
-            {sidebarOpen && <span>Tempora</span>}
+        <div className="h-18 flex items-center justify-between px-5 py-4 border-b border-border/50">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            {sidebarOpen ? (
+              <img 
+                src={temporaLogoLight} 
+                alt="Tempora" 
+                className="h-10 dark:hidden"
+              />
+            ) : (
+              <img 
+                src={temporaIcon} 
+                alt="Tempora" 
+                className="h-10 w-10"
+              />
+            )}
+            {sidebarOpen && (
+              <img 
+                src={temporaLogoDark} 
+                alt="Tempora" 
+                className="h-10 hidden dark:block"
+              />
+            )}
           </Link>
           <Button 
             variant="ghost" 
-            size="icon-sm"
+            size="icon"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="flex-shrink-0"
+            className="flex-shrink-0 hover:bg-primary/10 rounded-xl"
           >
-            <ChevronLeft className={cn("w-4 h-4 transition-transform", !sidebarOpen && "rotate-180")} />
+            <ChevronLeft className={cn("w-4 h-4 transition-transform duration-300", !sidebarOpen && "rotate-180")} />
           </Button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1.5">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -87,10 +107,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "nav-item",
                   isActive 
-                    ? "bg-primary text-primary-foreground" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "nav-item-active" 
+                    : "nav-item-inactive"
                 )}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -102,41 +122,63 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Trial badge */}
         {sidebarOpen && profile?.plan === "trial" && trialDaysRemaining !== null && (
-          <div className="p-4 border-t">
+          <div className="px-4 pb-2">
             <div className={cn(
-              "px-3 py-2 rounded-lg text-xs",
+              "p-4 rounded-2xl border transition-all",
               trialDaysRemaining <= 3 
-                ? "bg-destructive/10 text-destructive" 
-                : "bg-warning/10 text-warning"
+                ? "bg-destructive/5 border-destructive/20" 
+                : "bg-gradient-to-br from-primary/5 to-purple-500/5 border-primary/20"
             )}>
-              <p className="font-medium">Trial gratuito</p>
-              <p className={trialDaysRemaining <= 3 ? "text-destructive/80" : "text-warning/80"}>
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className={cn(
+                  "w-4 h-4",
+                  trialDaysRemaining <= 3 ? "text-destructive" : "text-primary"
+                )} />
+                <p className={cn(
+                  "font-semibold text-sm",
+                  trialDaysRemaining <= 3 ? "text-destructive" : "text-primary"
+                )}>
+                  Trial gratuito
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
                 {trialDaysRemaining === 0 
                   ? "Scade oggi!" 
                   : trialDaysRemaining === 1 
                     ? "1 giorno rimanente" 
                     : `${trialDaysRemaining} giorni rimanenti`}
               </p>
+              <Button 
+                size="sm" 
+                className="w-full mt-3 btn-gradient text-xs h-8"
+              >
+                Passa a Pro
+              </Button>
             </div>
           </div>
         )}
 
         {/* User section */}
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-medium text-primary">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 border border-primary/20">
+              <span className="text-sm font-semibold text-primary">
                 {profile?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
               </span>
             </div>
             {sidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{profile?.name || "Utente"}</p>
+                <p className="text-sm font-semibold truncate">{profile?.name || "Utente"}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
             )}
             {sidebarOpen && (
-              <Button variant="ghost" size="icon-sm" onClick={handleLogout}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLogout}
+                className="hover:bg-destructive/10 hover:text-destructive rounded-xl"
+              >
                 <LogOut className="w-4 h-4" />
               </Button>
             )}
@@ -145,17 +187,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-4 border-b bg-card">
-        <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-[hsl(285_80%_55%)] flex items-center justify-center">
-            <Clock className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span>Tempora</span>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-4 border-b glass">
+        <Link to="/dashboard" className="flex items-center">
+          <img 
+            src={temporaLogoLight} 
+            alt="Tempora" 
+            className="h-9 dark:hidden"
+          />
+          <img 
+            src={temporaLogoDark} 
+            alt="Tempora" 
+            className="h-9 hidden dark:block"
+          />
         </Link>
         <Button 
           variant="ghost" 
           size="icon"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="rounded-xl"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
@@ -163,9 +212,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-background animate-fade-in">
+        <div className="lg:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-lg animate-fade-in">
           <div className="pt-20 p-4">
-            <nav className="space-y-1">
+            <nav className="space-y-2 stagger-children">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
@@ -174,9 +223,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     to={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
+                      "flex items-center gap-4 px-5 py-4 rounded-2xl text-base font-medium transition-all",
                       isActive 
-                        ? "bg-primary text-primary-foreground" 
+                        ? "bg-primary text-primary-foreground shadow-primary" 
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     )}
                   >
@@ -191,7 +240,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Main content */}
-      <main className="flex-1 lg:overflow-auto">
+      <main className="flex-1 lg:overflow-auto scrollbar-thin">
         <div className="lg:hidden h-16" /> {/* Spacer for mobile header */}
         {children}
       </main>
