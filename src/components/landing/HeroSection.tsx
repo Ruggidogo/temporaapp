@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Clock, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useParallax, useMouseParallax } from "@/hooks/useParallax";
 
 export function HeroSection() {
   const { ref: badgeRef, isVisible: badgeVisible } = useScrollAnimation();
@@ -10,12 +11,53 @@ export function HeroSection() {
   const { ref: ctaRef, isVisible: ctaVisible } = useScrollAnimation();
   const { ref: cardRef, isVisible: cardVisible } = useScrollAnimation();
 
+  // Parallax effects
+  const parallaxSlow = useParallax({ speed: 0.15, direction: "up" });
+  const parallaxMedium = useParallax({ speed: 0.25, direction: "up" });
+  const parallaxFast = useParallax({ speed: 0.35, direction: "down" });
+  const mousePosition = useMouseParallax(0.015);
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/30">
-      {/* Animated gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-r from-primary/30 to-purple-500/20 rounded-full blur-3xl -translate-y-1/2 animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-gradient-to-l from-primary/20 to-blue-500/15 rounded-full blur-3xl translate-y-1/2" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl" />
+      {/* Animated gradient orbs with parallax */}
+      <div 
+        className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-r from-primary/30 to-purple-500/20 rounded-full blur-3xl -translate-y-1/2 transition-transform duration-100 ease-out"
+        style={{ 
+          transform: `translate(${mousePosition.x * 0.5}px, calc(-50% + ${parallaxSlow}px + ${mousePosition.y * 0.5}px))` 
+        }}
+      />
+      <div 
+        className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-gradient-to-l from-primary/20 to-blue-500/15 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        style={{ 
+          transform: `translate(${-mousePosition.x * 0.3}px, calc(50% + ${parallaxMedium}px + ${-mousePosition.y * 0.3}px))` 
+        }}
+      />
+      <div 
+        className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        style={{ 
+          transform: `translate(calc(-50% + ${mousePosition.x * 0.2}px), calc(-50% + ${parallaxFast}px + ${mousePosition.y * 0.2}px))` 
+        }}
+      />
+
+      {/* Floating decorative elements with parallax */}
+      <div 
+        className="absolute top-32 right-[15%] w-20 h-20 rounded-2xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 hidden lg:block transition-transform duration-100 ease-out"
+        style={{ 
+          transform: `translateY(${parallaxSlow * 1.5}px) rotate(${parallaxSlow * 0.05}deg)` 
+        }}
+      />
+      <div 
+        className="absolute top-1/3 left-[10%] w-16 h-16 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hidden lg:block transition-transform duration-100 ease-out"
+        style={{ 
+          transform: `translateY(${parallaxMedium * 1.2}px) rotate(${-parallaxMedium * 0.08}deg)` 
+        }}
+      />
+      <div 
+        className="absolute bottom-1/4 right-[8%] w-12 h-12 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 hidden lg:block transition-transform duration-100 ease-out"
+        style={{ 
+          transform: `translateY(${parallaxFast * 0.8}px) rotate(${parallaxFast * 0.1}deg)` 
+        }}
+      />
       
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.3)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.3)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
@@ -109,8 +151,13 @@ export function HeroSection() {
             }}
           >
             <div className="relative">
-              {/* Glow effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 via-purple-500/50 to-primary/50 rounded-3xl blur-xl opacity-30" />
+              {/* Glow effect with parallax */}
+              <div 
+                className="absolute -inset-1 bg-gradient-to-r from-primary/50 via-purple-500/50 to-primary/50 rounded-3xl blur-xl opacity-30 transition-transform duration-100 ease-out"
+                style={{ 
+                  transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)` 
+                }}
+              />
               
               <div className="relative rounded-2xl border-2 border-border/50 bg-gradient-to-b from-card to-card/80 p-10 shadow-2xl backdrop-blur-sm">
                 {/* Decorative elements */}

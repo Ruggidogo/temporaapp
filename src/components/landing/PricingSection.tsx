@@ -2,11 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Shield, Zap, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useParallax, useMouseParallax } from "@/hooks/useParallax";
 
 export function PricingSection() {
   const { ref: titleRef, isVisible: titleVisible } = useScrollAnimation();
   const { ref: cardRef, isVisible: cardVisible } = useScrollAnimation();
   const { ref: trustRef, isVisible: trustVisible } = useScrollAnimation();
+
+  // Parallax effects
+  const parallaxSlow = useParallax({ speed: 0.1, direction: "up" });
+  const mousePosition = useMouseParallax(0.008);
 
   const features = [
     "Timer illimitato",
@@ -21,9 +26,24 @@ export function PricingSection() {
 
   return (
     <section className="py-28 md:py-36 relative overflow-hidden">
-      {/* Background */}
+      {/* Background with parallax */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+      <div 
+        className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        style={{ 
+          transform: `translate(calc(-50% + ${mousePosition.x * 0.3}px), calc(-50% + ${parallaxSlow + mousePosition.y * 0.3}px))` 
+        }}
+      />
+
+      {/* Decorative shapes with parallax */}
+      <div 
+        className="absolute top-24 left-[10%] w-20 h-20 rounded-full border border-primary/10 hidden lg:block transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxSlow * 1.5}px) rotate(${parallaxSlow * 0.1}deg)` }}
+      />
+      <div 
+        className="absolute bottom-32 right-[12%] w-16 h-16 rounded-xl border border-purple-500/10 hidden lg:block transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxSlow * 2}px) rotate(${-parallaxSlow * 0.12}deg)` }}
+      />
       
       <div className="container relative">
         <div 
@@ -55,8 +75,13 @@ export function PricingSection() {
           }}
         >
           <div className="relative">
-            {/* Glow effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-3xl blur-xl opacity-30" />
+            {/* Glow effect with mouse parallax */}
+            <div 
+              className="absolute -inset-1 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-3xl blur-xl opacity-30 transition-transform duration-100 ease-out"
+              style={{ 
+                transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)` 
+              }}
+            />
             
             <div className="relative rounded-2xl border-2 border-primary/30 bg-gradient-to-b from-card via-card to-card/80 overflow-hidden shadow-2xl">
               {/* Header gradient */}

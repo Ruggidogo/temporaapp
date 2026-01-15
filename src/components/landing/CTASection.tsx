@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, Clock, Users, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useParallax, useMouseParallax } from "@/hooks/useParallax";
 
 export function CTASection() {
   const { ref: badgeRef, isVisible: badgeVisible } = useScrollAnimation();
@@ -9,21 +10,41 @@ export function CTASection() {
   const { ref: descRef, isVisible: descVisible } = useScrollAnimation();
   const { ref: ctaRef, isVisible: ctaVisible } = useScrollAnimation();
 
+  // Parallax effects
+  const parallaxSlow = useParallax({ speed: 0.12, direction: "up" });
+  const parallaxMedium = useParallax({ speed: 0.2, direction: "down" });
+  const mousePosition = useMouseParallax(0.01);
+
   return (
     <section className="py-28 md:py-36 relative overflow-hidden">
-      {/* Background gradients */}
+      {/* Background gradients with parallax */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/10" />
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl" />
+      <div 
+        className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        style={{ transform: `translate(${mousePosition.x * 0.3}px, ${parallaxSlow + mousePosition.y * 0.3}px)` }}
+      />
+      <div 
+        className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        style={{ transform: `translate(${-mousePosition.x * 0.2}px, ${parallaxMedium + -mousePosition.y * 0.2}px)` }}
+      />
       
-      {/* Floating icons */}
-      <div className="absolute top-1/4 left-1/6 w-14 h-14 rounded-2xl bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/20 flex items-center justify-center animate-float hidden lg:flex">
+      {/* Floating icons with parallax */}
+      <div 
+        className="absolute top-1/4 left-[15%] w-14 h-14 rounded-2xl bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/20 flex items-center justify-center hidden lg:flex transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxSlow * 1.5}px) rotate(${parallaxSlow * 0.1}deg)` }}
+      >
         <Clock className="w-6 h-6 text-primary" />
       </div>
-      <div className="absolute top-1/3 right-1/6 w-14 h-14 rounded-2xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center animate-float hidden lg:flex" style={{ animationDelay: '1s' }}>
+      <div 
+        className="absolute top-1/3 right-[15%] w-14 h-14 rounded-2xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center hidden lg:flex transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxMedium * 1.2}px) rotate(${-parallaxMedium * 0.08}deg)` }}
+      >
         <BarChart3 className="w-6 h-6 text-emerald-500" />
       </div>
-      <div className="absolute bottom-1/3 left-1/5 w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/20 flex items-center justify-center animate-float hidden lg:flex" style={{ animationDelay: '2s' }}>
+      <div 
+        className="absolute bottom-1/3 left-[20%] w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/20 flex items-center justify-center hidden lg:flex transition-transform duration-100 ease-out"
+        style={{ transform: `translateY(${parallaxSlow * 1.8}px) rotate(${parallaxSlow * 0.12}deg)` }}
+      >
         <Users className="w-6 h-6 text-blue-500" />
       </div>
       
