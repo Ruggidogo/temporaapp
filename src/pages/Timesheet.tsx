@@ -1,0 +1,439 @@
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, CalendarDays, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, subWeeks, addMonths, subMonths, eachDayOfInterval, isSameDay, parseISO } from "date-fns";
+import { it } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
+interface Client {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface TimeEntry {
+  id: string;
+  client_id: string | null;
+  description: string | null;
+  duration_seconds: number | null;
+  start_time: string;
+  end_time: string | null;
+  date: string;
+  entry_type: string;
+}
+
+type ViewMode = "week" | "month";
+
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
+}
+
+function formatTimeOfDay(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleTimeString("it-IT", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export default function Timesheet() {
+  const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [clients, setClients] = useState<Client[]>([]);
+  const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedClient, setSelectedClient] = useState<string>("all");
+
+  const dateRange = useMemo(() => {
+    if (viewMode === "week") {
+      return {
+        start: startOfWeek(currentDate, { weekStartsOn: 1 }),
+        end: endOfWeek(currentDate, { weekStartsOn: 1 }),
+      };
+    }
+    return {
+      start: startOfMonth(currentDate),
+      end: endOfMonth(currentDate),
+    };
+  }, [viewMode, currentDate]);
+
+  const days = useMemo(() => {
+    return eachDayOfInterval({ start: dateRange.start, end: dateRange.end });
+  }, [dateRange]);
+
+  const fetchData = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+
+    try {
+      const startStr = format(dateRange.start, "yyyy-MM-dd");
+      const endStr = format(dateRange.end, "yyyy-MM-dd");
+
+      const [clientsRes, entriesRes] = await Promise.all([
+        supabase
+          .from("clients")
+          .select("id, name, color")
+          .eq("user_id", user.id)
+          .order("name"),
+        supabase
+          .from("time_entries")
+          .select("*")
+          .eq("user_id", user.id)
+          .gte("date", startStr)
+          .lte("date", endStr)
+          .order("date", { ascending: true })
+          .order("start_time", { ascending: true }),
+      ]);
+
+      if (clientsRes.error) throw clientsRes.error;
+      if (entriesRes.error) throw entriesRes.error;
+
+      setClients(clientsRes.data || []);
+      setEntries(entriesRes.data || []);
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, dateRange]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const filteredEntries = useMemo(() => {
+    if (selectedClient === "all") return entries;
+    return entries.filter((e) => e.client_id === selectedClient);
+  }, [entries, selectedClient]);
+
+  const entriesByDay = useMemo(() => {
+    const map = new Map<string, TimeEntry[]>();
+    days.forEach((day) => {
+      const dateKey = format(day, "yyyy-MM-dd");
+      map.set(dateKey, []);
+    });
+    filteredEntries.forEach((entry) => {
+      const existing = map.get(entry.date) || [];
+      existing.push(entry);
+      map.set(entry.date, existing);
+    });
+    return map;
+  }, [filteredEntries, days]);
+
+  const totalByDay = useMemo(() => {
+    const map = new Map<string, number>();
+    entriesByDay.forEach((dayEntries, dateKey) => {
+      const total = dayEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+      map.set(dateKey, total);
+    });
+    return map;
+  }, [entriesByDay]);
+
+  const totalSeconds = useMemo(() => {
+    return filteredEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+  }, [filteredEntries]);
+
+  const getClientById = (id: string | null) =>
+    clients.find((c) => c.id === id) || null;
+
+  const navigatePrevious = () => {
+    if (viewMode === "week") {
+      setCurrentDate(subWeeks(currentDate, 1));
+    } else {
+      setCurrentDate(subMonths(currentDate, 1));
+    }
+  };
+
+  const navigateNext = () => {
+    if (viewMode === "week") {
+      setCurrentDate(addWeeks(currentDate, 1));
+    } else {
+      setCurrentDate(addMonths(currentDate, 1));
+    }
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const periodLabel = useMemo(() => {
+    if (viewMode === "week") {
+      return `${format(dateRange.start, "d MMM", { locale: it })} - ${format(dateRange.end, "d MMM yyyy", { locale: it })}`;
+    }
+    return format(currentDate, "MMMM yyyy", { locale: it });
+  }, [viewMode, currentDate, dateRange]);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Timesheet</h1>
+            <p className="text-muted-foreground">
+              Visualizza le tue registrazioni orarie
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Select value={selectedClient} onValueChange={setSelectedClient}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtra cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tutti i clienti</SelectItem>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: client.color }}
+                      />
+                      {client.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="week">Settimana</SelectItem>
+                    <SelectItem value="month">Mese</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button variant="outline" size="sm" onClick={goToToday}>
+                  Oggi
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={navigatePrevious}>
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <span className="text-sm font-medium min-w-[180px] text-center capitalize">
+                  {periodLabel}
+                </span>
+                <Button variant="outline" size="icon" onClick={navigateNext}>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Totale:</span>
+                <span className="font-semibold">{formatDuration(totalSeconds)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Timesheet Grid */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[140px]">Giorno</TableHead>
+                    <TableHead>Attività</TableHead>
+                    <TableHead className="w-[100px] text-right">Totale</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {days.map((day) => {
+                    const dateKey = format(day, "yyyy-MM-dd");
+                    const dayEntries = entriesByDay.get(dateKey) || [];
+                    const dayTotal = totalByDay.get(dateKey) || 0;
+                    const isToday = isSameDay(day, new Date());
+                    const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+
+                    return (
+                      <TableRow
+                        key={dateKey}
+                        className={cn(
+                          isToday && "bg-primary/5",
+                          isWeekend && !isToday && "bg-muted/30"
+                        )}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span className={cn(
+                              "capitalize",
+                              isToday && "text-primary font-semibold"
+                            )}>
+                              {format(day, "EEEE", { locale: it })}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {format(day, "d MMMM", { locale: it })}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {dayEntries.length === 0 ? (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          ) : (
+                            <div className="space-y-2">
+                              {dayEntries.map((entry) => {
+                                const client = getClientById(entry.client_id);
+                                return (
+                                  <div
+                                    key={entry.id}
+                                    className="flex items-center gap-3 py-1"
+                                  >
+                                    <div
+                                      className="w-2 h-2 rounded-full flex-shrink-0"
+                                      style={{
+                                        backgroundColor: client?.color || "#94a3b8",
+                                      }}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium">
+                                          {client?.name || "Senza cliente"}
+                                        </span>
+                                        <Badge variant="outline" className="text-xs">
+                                          {formatDuration(entry.duration_seconds || 0)}
+                                        </Badge>
+                                      </div>
+                                      {entry.description && (
+                                        <p className="text-xs text-muted-foreground truncate">
+                                          {entry.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                      {formatTimeOfDay(entry.start_time)}
+                                      {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className={cn(
+                            "font-medium",
+                            dayTotal > 0 ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {dayTotal > 0 ? formatDuration(dayTotal) : "-"}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Summary by client */}
+        {selectedClient === "all" && clients.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Riepilogo per cliente</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {clients.map((client) => {
+                  const clientTotal = entries
+                    .filter((e) => e.client_id === client.id)
+                    .reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+                  
+                  if (clientTotal === 0) return null;
+                  
+                  const percentage = totalSeconds > 0 
+                    ? Math.round((clientTotal / totalSeconds) * 100) 
+                    : 0;
+
+                  return (
+                    <div
+                      key={client.id}
+                      className="p-4 rounded-lg border bg-card"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: client.color }}
+                        />
+                        <span className="font-medium text-sm truncate">
+                          {client.name}
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold">
+                        {formatDuration(clientTotal)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {percentage}% del totale
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}

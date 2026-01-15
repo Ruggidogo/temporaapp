@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Timesheet from "./pages/Timesheet";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,7 +65,7 @@ const App = () => (
               path="/timesheet" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <Timesheet />
                 </ProtectedRoute>
               } 
             />
