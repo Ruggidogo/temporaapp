@@ -2,8 +2,11 @@ import { Link } from "react-router-dom";
 import { Heart, Twitter, Linkedin, Github } from "lucide-react";
 import temporaLogo from "@/assets/tempora-logo-light.svg";
 import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function Footer() {
+  const { ref: footerRef, isVisible: footerVisible } = useScrollAnimation();
+
   const socialLinks = [
     { icon: Twitter, href: "#", label: "Twitter" },
     { icon: Linkedin, href: "#", label: "LinkedIn" },
@@ -18,7 +21,14 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border/50 bg-gradient-to-b from-background to-muted/30">
-      <div className="container py-16 md:py-20">
+      <div 
+        ref={footerRef}
+        className="container py-16 md:py-20 transition-all duration-1000"
+        style={{
+          opacity: footerVisible ? 1 : 0,
+          transform: footerVisible ? "translateY(0)" : "translateY(40px)",
+        }}
+      >
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="col-span-2">
@@ -52,8 +62,13 @@ export function Footer() {
           </div>
 
           {/* Links */}
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
+          {Object.entries(footerLinks).map(([title, links], sectionIndex) => (
+            <div 
+              key={title}
+              style={{
+                transitionDelay: `${(sectionIndex + 1) * 100}ms`,
+              }}
+            >
               <h4 className="font-semibold mb-5 text-foreground">{title}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (

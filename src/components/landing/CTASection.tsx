@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, Clock, Users, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function CTASection() {
+  const { ref: badgeRef, isVisible: badgeVisible } = useScrollAnimation();
+  const { ref: titleRef, isVisible: titleVisible } = useScrollAnimation();
+  const { ref: descRef, isVisible: descVisible } = useScrollAnimation();
+  const { ref: ctaRef, isVisible: ctaVisible } = useScrollAnimation();
+
   return (
     <section className="py-28 md:py-36 relative overflow-hidden">
       {/* Background gradients */}
@@ -23,22 +29,53 @@ export function CTASection() {
       
       <div className="container relative">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-sm font-medium mb-8 animate-fade-in">
+          <div 
+            ref={badgeRef}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-sm font-medium mb-8 transition-all duration-700"
+            style={{
+              opacity: badgeVisible ? 1 : 0,
+              transform: badgeVisible ? "translateY(0)" : "translateY(20px)",
+            }}
+          >
             <Sparkles className="w-4 h-4 text-primary" />
             <span>Unisciti a migliaia di professionisti</span>
           </div>
           
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <h2 
+            ref={titleRef}
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 transition-all duration-700"
+            style={{
+              opacity: titleVisible ? 1 : 0,
+              transform: titleVisible ? "translateY(0)" : "translateY(30px)",
+              transitionDelay: "100ms",
+            }}
+          >
             Pronto a riprendere il controllo del tuo{" "}
             <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">tempo</span>?
           </h2>
           
-          <p className="text-xl text-muted-foreground mb-12 animate-fade-in leading-relaxed max-w-2xl mx-auto" style={{ animationDelay: '200ms' }}>
+          <p 
+            ref={descRef}
+            className="text-xl text-muted-foreground mb-12 leading-relaxed max-w-2xl mx-auto transition-all duration-700"
+            style={{
+              opacity: descVisible ? 1 : 0,
+              transform: descVisible ? "translateY(0)" : "translateY(30px)",
+              transitionDelay: "200ms",
+            }}
+          >
             Inizia oggi stesso e scopri quanto tempo puoi risparmiare 
             con un time tracking che funziona davvero.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <div 
+            ref={ctaRef}
+            className="flex flex-col sm:flex-row gap-4 justify-center transition-all duration-700"
+            style={{
+              opacity: ctaVisible ? 1 : 0,
+              transform: ctaVisible ? "translateY(0)" : "translateY(30px)",
+              transitionDelay: "300ms",
+            }}
+          >
             <Button variant="hero" size="xl" asChild className="group shadow-2xl shadow-primary/30">
               <Link to="/register">
                 <Play className="w-5 h-5 fill-current" />
@@ -48,7 +85,13 @@ export function CTASection() {
             </Button>
           </div>
           
-          <p className="mt-8 text-sm text-muted-foreground animate-fade-in flex items-center justify-center gap-2" style={{ animationDelay: '400ms' }}>
+          <p 
+            className="mt-8 text-sm text-muted-foreground flex items-center justify-center gap-2 transition-all duration-700"
+            style={{
+              opacity: ctaVisible ? 1 : 0,
+              transitionDelay: "400ms",
+            }}
+          >
             <span className="inline-flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-success" />
               14 giorni gratis

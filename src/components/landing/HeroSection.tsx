@@ -1,8 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Play, Clock, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 export function HeroSection() {
+  const { ref: badgeRef, isVisible: badgeVisible } = useScrollAnimation();
+  const { ref: headlineRef, isVisible: headlineVisible } = useScrollAnimation();
+  const { ref: subRef, isVisible: subVisible } = useScrollAnimation();
+  const { ref: ctaRef, isVisible: ctaVisible } = useScrollAnimation();
+  const { ref: cardRef, isVisible: cardVisible } = useScrollAnimation();
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/30">
       {/* Animated gradient orbs */}
@@ -16,7 +23,14 @@ export function HeroSection() {
       <div className="container relative py-28 md:py-36 lg:py-44">
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-sm font-medium mb-10 animate-fade-in shadow-lg shadow-primary/5">
+          <div 
+            ref={badgeRef}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-sm font-medium mb-10 shadow-lg shadow-primary/5 transition-all duration-700"
+            style={{
+              opacity: badgeVisible ? 1 : 0,
+              transform: badgeVisible ? "translateY(0)" : "translateY(20px)",
+            }}
+          >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
@@ -27,7 +41,15 @@ export function HeroSection() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <h1 
+            ref={headlineRef}
+            className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 transition-all duration-700"
+            style={{
+              opacity: headlineVisible ? 1 : 0,
+              transform: headlineVisible ? "translateY(0)" : "translateY(30px)",
+              transitionDelay: "100ms",
+            }}
+          >
             Il tempo è denaro.
             <br />
             <span className="bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer">
@@ -36,13 +58,29 @@ export function HeroSection() {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-12 animate-fade-in leading-relaxed" style={{ animationDelay: '200ms' }}>
+          <p 
+            ref={subRef}
+            className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-12 leading-relaxed transition-all duration-700"
+            style={{
+              opacity: subVisible ? 1 : 0,
+              transform: subVisible ? "translateY(0)" : "translateY(30px)",
+              transitionDelay: "200ms",
+            }}
+          >
             Tempora è il time tracking più semplice e bello che tu abbia mai usato. 
             Perfetto per freelancer e piccole aziende.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-20 animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <div 
+            ref={ctaRef}
+            className="flex flex-col sm:flex-row gap-4 mb-20 transition-all duration-700"
+            style={{
+              opacity: ctaVisible ? 1 : 0,
+              transform: ctaVisible ? "translateY(0)" : "translateY(30px)",
+              transitionDelay: "300ms",
+            }}
+          >
             <Button variant="hero" size="xl" className="group shadow-2xl shadow-primary/30" asChild>
               <Link to="/register">
                 <Play className="w-5 h-5 fill-current" />
@@ -61,7 +99,15 @@ export function HeroSection() {
           </div>
 
           {/* Timer Preview Card */}
-          <div className="w-full max-w-2xl animate-scale-in" style={{ animationDelay: '400ms' }}>
+          <div 
+            ref={cardRef}
+            className="w-full max-w-2xl transition-all duration-1000"
+            style={{
+              opacity: cardVisible ? 1 : 0,
+              transform: cardVisible ? "translateY(0) scale(1)" : "translateY(50px) scale(0.95)",
+              transitionDelay: "400ms",
+            }}
+          >
             <div className="relative">
               {/* Glow effect */}
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/50 via-purple-500/50 to-primary/50 rounded-3xl blur-xl opacity-30" />
