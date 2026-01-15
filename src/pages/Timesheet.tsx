@@ -2,12 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -24,13 +18,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CalendarDays, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Loader2, ChevronLeft, ChevronRight, Clock, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, subWeeks, addMonths, subMonths, eachDayOfInterval, isSameDay, parseISO } from "date-fns";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, subWeeks, addMonths, subMonths, eachDayOfInterval, isSameDay } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { EditEntryDialog } from "@/components/timesheet/EditEntryDialog";
+import { DeleteEntryDialog } from "@/components/timesheet/DeleteEntryDialog";
 
 interface Client {
   id: string;
@@ -76,6 +78,11 @@ export default function Timesheet() {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<string>("all");
+  
+  // Edit/Delete state
+  const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  const [deletingEntry, setDeletingEntry] = useState<TimeEntry | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dateRange = useMemo(() => {
     if (viewMode === "week") {
@@ -199,6 +206,94 @@ export default function Timesheet() {
     }
     return format(currentDate, "MMMM yyyy", { locale: it });
   }, [viewMode, currentDate, dateRange]);
+
+  const handleEditEntry = async (data: {
+    id: string;
+    date: Date;
+    startTime: string;
+    endTime: string;
+    clientId: string | null;
+    description: string;
+  }) => {
+    if (!user) return;
+    setIsSubmitting(true);
+
+    try {
+      const dateStr = format(data.date, "yyyy-MM-dd");
+      const [startH, startM] = data.startTime.split(":").map(Number);
+      const [endH, endM] = data.endTime.split(":").map(Number);
+      
+      const startDate = new Date(data.date);
+      startDate.setHours(startH, startM, 0, 0);
+      
+      const endDate = new Date(data.date);
+      endDate.setHours(endH, endM, 0, 0);
+      
+      const durationSeconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
+
+      const { error } = await supabase
+        .from("time_entries")
+        .update({
+          date: dateStr,
+          start_time: startDate.toISOString(),
+          end_time: endDate.toISOString(),
+          duration_seconds: durationSeconds,
+          client_id: data.clientId,
+          description: data.description || null,
+        })
+        .eq("id", data.id)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Registrazione aggiornata",
+        description: "Le modifiche sono state salvate con successo.",
+      });
+
+      setEditingEntry(null);
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteEntry = async () => {
+    if (!user || !deletingEntry) return;
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from("time_entries")
+        .delete()
+        .eq("id", deletingEntry.id)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Registrazione eliminata",
+        description: "La registrazione è stata eliminata con successo.",
+      });
+
+      setDeletingEntry(null);
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -337,7 +432,7 @@ export default function Timesheet() {
                                 return (
                                   <div
                                     key={entry.id}
-                                    className="flex items-center gap-3 py-1"
+                                    className="flex items-center gap-3 py-1 group"
                                   >
                                     <div
                                       className="w-2 h-2 rounded-full flex-shrink-0"
@@ -364,6 +459,30 @@ export default function Timesheet() {
                                       {formatTimeOfDay(entry.start_time)}
                                       {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
                                     </span>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => setEditingEntry(entry)}>
+                                          <Pencil className="h-4 w-4 mr-2" />
+                                          Modifica
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() => setDeletingEntry(entry)}
+                                          className="text-destructive focus:text-destructive"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Elimina
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </div>
                                 );
                               })}
@@ -433,6 +552,24 @@ export default function Timesheet() {
             </CardContent>
           </Card>
         )}
+
+        {/* Edit Entry Dialog */}
+        <EditEntryDialog
+          open={!!editingEntry}
+          onOpenChange={(open) => !open && setEditingEntry(null)}
+          onSubmit={handleEditEntry}
+          entry={editingEntry}
+          clients={clients}
+          isLoading={isSubmitting}
+        />
+
+        {/* Delete Entry Dialog */}
+        <DeleteEntryDialog
+          open={!!deletingEntry}
+          onOpenChange={(open) => !open && setDeletingEntry(null)}
+          onConfirm={handleDeleteEntry}
+          isLoading={isSubmitting}
+        />
       </div>
     </DashboardLayout>
   );
