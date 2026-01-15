@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mail, Send, Loader2, Calendar, User, FileText } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Mail, Send, Loader2, Calendar, User, FileText, Settings2, ChevronDown, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns";
@@ -41,6 +47,12 @@ interface SendReportDialogProps {
   defaultDateTo?: string;
 }
 
+interface PdfSection {
+  id: string;
+  label: string;
+  enabled: boolean;
+}
+
 const periodOptions = [
   { label: "Oggi", value: "today" },
   { label: "Ieri", value: "yesterday" },
@@ -48,6 +60,12 @@ const periodOptions = [
   { label: "Questo mese", value: "month" },
   { label: "Ultimi 7 giorni", value: "last7" },
   { label: "Ultimi 30 giorni", value: "last30" },
+];
+
+const defaultSections: PdfSection[] = [
+  { id: "summary", label: "Riepilogo ore e valore", enabled: true },
+  { id: "clientBreakdown", label: "Riepilogo per cliente", enabled: true },
+  { id: "dailyDetails", label: "Dettaglio attività per giorno", enabled: true },
 ];
 
 export function SendReportDialog({
@@ -66,6 +84,8 @@ export function SendReportDialog({
   const [selectedClient, setSelectedClient] = useState(defaultClientId || "all");
   const [selectedPeriod, setSelectedPeriod] = useState(defaultPeriod);
   const [includePdf, setIncludePdf] = useState(true);
+  const [pdfSections, setPdfSections] = useState<PdfSection[]>(defaultSections);
+  const [pdfOptionsOpen, setPdfOptionsOpen] = useState(false);
 
   const getDateRange = () => {
     const today = new Date();
@@ -114,6 +134,30 @@ export function SendReportDialog({
     }
   };
 
+  const toggleSection = (sectionId: string) => {
+    setPdfSections(sections =>
+      sections.map(s => s.id === sectionId ? { ...s, enabled: !s.enabled } : s)
+    );
+  };
+
+  const moveSectionUp = (index: number) => {
+    if (index === 0) return;
+    setPdfSections(sections => {
+      const newSections = [...sections];
+      [newSections[index - 1], newSections[index]] = [newSections[index], newSections[index - 1]];
+      return newSections;
+    });
+  };
+
+  const moveSectionDown = (index: number) => {
+    if (index === pdfSections.length - 1) return;
+    setPdfSections(sections => {
+      const newSections = [...sections];
+      [newSections[index], newSections[index + 1]] = [newSections[index + 1], newSections[index]];
+      return newSections;
+    });
+  };
+
   const handleSend = async () => {
     if (!email) {
       toast.error("Inserisci un indirizzo email");
@@ -122,6 +166,11 @@ export function SendReportDialog({
 
     setSending(true);
     const { from, to } = getDateRange();
+
+    // Build sections order for PDF
+    const pdfLayout = pdfSections
+      .filter(s => s.enabled)
+      .map(s => s.id);
 
     try {
       const { data, error } = await supabase.functions.invoke("send-report-email", {
@@ -133,6 +182,7 @@ export function SendReportDialog({
           dateTo: to,
           clientId: selectedClient !== "all" ? selectedClient : undefined,
           includePdf,
+          pdfLayout,
         },
       });
 
@@ -258,25 +308,90 @@ export function SendReportDialog({
           </div>
 
           {/* PDF attachment toggle */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/60">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <FileText className="w-4 h-4 text-primary" />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/60">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <FileText className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <Label htmlFor="include-pdf" className="text-sm font-medium cursor-pointer">
+                    Allega PDF
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Includi il report in formato PDF
+                  </p>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="include-pdf" className="text-sm font-medium cursor-pointer">
-                  Allega PDF
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Includi il report in formato PDF
-                </p>
-              </div>
+              <Switch
+                id="include-pdf"
+                checked={includePdf}
+                onCheckedChange={setIncludePdf}
+              />
             </div>
-            <Switch
-              id="include-pdf"
-              checked={includePdf}
-              onCheckedChange={setIncludePdf}
-            />
+
+            {/* PDF customization options */}
+            {includePdf && (
+              <Collapsible open={pdfOptionsOpen} onOpenChange={setPdfOptionsOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full justify-between h-10 px-4 text-muted-foreground hover:text-foreground"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Settings2 className="w-4 h-4" />
+                      Personalizza layout PDF
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${pdfOptionsOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <div className="space-y-2 p-3 rounded-lg bg-muted/30 border border-border/40">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Seleziona e riordina le sezioni del PDF
+                    </p>
+                    {pdfSections.map((section, index) => (
+                      <div 
+                        key={section.id}
+                        className="flex items-center gap-2 p-2 rounded-lg bg-background/60 border border-border/40"
+                      >
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => moveSectionUp(index)}
+                            disabled={index === 0}
+                            className="p-0.5 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <ChevronDown className="w-3 h-3 rotate-180" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveSectionDown(index)}
+                            disabled={index === pdfSections.length - 1}
+                            className="p-0.5 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <ChevronDown className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <GripVertical className="w-4 h-4 text-muted-foreground/50" />
+                        <Checkbox
+                          id={`section-${section.id}`}
+                          checked={section.enabled}
+                          onCheckedChange={() => toggleSection(section.id)}
+                        />
+                        <Label 
+                          htmlFor={`section-${section.id}`}
+                          className={`text-sm flex-1 cursor-pointer ${!section.enabled ? 'text-muted-foreground line-through' : ''}`}
+                        >
+                          {section.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </div>
         </div>
 
