@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ManualEntryDialog } from "@/components/dashboard/ManualEntryDialog";
+import { EditEntryDialog } from "@/components/timesheet/EditEntryDialog";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
 import { SendReportDialog } from "@/components/reports/SendReportDialog";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ interface TimeEntry {
   start_time: string;
   end_time: string | null;
   date: string;
+  entry_type: string;
 }
 
 function formatTime(seconds: number): string {
@@ -79,6 +81,8 @@ export default function Dashboard() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [savingManual, setSavingManual] = useState(false);
 
   const selectedClient = clients.find((c) => c.id === timer.clientId) || null;
@@ -231,6 +235,62 @@ export default function Dashboard() {
       });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleEditEntry = async (data: {
+    id: string;
+    date: Date;
+    startTime: string;
+    endTime: string;
+    clientId: string | null;
+    description: string;
+  }) => {
+    if (!user) return;
+    setIsEditing(true);
+
+    try {
+      const dateStr = data.date.toISOString().split("T")[0];
+      const [startH, startM] = data.startTime.split(":").map(Number);
+      const [endH, endM] = data.endTime.split(":").map(Number);
+
+      const startDate = new Date(data.date);
+      startDate.setHours(startH, startM, 0, 0);
+
+      const endDate = new Date(data.date);
+      endDate.setHours(endH, endM, 0, 0);
+
+      const durationSeconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
+
+      const { error } = await supabase
+        .from("time_entries")
+        .update({
+          client_id: data.clientId,
+          description: data.description || null,
+          date: dateStr,
+          start_time: startDate.toISOString(),
+          end_time: endDate.toISOString(),
+          duration_seconds: durationSeconds,
+        })
+        .eq("id", data.id)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Modificato",
+        description: "Registrazione aggiornata con successo",
+      });
+      setEditingEntry(null);
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -519,7 +579,12 @@ export default function Dashboard() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" disabled className="rounded-xl">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="rounded-xl hover:bg-primary/10"
+                          onClick={() => setEditingEntry(entry)}
+                        >
                           <Edit2 className="w-4 h-4" />
                         </Button>
                         <Button
@@ -552,6 +617,16 @@ export default function Dashboard() {
         onSubmit={handleManualEntry}
         clients={clients}
         isLoading={savingManual}
+      />
+
+      {/* Edit Entry Dialog */}
+      <EditEntryDialog
+        open={!!editingEntry}
+        onOpenChange={(open) => !open && setEditingEntry(null)}
+        onSubmit={handleEditEntry}
+        entry={editingEntry}
+        clients={clients}
+        isLoading={isEditing}
       />
 
       {/* Send Report Dialog */}
