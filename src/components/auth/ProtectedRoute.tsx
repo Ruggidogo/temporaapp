@@ -5,8 +5,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+const isTrialExpired = (trialEndsAt: string | null, plan: string): boolean => {
+  if (plan === 'pro') return false;
+  if (!trialEndsAt) return false;
+  return new Date(trialEndsAt) < new Date();
+};
+
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading, profile } = useAuth();
+  const { user, loading, profile, subscription } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -27,6 +33,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // Redirect to onboarding if not completed
   if (profile && !profile.onboarding_completed && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
+  }
+
+  // Redirect to trial expired page if trial has ended and not subscribed
+  if (
+    profile && 
+    profile.onboarding_completed &&
+    !subscription.subscribed &&
+    isTrialExpired(profile.trial_ends_at, profile.plan) &&
+    location.pathname !== '/trial-expired'
+  ) {
+    return <Navigate to="/trial-expired" replace />;
   }
 
   return <>{children}</>;

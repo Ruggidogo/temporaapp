@@ -15,6 +15,7 @@ import ClientDetail from "./pages/ClientDetail";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Timesheet from "./pages/Timesheet";
+import TrialExpired from "./pages/TrialExpired";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/trial-expired" 
+              element={
+                <ProtectedRoute>
+                  <TrialExpired />
                 </ProtectedRoute>
               } 
             />
