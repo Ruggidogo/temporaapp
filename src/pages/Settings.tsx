@@ -220,7 +220,7 @@ export default function Settings() {
                   <CreditCard className="w-4 h-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Prezzo:</span>
                   <span className="font-medium">
-                    {isPro ? "€14,99/mese" : "Gratuito (14 giorni)"}
+                    {isPro ? "€14,99/mese" : "Gratuito (7 giorni)"}
                   </span>
                 </div>
               </div>

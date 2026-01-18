@@ -468,7 +468,7 @@ export default function Onboarding() {
 
                       <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                        14 giorni di prova gratuita con tutte le funzionalità
+                        7 giorni di prova gratuita con tutte le funzionalità
                       </p>
                     </div>
                   </div>
