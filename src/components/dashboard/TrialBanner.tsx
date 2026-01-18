@@ -122,13 +122,13 @@ export function TrialBanner({ onDismiss, className }: TrialBannerProps) {
                 : "bg-gradient-to-r from-primary to-purple-500"
             )}
             style={{
-              width: `${Math.max(5, ((14 - trialDaysRemaining) / 14) * 100)}%`,
+              width: `${Math.max(5, ((7 - trialDaysRemaining) / 7) * 100)}%`,
             }}
           />
         </div>
         <div className="flex justify-between mt-2 text-xs text-muted-foreground">
           <span>Giorno 1</span>
-          <span>Giorno 14</span>
+          <span>Giorno 7</span>
         </div>
       </div>
     </div>

@@ -115,7 +115,7 @@ export function CTASection() {
           >
             <span className="inline-flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-success" />
-              14 giorni gratis
+              7 giorni gratis
             </span>
             <span className="text-border">•</span>
             <span>Nessuna carta richiesta</span>

@@ -60,7 +60,7 @@ export function PricingSection() {
             <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">Zero sorprese.</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Inizia con 14 giorni gratuiti, poi scegli se continuare. 
+            Inizia con 7 giorni gratuiti, poi scegli se continuare. 
             Nessuna carta richiesta per provare.
           </p>
         </div>
@@ -139,7 +139,7 @@ export function PricingSection() {
                   </Link>
                 </Button>
                 <p className="text-sm text-center text-muted-foreground mt-4">
-                  14 giorni gratuiti • Nessuna carta richiesta
+                  7 giorni gratuiti • Nessuna carta richiesta
                 </p>
               </div>
             </div>

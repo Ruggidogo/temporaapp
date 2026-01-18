@@ -77,7 +77,7 @@ export function HeroSection() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
             </span>
-            <span className="text-foreground">Prova gratuita 14 giorni</span>
+            <span className="text-foreground">Prova gratuita 7 giorni</span>
             <span className="text-muted-foreground">•</span>
             <span className="text-muted-foreground">Nessuna carta richiesta</span>
           </div>

@@ -56,7 +56,7 @@ const features = [
 
 const stats = [
   { value: "2s", label: "per iniziare a tracciare" },
-  { value: "14", label: "giorni di prova gratuita" },
+  { value: "7", label: "giorni di prova gratuita" },
   { value: "100%", label: "dei dati tuoi" },
   { value: "∞", label: "progetti illimitati" },
 ];
