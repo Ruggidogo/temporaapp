@@ -254,7 +254,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-8 animate-in">
+      <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-8 tempora-animate-in">
         {/* Trial Banner */}
         <TrialBanner />
         {/* Timer Card - Premium Design */}
