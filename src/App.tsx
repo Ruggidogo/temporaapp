@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
+import ClientDetail from "./pages/ClientDetail";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Timesheet from "./pages/Timesheet";
@@ -50,6 +51,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Clients />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/clients/:clientId" 
+              element={
+                <ProtectedRoute>
+                  <ClientDetail />
                 </ProtectedRoute>
               } 
             />

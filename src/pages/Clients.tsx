@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -244,60 +245,67 @@ export default function Clients() {
         {clients.length > 0 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
             {filteredClients.map((client) => (
-              <div key={client.id} className="card-premium group hover-lift p-6">
-                <div className="flex items-start justify-between mb-5">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-lg"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${client.color}, ${client.color}cc)`,
-                        boxShadow: `0 8px 24px -4px ${client.color}40`
-                      }}
-                    >
-                      {client.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">{client.name}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {client.email || "Nessuna email"}
-                      </p>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-xl">
-                      <DropdownMenuItem onClick={() => openEditDialog(client)} className="rounded-lg">
-                        <Pencil className="w-4 h-4 mr-2" />
-                        Modifica
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setReportClientId(client.id);
-                          setReportDialogOpen(true);
+              <Link 
+                key={client.id} 
+                to={`/clients/${client.id}`}
+                className="block"
+              >
+                <div className="card-premium group hover-lift p-6 cursor-pointer">
+                  <div className="flex items-start justify-between mb-5">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-lg"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${client.color}, ${client.color}cc)`,
+                          boxShadow: `0 8px 24px -4px ${client.color}40`
                         }}
-                        className="rounded-lg"
                       >
-                        <Mail className="w-4 h-4 mr-2" />
-                        Invia report
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => openDeleteDialog(client)}
-                        className="text-destructive focus:text-destructive rounded-lg"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Elimina
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                        {client.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg">{client.name}</h3>
+                        <p className="text-xs text-muted-foreground">
+                          {client.email || "Nessuna email"}
+                        </p>
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
+                          onClick={(e) => e.preventDefault()}
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-xl">
+                        <DropdownMenuItem onClick={(e) => { e.preventDefault(); openEditDialog(client); }} className="rounded-lg">
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Modifica
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setReportClientId(client.id);
+                            setReportDialogOpen(true);
+                          }}
+                          className="rounded-lg"
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Invia report
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => { e.preventDefault(); openDeleteDialog(client); }}
+                          className="text-destructive focus:text-destructive rounded-lg"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Elimina
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
@@ -324,14 +332,15 @@ export default function Clients() {
                   </div>
                 </div>
 
-                {client.notes && (
-                  <div className="mt-4 pt-4 border-t border-border/50">
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {client.notes}
-                    </p>
-                  </div>
-                )}
-              </div>
+                  {client.notes && (
+                    <div className="mt-4 pt-4 border-t border-border/50">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {client.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Link>
             ))}
 
             {/* Add new client card */}
