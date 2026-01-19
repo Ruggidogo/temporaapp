@@ -14,9 +14,20 @@ export function Footer() {
   ];
 
   const footerLinks = {
-    Prodotto: ["Funzionalità", "Prezzi", "Integrazioni", "Roadmap"],
-    Risorse: ["Blog", "Guide", "Supporto", "API Docs"],
-    Legale: ["Privacy", "Termini", "Cookie"],
+    Prodotto: [
+      { label: "Funzionalità", href: "/#features" },
+      { label: "Prezzi", href: "/#pricing" },
+      { label: "Integrazioni", href: "/integrations" },
+    ],
+    Risorse: [
+      { label: "Guide", href: "/guide" },
+      { label: "Supporto", href: "/support" },
+    ],
+    Legale: [
+      { label: "Privacy", href: "/privacy" },
+      { label: "Termini", href: "/terms" },
+      { label: "Cookie", href: "/cookies" },
+    ],
   };
 
   return (
@@ -72,12 +83,12 @@ export function Footer() {
               <h4 className="font-semibold mb-5 text-foreground">{title}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (
-                  <li key={link}>
+                  <li key={link.label}>
                     <Link 
-                      to="/" 
+                      to={link.href} 
                       className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm"
                     >
-                      {link}
+                      {link.label}
                     </Link>
                   </li>
                 ))}
