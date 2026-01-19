@@ -33,7 +33,7 @@ export default function Terms() {
               </span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Ultimo aggiornamento: Gennaio 2026
+              Condizioni Generali di Servizio
             </p>
           </div>
         </section>
@@ -50,107 +50,192 @@ export default function Terms() {
           >
             <div className="prose prose-lg dark:prose-invert max-w-none">
               <div className="p-8 rounded-3xl border border-border/50 bg-card/50 backdrop-blur-sm space-y-8">
-                <section>
-                  <h2 className="text-2xl font-bold mb-4">1. Accettazione dei termini</h2>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Utilizzando Tempora, accetti di essere vincolato da questi Termini di Servizio. 
-                    Se non accetti questi termini, non utilizzare il servizio. Ci riserviamo il diritto 
-                    di modificare questi termini in qualsiasi momento, con notifica agli utenti registrati.
-                  </p>
-                </section>
+                
+                <p className="text-sm text-muted-foreground">
+                  Ultimo aggiornamento: 19 Gennaio 2026
+                </p>
 
                 <section>
-                  <h2 className="text-2xl font-bold mb-4">2. Descrizione del servizio</h2>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Tempora è un servizio di time tracking online che permette agli utenti di tracciare 
-                    le ore lavorate, gestire clienti e generare report. Il servizio è disponibile in 
-                    versione gratuita (trial) e a pagamento (Pro).
-                  </p>
-                </section>
-
-                <section>
-                  <h2 className="text-2xl font-bold mb-4">3. Account utente</h2>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    Per utilizzare Tempora, devi:
-                  </p>
+                  <h2 className="text-2xl font-bold mb-4">1. Definizioni</h2>
                   <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                    <li>Avere almeno 18 anni di età</li>
-                    <li>Fornire informazioni accurate durante la registrazione</li>
-                    <li>Mantenere la sicurezza del tuo account e password</li>
-                    <li>Notificarci immediatamente di eventuali accessi non autorizzati</li>
+                    <li><strong>"Tempora" o "Fornitore":</strong> Tempora S.r.l., con sede in Via Example 123, 20100 Milano (MI), P.IVA 12345678901</li>
+                    <li><strong>"Servizio":</strong> la piattaforma di time tracking accessibile via web all'indirizzo temporaapp.lovable.app</li>
+                    <li><strong>"Utente":</strong> la persona fisica o giuridica che utilizza il Servizio</li>
+                    <li><strong>"Account":</strong> l'insieme di credenziali che identificano l'Utente</li>
+                    <li><strong>"Contenuti":</strong> tutti i dati inseriti dall'Utente nel Servizio</li>
                   </ul>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-bold mb-4">4. Abbonamento e pagamenti</h2>
+                  <h2 className="text-2xl font-bold mb-4">2. Oggetto del Contratto</h2>
+                  <p className="text-muted-foreground leading-relaxed">
+                    I presenti Termini di Servizio disciplinano l'accesso e l'utilizzo del Servizio Tempora. 
+                    L'accesso al Servizio comporta l'accettazione integrale dei presenti Termini. Se non 
+                    accetti questi termini, non devi utilizzare il Servizio.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-2xl font-bold mb-4">3. Requisiti per la Registrazione</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    Il piano Pro di Tempora prevede:
+                    Per registrarsi al Servizio, l'Utente deve:
                   </p>
                   <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                    <li>Fatturazione mensile di €14,99</li>
-                    <li>Rinnovo automatico fino alla cancellazione</li>
-                    <li>Possibilità di annullare in qualsiasi momento</li>
-                    <li>Nessun rimborso per periodi parzialmente utilizzati</li>
+                    <li>Avere almeno 18 anni di età o la capacità legale di stipulare contratti</li>
+                    <li>Fornire informazioni veritiere, accurate e complete</li>
+                    <li>Mantenere aggiornate le informazioni del proprio profilo</li>
+                    <li>Essere responsabile della riservatezza delle credenziali di accesso</li>
+                    <li>Notificare immediatamente eventuali accessi non autorizzati</li>
                   </ul>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-bold mb-4">5. Uso accettabile</h2>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    È vietato utilizzare Tempora per:
+                  <h2 className="text-2xl font-bold mb-4">4. Piani e Prezzi</h2>
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-xl bg-muted/50">
+                      <h3 className="font-semibold mb-2">Trial Gratuito</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Il Servizio offre un periodo di prova gratuita di 7 giorni con accesso a tutte 
+                        le funzionalità. Non è richiesta carta di credito per l'attivazione.
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-muted/50">
+                      <h3 className="font-semibold mb-2">Piano Pro</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Abbonamento mensile al costo di €14,99/mese (IVA inclusa). Il rinnovo è automatico 
+                        salvo disdetta. Il pagamento viene elaborato tramite Stripe.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h2 className="text-2xl font-bold mb-4">5. Diritto di Recesso</h2>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Ai sensi degli artt. 52-59 del Codice del Consumo (D.Lgs. 206/2005), l'Utente consumatore 
+                    ha diritto di recedere dal contratto entro 14 giorni dalla sottoscrizione dell'abbonamento, 
+                    senza specificarne il motivo. Per esercitare il diritto di recesso, inviare comunicazione a 
+                    <a href="mailto:supporto@tempora.app" className="text-primary hover:underline ml-1">
+                      supporto@tempora.app
+                    </a>. 
+                    Il rimborso sarà effettuato entro 14 giorni utilizzando lo stesso metodo di pagamento.
                   </p>
+                </section>
+
+                <section>
+                  <h2 className="text-2xl font-bold mb-4">6. Disdetta e Cancellazione</h2>
                   <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                    <li>Attività illegali o fraudolente</li>
-                    <li>Violare i diritti di terzi</li>
-                    <li>Distribuire malware o contenuti dannosi</li>
-                    <li>Tentare di accedere a sistemi non autorizzati</li>
+                    <li>L'Utente può disdire l'abbonamento in qualsiasi momento dalle Impostazioni</li>
+                    <li>La disdetta ha effetto alla scadenza del periodo già pagato</li>
+                    <li>Non sono previsti rimborsi per periodi parzialmente utilizzati (dopo i 14 giorni di recesso)</li>
+                    <li>I dati dell'Utente saranno cancellati entro 30 giorni dalla chiusura dell'account</li>
+                    <li>L'Utente può richiedere l'esportazione dei propri dati prima della cancellazione</li>
                   </ul>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-bold mb-4">6. Proprietà intellettuale</h2>
+                  <h2 className="text-2xl font-bold mb-4">7. Obblighi dell'Utente</h2>
+                  <p className="text-muted-foreground leading-relaxed mb-4">
+                    L'Utente si impegna a:
+                  </p>
+                  <ul className="list-disc pl-6 text-muted-foreground space-y-2">
+                    <li>Utilizzare il Servizio in conformità alla legge e ai presenti Termini</li>
+                    <li>Non utilizzare il Servizio per attività illegali, fraudolente o lesive di diritti di terzi</li>
+                    <li>Non tentare di accedere a sistemi o dati non autorizzati</li>
+                    <li>Non distribuire malware, virus o contenuti dannosi</li>
+                    <li>Non sovraccaricare intenzionalmente i sistemi del Servizio</li>
+                    <li>Non rivendere o sublicenziare l'accesso al Servizio</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-2xl font-bold mb-4">8. Proprietà Intellettuale</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Tempora e tutti i suoi contenuti, funzionalità e design sono di nostra proprietà 
-                    esclusiva. Non è consentito copiare, modificare, distribuire o creare opere 
-                    derivate senza il nostro esplicito consenso scritto.
+                    Tutti i diritti di proprietà intellettuale relativi al Servizio (software, design, 
+                    marchi, logo, documentazione) sono e rimangono di esclusiva proprietà di Tempora S.r.l. 
+                    L'Utente non acquisisce alcun diritto di proprietà sul Servizio. I Contenuti inseriti 
+                    dall'Utente rimangono di sua proprietà; l'Utente concede a Tempora una licenza limitata 
+                    per elaborarli al solo fine di erogare il Servizio.
                   </p>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-bold mb-4">7. Limitazione di responsabilità</h2>
+                  <h2 className="text-2xl font-bold mb-4">9. Disponibilità del Servizio</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Tempora viene fornito "così com'è". Non garantiamo che il servizio sarà sempre 
-                    disponibile, sicuro o privo di errori. In nessun caso saremo responsabili per 
-                    danni indiretti, incidentali o consequenti derivanti dall'uso del servizio.
+                    Tempora si impegna a garantire la disponibilità del Servizio con un uptime del 99,5% 
+                    su base mensile, escluse le manutenzioni programmate (comunicate con almeno 48 ore di 
+                    anticipo) e gli eventi di forza maggiore. In caso di interruzioni significative, 
+                    l'Utente potrà richiedere un'estensione proporzionale dell'abbonamento.
                   </p>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-bold mb-4">8. Risoluzione</h2>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Possiamo sospendere o terminare il tuo account in caso di violazione di questi 
-                    termini. Puoi cancellare il tuo account in qualsiasi momento dalle impostazioni. 
-                    Alla cancellazione, i tuoi dati saranno eliminati entro 30 giorni.
+                  <h2 className="text-2xl font-bold mb-4">10. Limitazione di Responsabilità</h2>
+                  <p className="text-muted-foreground leading-relaxed mb-4">
+                    Nei limiti consentiti dalla legge applicabile:
+                  </p>
+                  <ul className="list-disc pl-6 text-muted-foreground space-y-2">
+                    <li>Il Servizio è fornito "così com'è" senza garanzie di idoneità a scopi particolari</li>
+                    <li>Tempora non è responsabile per danni indiretti, incidentali, speciali o consequenziali</li>
+                    <li>La responsabilità massima di Tempora è limitata all'importo pagato dall'Utente nei 12 mesi precedenti</li>
+                    <li>Tempora non è responsabile per la perdita di dati dovuta a cause non imputabili al Fornitore</li>
+                  </ul>
+                  <p className="text-muted-foreground leading-relaxed mt-4">
+                    Queste limitazioni non si applicano in caso di dolo o colpa grave.
                   </p>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-bold mb-4">9. Legge applicabile</h2>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Questi termini sono regolati dalla legge italiana. Per qualsiasi controversia 
-                    sarà competente il Foro di Milano.
+                  <h2 className="text-2xl font-bold mb-4">11. Sospensione e Risoluzione</h2>
+                  <p className="text-muted-foreground leading-relaxed mb-4">
+                    Tempora si riserva il diritto di:
+                  </p>
+                  <ul className="list-disc pl-6 text-muted-foreground space-y-2">
+                    <li>Sospendere temporaneamente l'account in caso di sospetta violazione dei Termini</li>
+                    <li>Risolvere il contratto con effetto immediato in caso di violazione grave</li>
+                    <li>Sospendere l'account per mancato pagamento dopo 7 giorni di mora</li>
+                  </ul>
+                  <p className="text-muted-foreground leading-relaxed mt-4">
+                    In caso di risoluzione per inadempimento dell'Utente, non è previsto alcun rimborso.
                   </p>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-bold mb-4">10. Contatti</h2>
+                  <h2 className="text-2xl font-bold mb-4">12. Modifiche ai Termini</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Per domande sui Termini di Servizio, contattaci: 
-                    <a href="mailto:legal@tempora.app" className="text-primary hover:underline ml-1">
-                      legal@tempora.app
+                    Tempora può modificare i presenti Termini con preavviso di almeno 30 giorni via email. 
+                    L'uso continuato del Servizio dopo l'entrata in vigore delle modifiche costituisce 
+                    accettazione. In caso di modifiche sostanziali sfavorevoli, l'Utente può recedere 
+                    senza penali entro la data di entrata in vigore.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-2xl font-bold mb-4">13. Legge Applicabile e Foro Competente</h2>
+                  <p className="text-muted-foreground leading-relaxed">
+                    I presenti Termini sono regolati dalla legge italiana. Per le controversie con Utenti 
+                    consumatori, è competente il foro del luogo di residenza o domicilio del consumatore, 
+                    se ubicato in Italia. Per gli Utenti professionisti, è competente in via esclusiva 
+                    il Foro di Milano. È possibile ricorrere alla piattaforma ODR della Commissione 
+                    Europea per la risoluzione alternativa delle controversie: 
+                    <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">
+                      ec.europa.eu/consumers/odr
                     </a>
                   </p>
                 </section>
+
+                <section>
+                  <h2 className="text-2xl font-bold mb-4">14. Contatti</h2>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Per qualsiasi comunicazione relativa ai presenti Termini:
+                  </p>
+                  <ul className="list-none pl-0 text-muted-foreground space-y-1 mt-4">
+                    <li><strong>Email:</strong> <a href="mailto:legal@tempora.app" className="text-primary hover:underline">legal@tempora.app</a></li>
+                    <li><strong>PEC:</strong> tempora@pec.it</li>
+                    <li><strong>Indirizzo:</strong> Tempora S.r.l., Via Example 123, 20100 Milano (MI)</li>
+                  </ul>
+                </section>
+
               </div>
             </div>
           </div>

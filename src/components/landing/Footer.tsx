@@ -17,16 +17,11 @@ export function Footer() {
     Prodotto: [
       { label: "Funzionalità", href: "/#features" },
       { label: "Prezzi", href: "/#pricing" },
-      { label: "Integrazioni", href: "/integrations" },
-    ],
-    Risorse: [
-      { label: "Guide", href: "/guide" },
-      { label: "Supporto", href: "/support" },
     ],
     Legale: [
-      { label: "Privacy", href: "/privacy" },
-      { label: "Termini", href: "/terms" },
-      { label: "Cookie", href: "/cookies" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Termini di Servizio", href: "/terms" },
+      { label: "Cookie Policy", href: "/cookies" },
     ],
   };
 
