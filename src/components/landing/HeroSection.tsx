@@ -3,6 +3,7 @@ import { Play, Clock, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useParallax, useMouseParallax } from "@/hooks/useParallax";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function HeroSection() {
   const { ref: badgeRef, isVisible: badgeVisible } = useScrollAnimation();
@@ -10,6 +11,7 @@ export function HeroSection() {
   const { ref: subRef, isVisible: subVisible } = useScrollAnimation();
   const { ref: ctaRef, isVisible: ctaVisible } = useScrollAnimation();
   const { ref: cardRef, isVisible: cardVisible } = useScrollAnimation();
+  const { t } = useLanguage();
 
   // Parallax effects
   const parallaxSlow = useParallax({ speed: 0.15, direction: "up" });
@@ -77,9 +79,9 @@ export function HeroSection() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
             </span>
-            <span className="text-foreground">Prova gratuita 7 giorni</span>
+            <span className="text-foreground">{t("hero.badge.trial")}</span>
             <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground">Nessuna carta richiesta</span>
+            <span className="text-muted-foreground">{t("hero.badge.noCard")}</span>
           </div>
 
           {/* Headline */}
@@ -92,10 +94,10 @@ export function HeroSection() {
               transitionDelay: "100ms",
             }}
           >
-            Il tempo è denaro.
+            {t("hero.title.line1")}
             <br />
             <span className="bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer">
-              Traccialo con stile.
+              {t("hero.title.line2")}
             </span>
           </h1>
 
@@ -109,8 +111,7 @@ export function HeroSection() {
               transitionDelay: "200ms",
             }}
           >
-            Tempora è il time tracking più semplice e bello che tu abbia mai usato. 
-            Perfetto per freelancer e piccole aziende.
+            {t("hero.subtitle")}
           </p>
 
           {/* CTA Buttons */}
@@ -126,7 +127,7 @@ export function HeroSection() {
             <Button variant="hero" size="xl" className="group shadow-2xl shadow-primary/30" asChild>
               <Link to="/register">
                 <Play className="w-5 h-5 fill-current" />
-                Inizia gratis
+                {t("hero.cta.start")}
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
@@ -136,7 +137,7 @@ export function HeroSection() {
               className="border-2 border-border/80 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 shadow-lg"
             >
               <Clock className="w-5 h-5" />
-              Vedi come funziona
+              {t("hero.cta.demo")}
             </Button>
           </div>
 
@@ -169,14 +170,14 @@ export function HeroSection() {
                 <div className="flex flex-col items-center">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="w-4 h-4 rounded-full bg-gradient-to-r from-primary to-purple-500 shadow-lg shadow-primary/50" />
-                    <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Acme Corp</span>
+                    <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("hero.timer.client")}</span>
                   </div>
                   
                   <div className="font-mono text-7xl md:text-8xl font-bold tracking-tighter mb-6 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
                     02:34:15
                   </div>
                   
-                  <p className="text-muted-foreground mb-10 text-lg">Sviluppo landing page</p>
+                  <p className="text-muted-foreground mb-10 text-lg">{t("hero.timer.description")}</p>
                   
                   <div className="flex gap-4">
                     <button className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-success to-emerald-400 text-white shadow-xl shadow-success/40 hover:shadow-success/60 transition-all duration-300 hover:scale-105">

@@ -3,29 +3,31 @@ import { Check, Sparkles, Shield, Zap, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useParallax, useMouseParallax } from "@/hooks/useParallax";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function PricingSection() {
   const { ref: titleRef, isVisible: titleVisible } = useScrollAnimation();
   const { ref: cardRef, isVisible: cardVisible } = useScrollAnimation();
   const { ref: trustRef, isVisible: trustVisible } = useScrollAnimation();
+  const { t } = useLanguage();
 
   // Parallax effects
   const parallaxSlow = useParallax({ speed: 0.1, direction: "up" });
   const mousePosition = useMouseParallax(0.008);
 
   const features = [
-    "Timer illimitato",
-    "Clienti e progetti illimitati",
-    "Report e analytics avanzati",
-    "Export PDF e CSV",
-    "Email report ai clienti",
-    "Report schedulati automatici",
-    "Supporto prioritario",
-    "Integrazioni (prossimamente)",
+    "pricing.feature1",
+    "pricing.feature2",
+    "pricing.feature3",
+    "pricing.feature4",
+    "pricing.feature5",
+    "pricing.feature6",
+    "pricing.feature7",
+    "pricing.feature8",
   ];
 
   return (
-    <section className="py-28 md:py-36 relative overflow-hidden">
+    <section id="pricing" className="py-28 md:py-36 relative overflow-hidden">
       {/* Background with parallax */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
       <div 
@@ -55,13 +57,12 @@ export function PricingSection() {
           }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Un prezzo semplice.
+            {t("pricing.title.line1")}
             <br />
-            <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">Zero sorprese.</span>
+            <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">{t("pricing.title.line2")}</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Inizia con 7 giorni gratuiti, poi scegli se continuare. 
-            Nessuna carta richiesta per provare.
+            {t("pricing.subtitle")}
           </p>
         </div>
 
@@ -91,11 +92,11 @@ export function PricingSection() {
               <div className="relative pt-8 pb-6 text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 text-sm font-semibold mb-6">
                   <Crown className="w-4 h-4 text-primary" />
-                  <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">Più popolare</span>
+                  <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">{t("pricing.badge")}</span>
                 </div>
-                <h3 className="text-2xl font-bold mb-2">Tempora Pro</h3>
+                <h3 className="text-2xl font-bold mb-2">{t("pricing.plan")}</h3>
                 <p className="text-muted-foreground">
-                  Tutto quello che serve per tracciare il tuo tempo come un professionista.
+                  {t("pricing.planDescription")}
                 </p>
               </div>
               
@@ -103,19 +104,19 @@ export function PricingSection() {
                 {/* Price */}
                 <div className="text-center mb-10">
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-6xl font-bold bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">€14,99</span>
-                    <span className="text-xl text-muted-foreground">/mese</span>
+                    <span className="text-6xl font-bold bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">{t("pricing.price")}</span>
+                    <span className="text-xl text-muted-foreground">{t("pricing.period")}</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-3">
-                    Fatturato mensilmente • Cancella quando vuoi
+                    {t("pricing.billing")}
                   </p>
                 </div>
 
                 {/* Features */}
                 <ul className="space-y-4 mb-10">
-                  {features.map((feature, index) => (
+                  {features.map((featureKey, index) => (
                     <li 
-                      key={feature} 
+                      key={featureKey} 
                       className="flex items-center gap-4 transition-all duration-500"
                       style={{
                         opacity: cardVisible ? 1 : 0,
@@ -126,7 +127,7 @@ export function PricingSection() {
                       <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-success to-emerald-400 flex items-center justify-center shadow-lg shadow-success/30">
                         <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                       </div>
-                      <span className="font-medium">{feature}</span>
+                      <span className="font-medium">{t(featureKey)}</span>
                     </li>
                   ))}
                 </ul>
@@ -135,11 +136,11 @@ export function PricingSection() {
                 <Button variant="hero" size="xl" className="w-full shadow-2xl shadow-primary/30" asChild>
                   <Link to="/register">
                     <Sparkles className="w-5 h-5" />
-                    Inizia prova gratuita
+                    {t("pricing.cta")}
                   </Link>
                 </Button>
                 <p className="text-sm text-center text-muted-foreground mt-4">
-                  7 giorni gratuiti • Nessuna carta richiesta
+                  {t("pricing.trial")}
                 </p>
               </div>
             </div>
@@ -155,7 +156,7 @@ export function PricingSection() {
             transform: trustVisible ? "translateY(0)" : "translateY(30px)",
           }}
         >
-          <p className="text-sm text-muted-foreground mb-6 font-medium">Pagamenti sicuri e protetti</p>
+          <p className="text-sm text-muted-foreground mb-6 font-medium">{t("pricing.secure")}</p>
           <div className="flex items-center justify-center gap-8">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted/50 border border-border/50">
               <Shield className="w-5 h-5 text-muted-foreground" />

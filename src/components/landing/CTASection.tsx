@@ -3,12 +3,14 @@ import { ArrowRight, Play, Sparkles, Clock, Users, BarChart3 } from "lucide-reac
 import { Link } from "react-router-dom";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useParallax, useMouseParallax } from "@/hooks/useParallax";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function CTASection() {
   const { ref: badgeRef, isVisible: badgeVisible } = useScrollAnimation();
   const { ref: titleRef, isVisible: titleVisible } = useScrollAnimation();
   const { ref: descRef, isVisible: descVisible } = useScrollAnimation();
   const { ref: ctaRef, isVisible: ctaVisible } = useScrollAnimation();
+  const { t } = useLanguage();
 
   // Parallax effects
   const parallaxSlow = useParallax({ speed: 0.12, direction: "up" });
@@ -59,7 +61,7 @@ export function CTASection() {
             }}
           >
             <Sparkles className="w-4 h-4 text-primary" />
-            <span>Unisciti a migliaia di professionisti</span>
+            <span>{t("cta.badge")}</span>
           </div>
           
           <h2 
@@ -71,8 +73,8 @@ export function CTASection() {
               transitionDelay: "100ms",
             }}
           >
-            Pronto a riprendere il controllo del tuo{" "}
-            <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">tempo</span>?
+            {t("cta.title")}{" "}
+            <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">{t("cta.titleHighlight")}</span>?
           </h2>
           
           <p 
@@ -84,8 +86,7 @@ export function CTASection() {
               transitionDelay: "200ms",
             }}
           >
-            Inizia oggi stesso e scopri quanto tempo puoi risparmiare 
-            con un time tracking che funziona davvero.
+            {t("cta.subtitle")}
           </p>
           
           <div 
@@ -100,7 +101,7 @@ export function CTASection() {
             <Button variant="hero" size="xl" asChild className="group shadow-2xl shadow-primary/30">
               <Link to="/register">
                 <Play className="w-5 h-5 fill-current" />
-                Inizia la prova gratuita
+                {t("cta.button")}
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
@@ -115,12 +116,12 @@ export function CTASection() {
           >
             <span className="inline-flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-success" />
-              7 giorni gratis
+              {t("cta.trial")}
             </span>
             <span className="text-border">•</span>
-            <span>Nessuna carta richiesta</span>
+            <span>{t("cta.noCard")}</span>
             <span className="text-border">•</span>
-            <span>Cancella quando vuoi</span>
+            <span>{t("cta.cancel")}</span>
           </p>
         </div>
       </div>
