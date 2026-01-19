@@ -3,9 +3,11 @@ import { Heart, Twitter, Linkedin, Github } from "lucide-react";
 import temporaLogo from "@/assets/tempora-logo-light.svg";
 import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Footer() {
   const { ref: footerRef, isVisible: footerVisible } = useScrollAnimation();
+  const { t } = useLanguage();
 
   const socialLinks = [
     { icon: Twitter, href: "#", label: "Twitter" },
@@ -14,15 +16,21 @@ export function Footer() {
   ];
 
   const footerLinks = {
-    Prodotto: [
-      { label: "Funzionalità", href: "/#features" },
-      { label: "Prezzi", href: "/#pricing" },
-    ],
-    Legale: [
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Termini di Servizio", href: "/terms" },
-      { label: "Cookie Policy", href: "/cookies" },
-    ],
+    product: {
+      titleKey: "footer.product",
+      links: [
+        { labelKey: "footer.features", href: "/#features" },
+        { labelKey: "footer.pricing", href: "/#pricing" },
+      ],
+    },
+    legal: {
+      titleKey: "footer.legal",
+      links: [
+        { labelKey: "footer.privacy", href: "/privacy" },
+        { labelKey: "footer.terms", href: "/terms" },
+        { labelKey: "footer.cookies", href: "/cookies" },
+      ],
+    },
   };
 
   return (
@@ -51,7 +59,7 @@ export function Footer() {
               />
             </Link>
             <p className="text-muted-foreground mb-6 max-w-xs leading-relaxed">
-              Time tracking semplice e bello per freelancer e team che vogliono lavorare meglio.
+              {t("footer.description")}
             </p>
             <div className="flex gap-3">
               {socialLinks.map((social) => (
@@ -68,22 +76,22 @@ export function Footer() {
           </div>
 
           {/* Links */}
-          {Object.entries(footerLinks).map(([title, links], sectionIndex) => (
+          {Object.entries(footerLinks).map(([key, section], sectionIndex) => (
             <div 
-              key={title}
+              key={key}
               style={{
                 transitionDelay: `${(sectionIndex + 1) * 100}ms`,
               }}
             >
-              <h4 className="font-semibold mb-5 text-foreground">{title}</h4>
+              <h4 className="font-semibold mb-5 text-foreground">{t(section.titleKey)}</h4>
               <ul className="space-y-3">
-                {links.map((link) => (
-                  <li key={link.label}>
+                {section.links.map((link) => (
+                  <li key={link.labelKey}>
                     <Link 
                       to={link.href} 
                       className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </Link>
                   </li>
                 ))}
@@ -94,12 +102,12 @@ export function Footer() {
 
         <div className="mt-16 pt-8 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2026 Tempora. Tutti i diritti riservati.
+            © 2026 Tempora. {t("footer.rights")}
           </p>
           <p className="text-sm text-muted-foreground flex items-center gap-2">
-            Fatto con 
+            {t("footer.madeWith")} 
             <Heart className="w-4 h-4 text-red-500 fill-current animate-pulse" /> 
-            in Italia
+            {t("footer.inCountry")}
           </p>
         </div>
       </div>
