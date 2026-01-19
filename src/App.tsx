@@ -16,9 +16,6 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Timesheet from "./pages/Timesheet";
 import TrialExpired from "./pages/TrialExpired";
-import Integrations from "./pages/Integrations";
-import Guide from "./pages/Guide";
-import Support from "./pages/Support";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Cookies from "./pages/Cookies";
@@ -101,9 +98,6 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            <Route path="/integrations" element={<Integrations />} />
-            <Route path="/guide" element={<Guide />} />
-            <Route path="/support" element={<Support />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/cookies" element={<Cookies />} />
