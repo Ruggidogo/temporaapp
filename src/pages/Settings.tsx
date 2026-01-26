@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { User, Briefcase, Users, Save, LogOut, FileText, Loader2, Crown, Check, Calendar, CreditCard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 export default function Settings() {
   const { user, profile, subscription, refreshProfile, signOut, checkSubscription } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [workType, setWorkType] = useState<"freelancer" | "team">("freelancer");
@@ -40,8 +42,8 @@ export default function Settings() {
     
     if (checkoutStatus === 'success') {
       toast({
-        title: "Abbonamento attivato! 🎉",
-        description: "Benvenuto in Tempora Pro!",
+        title: t("settings.subscriptionActivated"),
+        description: t("settings.welcomePro"),
       });
       // Remove query param
       window.history.replaceState({}, '', window.location.pathname);
@@ -49,12 +51,12 @@ export default function Settings() {
       checkSubscription();
     } else if (checkoutStatus === 'cancelled') {
       toast({
-        title: "Checkout annullato",
-        description: "Puoi riprovare quando vuoi.",
+        title: t("settings.checkoutCancelled"),
+        description: t("settings.checkoutCancelledDesc"),
       });
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [checkSubscription]);
+  }, [checkSubscription, t]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -62,8 +64,8 @@ export default function Settings() {
     const trimmedName = name.trim();
     if (!trimmedName) {
       toast({
-        title: "Nome richiesto",
-        description: "Inserisci il tuo nome per continuare.",
+        title: t("settings.nameRequired"),
+        description: t("settings.nameRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -71,8 +73,8 @@ export default function Settings() {
 
     if (trimmedName.length > 100) {
       toast({
-        title: "Nome troppo lungo",
-        description: "Il nome deve essere inferiore a 100 caratteri.",
+        title: t("settings.nameTooLong"),
+        description: t("settings.nameTooLongDesc"),
         variant: "destructive",
       });
       return;
@@ -94,12 +96,12 @@ export default function Settings() {
       await refreshProfile();
 
       toast({
-        title: "Impostazioni salvate! ✓",
-        description: "Le tue modifiche sono state salvate con successo.",
+        title: t("settings.saved"),
+        description: t("settings.savedDesc"),
       });
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -114,12 +116,12 @@ export default function Settings() {
       await signOut();
       navigate("/");
       toast({
-        title: "Disconnesso",
-        description: "Sei stato disconnesso con successo.",
+        title: t("settings.disconnected"),
+        description: t("settings.disconnectedDesc"),
       });
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -140,9 +142,9 @@ export default function Settings() {
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-2xl mx-auto tempora-animate-in">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Impostazioni</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("settings.title")}</h1>
           <p className="text-muted-foreground mt-1">
-            Gestisci il tuo profilo e le preferenze
+            {t("settings.subtitle")}
           </p>
         </div>
 
@@ -173,10 +175,10 @@ export default function Settings() {
                   </div>
                   <div>
                     <h2 className="font-bold text-lg">
-                      {isPro ? "Tempora Pro" : "Piano Trial"}
+                      {isPro ? t("settings.plan.pro") : t("settings.plan.trial")}
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                      {isPro ? "Accesso completo a tutte le funzionalità" : "Prova gratuita"}
+                      {isPro ? t("settings.plan.proDesc") : t("settings.plan.trialDesc")}
                     </p>
                   </div>
                 </div>
@@ -184,7 +186,7 @@ export default function Settings() {
                 {isPro && (
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30 text-sm font-medium text-success">
                     <Check className="w-4 h-4" />
-                    Attivo
+                    {t("settings.plan.active")}
                   </div>
                 )}
               </div>
@@ -194,7 +196,7 @@ export default function Settings() {
                 {isPro && subscription.subscriptionEnd && (
                   <div className="flex items-center gap-3 text-sm">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Prossimo rinnovo:</span>
+                    <span className="text-muted-foreground">{t("settings.plan.nextRenewal")}</span>
                     <span className="font-medium">
                       {format(new Date(subscription.subscriptionEnd), "d MMMM yyyy", { locale: it })}
                     </span>
@@ -204,23 +206,23 @@ export default function Settings() {
                 {isTrial && profile?.trial_ends_at && (
                   <div className="flex items-center gap-3 text-sm">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Trial scade:</span>
+                    <span className="text-muted-foreground">{t("settings.plan.trialExpires")}</span>
                     <span className={cn(
                       "font-medium",
                       trialDaysRemaining <= 3 ? "text-warning" : ""
                     )}>
                       {trialDaysRemaining === 0 
-                        ? "Oggi" 
-                        : `tra ${trialDaysRemaining} giorni`}
+                        ? t("settings.plan.expiresToday") 
+                        : t("settings.plan.expiresIn").replace("{days}", String(trialDaysRemaining))}
                     </span>
                   </div>
                 )}
 
                 <div className="flex items-center gap-3 text-sm">
                   <CreditCard className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Prezzo:</span>
+                  <span className="text-muted-foreground">{t("settings.plan.price")}</span>
                   <span className="font-medium">
-                    {isPro ? "€14,99/mese" : "Gratuito (7 giorni)"}
+                    {isPro ? t("settings.plan.proPricing") : t("settings.plan.trialPricing")}
                   </span>
                 </div>
               </div>
@@ -228,10 +230,10 @@ export default function Settings() {
               {/* Features */}
               <div className="grid grid-cols-2 gap-3 mb-6">
                 {[
-                  "Timer illimitato",
-                  "Clienti illimitati",
-                  "Report avanzati",
-                  "Export PDF/CSV"
+                  t("settings.features.unlimitedTimer"),
+                  t("settings.features.unlimitedClients"),
+                  t("settings.features.advancedReports"),
+                  t("settings.features.exportPdfCsv")
                 ].map((feature) => (
                   <div key={feature} className="flex items-center gap-2 text-sm">
                     <Check className={cn(
@@ -255,9 +257,9 @@ export default function Settings() {
                 <User className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h2 className="font-bold text-lg">Profilo</h2>
+                <h2 className="font-bold text-lg">{t("settings.profile")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Modifica le informazioni del tuo account
+                  {t("settings.profileDesc")}
                 </p>
               </div>
             </div>
@@ -265,11 +267,11 @@ export default function Settings() {
             <div className="space-y-6">
               {/* Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">Nome</Label>
+                <Label htmlFor="name">{t("settings.name")}</Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder="Il tuo nome"
+                  placeholder={t("settings.namePlaceholder")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   maxLength={100}
@@ -279,7 +281,7 @@ export default function Settings() {
 
               {/* Email (read-only) */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("settings.email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -288,7 +290,7 @@ export default function Settings() {
                   className="rounded-xl h-12 bg-muted"
                 />
                 <p className="text-xs text-muted-foreground">
-                  L'email non può essere modificata
+                  {t("settings.emailReadOnly")}
                 </p>
               </div>
 
@@ -296,7 +298,7 @@ export default function Settings() {
 
               {/* Work Type */}
               <div className="space-y-3">
-                <Label>Tipo di lavoro</Label>
+                <Label>{t("settings.workType")}</Label>
                 <RadioGroup
                   value={workType}
                   onValueChange={(value) => setWorkType(value as "freelancer" | "team")}
@@ -311,8 +313,8 @@ export default function Settings() {
                       <Briefcase className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold">Freelancer</p>
-                      <p className="text-xs text-muted-foreground">Lavoro da solo</p>
+                      <p className="font-semibold">{t("settings.freelancer")}</p>
+                      <p className="text-xs text-muted-foreground">{t("settings.freelancerDesc")}</p>
                     </div>
                   </Label>
                   <Label
@@ -324,8 +326,8 @@ export default function Settings() {
                       <Users className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold">Team</p>
-                      <p className="text-xs text-muted-foreground">Lavoro in squadra</p>
+                      <p className="font-semibold">{t("settings.team")}</p>
+                      <p className="text-xs text-muted-foreground">{t("settings.teamDesc")}</p>
                     </div>
                   </Label>
                 </RadioGroup>
@@ -341,7 +343,7 @@ export default function Settings() {
                 ) : (
                   <Save className="w-4 h-4 mr-2" />
                 )}
-                {loading ? "Salvataggio..." : "Salva modifiche"}
+                {loading ? t("settings.saving") : t("settings.saveChanges")}
               </Button>
             </div>
           </div>
@@ -353,9 +355,9 @@ export default function Settings() {
                 <FileText className="w-5 h-5 text-success" />
               </div>
               <div>
-                <h2 className="font-bold text-lg">Esportazione</h2>
+                <h2 className="font-bold text-lg">{t("settings.export")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Personalizza i tuoi documenti esportati
+                  {t("settings.exportDesc")}
                 </p>
               </div>
             </div>
@@ -379,9 +381,9 @@ export default function Settings() {
                 <LogOut className="w-5 h-5 text-destructive" />
               </div>
               <div>
-                <h2 className="font-bold text-lg text-destructive">Sessione</h2>
+                <h2 className="font-bold text-lg text-destructive">{t("settings.session")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Gestisci la tua sessione attiva
+                  {t("settings.sessionDesc")}
                 </p>
               </div>
             </div>
@@ -397,7 +399,7 @@ export default function Settings() {
               ) : (
                 <LogOut className="w-4 h-4 mr-2" />
               )}
-              {logoutLoading ? "Disconnessione..." : "Esci dall'account"}
+              {logoutLoading ? t("settings.loggingOut") : t("settings.logout")}
             </Button>
           </div>
         </div>

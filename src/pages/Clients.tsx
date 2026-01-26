@@ -26,6 +26,7 @@ import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { SendReportDialog } from "@/components/reports/SendReportDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 interface Client {
@@ -40,6 +41,7 @@ interface Client {
 
 export default function Clients() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ export default function Clients() {
       setClients(clientsWithHours);
     } catch (error) {
       console.error("Error fetching clients:", error);
-      toast.error("Errore nel caricamento dei clienti");
+      toast.error(t("clients.errorLoading"));
     } finally {
       setLoading(false);
     }
@@ -108,12 +110,12 @@ export default function Clients() {
 
       if (error) throw error;
 
-      toast.success("Cliente creato");
+      toast.success(t("clients.created"));
       setDialogOpen(false);
       fetchClients();
     } catch (error) {
       console.error("Error creating client:", error);
-      toast.error("Errore nella creazione del cliente");
+      toast.error(t("clients.errorCreating"));
     } finally {
       setSaving(false);
     }
@@ -137,13 +139,13 @@ export default function Clients() {
 
       if (error) throw error;
 
-      toast.success("Cliente aggiornato");
+      toast.success(t("clients.updated"));
       setDialogOpen(false);
       setSelectedClient(null);
       fetchClients();
     } catch (error) {
       console.error("Error updating client:", error);
-      toast.error("Errore nell'aggiornamento del cliente");
+      toast.error(t("clients.errorUpdating"));
     } finally {
       setSaving(false);
     }
@@ -161,13 +163,13 @@ export default function Clients() {
 
       if (error) throw error;
 
-      toast.success("Cliente eliminato");
+      toast.success(t("clients.deleted"));
       setDeleteDialogOpen(false);
       setSelectedClient(null);
       fetchClients();
     } catch (error) {
       console.error("Error deleting client:", error);
-      toast.error("Errore nell'eliminazione del cliente");
+      toast.error(t("clients.errorDeleting"));
     } finally {
       setSaving(false);
     }
@@ -203,15 +205,15 @@ export default function Clients() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Clienti</h1>
-            <p className="text-muted-foreground mt-1">Gestisci i tuoi clienti e progetti</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t("clients.title")}</h1>
+            <p className="text-muted-foreground mt-1">{t("clients.subtitle")}</p>
           </div>
           <Button 
             onClick={() => { setSelectedClient(null); setDialogOpen(true); }}
             className="btn-gradient rounded-xl"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Nuovo cliente
+            {t("clients.newClient")}
           </Button>
         </div>
 
@@ -219,7 +221,7 @@ export default function Clients() {
         <div className="relative mb-8">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Cerca cliente..."
+            placeholder={t("clients.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-11 max-w-sm rounded-xl h-12 bg-card/50 border-border/60"
@@ -232,11 +234,11 @@ export default function Clients() {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-primary" />
             </div>
-            <p className="text-lg font-medium mb-2">Non hai ancora clienti</p>
-            <p className="text-sm text-muted-foreground mb-6">Crea il tuo primo cliente per iniziare</p>
+            <p className="text-lg font-medium mb-2">{t("clients.noClients")}</p>
+            <p className="text-sm text-muted-foreground mb-6">{t("clients.noClientsDesc")}</p>
             <Button onClick={() => setDialogOpen(true)} className="btn-gradient rounded-xl">
               <Plus className="w-4 h-4 mr-2" />
-              Crea il primo cliente
+              {t("clients.createFirst")}
             </Button>
           </div>
         )}
@@ -265,7 +267,7 @@ export default function Clients() {
                       <div>
                         <h3 className="font-bold text-lg">{client.name}</h3>
                         <p className="text-xs text-muted-foreground">
-                          {client.email || "Nessuna email"}
+                          {client.email || t("clients.noEmail")}
                         </p>
                       </div>
                     </div>
@@ -283,7 +285,7 @@ export default function Clients() {
                       <DropdownMenuContent align="end" className="rounded-xl">
                         <DropdownMenuItem onClick={(e) => { e.preventDefault(); openEditDialog(client); }} className="rounded-lg">
                           <Pencil className="w-4 h-4 mr-2" />
-                          Modifica
+                          {t("clients.edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => {
@@ -294,14 +296,14 @@ export default function Clients() {
                           className="rounded-lg"
                         >
                           <Mail className="w-4 h-4 mr-2" />
-                          Invia report
+                          {t("clients.sendReport")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => { e.preventDefault(); openDeleteDialog(client); }}
                           className="text-destructive focus:text-destructive rounded-lg"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Elimina
+                          {t("clients.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -316,7 +318,7 @@ export default function Clients() {
                       <p className="text-sm font-bold">
                         {client.total_hours?.toFixed(1) || "0"}h
                       </p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ore totali</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("clients.totalHours")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
@@ -327,7 +329,7 @@ export default function Clients() {
                       <p className="text-sm font-bold">
                         {client.hourly_rate ? `€${client.hourly_rate}` : "-"}
                       </p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Tariffa/h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("clients.hourlyRate")}</p>
                     </div>
                   </div>
                 </div>
@@ -352,7 +354,7 @@ export default function Clients() {
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-4">
                   <Plus className="w-7 h-7 text-muted-foreground" />
                 </div>
-                <p className="text-sm font-semibold">Aggiungi cliente</p>
+                <p className="text-sm font-semibold">{t("clients.addClient")}</p>
               </div>
             </div>
           </div>
