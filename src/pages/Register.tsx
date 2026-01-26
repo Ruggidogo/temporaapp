@@ -8,9 +8,11 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import temporaLogo from "@/assets/tempora-logo-light.svg";
 import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,8 +23,8 @@ export default function Register() {
 
     if (password.length < 6) {
       toast({
-        title: "Password troppo corta",
-        description: "La password deve essere di almeno 6 caratteri",
+        title: t("register.passwordTooShort"),
+        description: t("register.passwordTooShortDesc"),
         variant: "destructive",
       });
       return;
@@ -45,13 +47,13 @@ export default function Register() {
       if (error) throw error;
 
       toast({
-        title: "Account creato! 🎉",
-        description: "Benvenuto in Tempora!",
+        title: t("register.successTitle"),
+        description: t("register.successDesc"),
       });
       navigate("/onboarding");
     } catch (error: any) {
       toast({
-        title: "Errore di registrazione",
+        title: t("register.errorTitle"),
         description: error.message,
         variant: "destructive",
       });
@@ -61,9 +63,9 @@ export default function Register() {
   };
 
   const benefits = [
-    { icon: Timer, text: "Timer con un click" },
-    { icon: BarChart3, text: "Report e analytics avanzati" },
-    { icon: FileText, text: "Export PDF professionali" },
+    { icon: Timer, text: t("register.benefit1") },
+    { icon: BarChart3, text: t("register.benefit2") },
+    { icon: FileText, text: t("register.benefit3") },
   ];
 
   return (
@@ -91,13 +93,13 @@ export default function Register() {
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-sm font-medium text-white mb-6">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                7 giorni gratis • Nessuna carta
+                {t("register.trialBadge")}
               </div>
               <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-                Inizia a tracciare il tuo tempo oggi
+                {t("register.welcome")}
               </h1>
               <p className="text-white/80 text-xl leading-relaxed">
-                Unisciti a migliaia di professionisti che hanno scelto Tempora per lavorare meglio.
+                {t("register.welcomeDesc")}
               </p>
             </div>
 
@@ -118,7 +120,7 @@ export default function Register() {
           </div>
 
           <p className="text-white/50 text-sm">
-            © 2026 Tempora. Tutti i diritti riservati.
+            {t("common.allRightsReserved")}
           </p>
         </div>
       </div>
@@ -155,24 +157,24 @@ export default function Register() {
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-sm font-medium mb-6">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span>Prova gratuita 7 giorni</span>
+                    <span>{t("register.badge")}</span>
                   </div>
-                  <h2 className="text-3xl font-bold mb-2">Crea il tuo account</h2>
+                  <h2 className="text-3xl font-bold mb-2">{t("register.title")}</h2>
                   <p className="text-muted-foreground">
-                    Inizia subito, nessuna carta richiesta
+                    {t("register.subtitle")}
                   </p>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium">Nome</Label>
+                    <Label htmlFor="name" className="text-sm font-medium">{t("register.name")}</Label>
                     <div className="relative group">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <Input
                         id="name"
                         type="text"
-                        placeholder="Mario Rossi"
+                        placeholder={t("register.namePlaceholder")}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="pl-11 h-12 bg-muted/50 border-border/50 focus:border-primary/50 focus:bg-background transition-all"
@@ -182,13 +184,13 @@ export default function Register() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium">{t("register.email")}</Label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <Input
                         id="email"
                         type="email"
-                        placeholder="tu@esempio.com"
+                        placeholder={t("register.emailPlaceholder")}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-11 h-12 bg-muted/50 border-border/50 focus:border-primary/50 focus:bg-background transition-all"
@@ -198,13 +200,13 @@ export default function Register() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                    <Label htmlFor="password" className="text-sm font-medium">{t("register.password")}</Label>
                     <div className="relative group">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <Input
                         id="password"
                         type="password"
-                        placeholder="Minimo 6 caratteri"
+                        placeholder={t("register.passwordPlaceholder")}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-11 h-12 bg-muted/50 border-border/50 focus:border-primary/50 focus:bg-background transition-all"
@@ -221,14 +223,14 @@ export default function Register() {
                     className="w-full h-12 shadow-lg shadow-primary/25" 
                     disabled={loading}
                   >
-                    {loading ? "Creazione account..." : "Crea account"}
+                    {loading ? t("register.submitting") : t("register.submit")}
                     {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
                   </Button>
                 </form>
 
                 {/* Trust indicators */}
                 <div className="flex items-center justify-center gap-6 mt-6 py-4 border-t border-border/30">
-                  {["Sicuro", "Privato", "GDPR"].map((badge) => (
+                  {[t("register.secure"), t("register.private"), t("register.gdpr")].map((badge) => (
                     <div key={badge} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Check className="w-3.5 h-3.5 text-success" />
                       <span>{badge}</span>
@@ -237,20 +239,20 @@ export default function Register() {
                 </div>
 
                 <p className="text-center text-xs text-muted-foreground mt-4">
-                  Continuando, accetti i nostri{" "}
+                  {t("register.terms")}{" "}
                   <Link to="/terms" className="text-primary hover:text-primary/80 transition-colors">
-                    Termini
+                    {t("register.termsLink")}
                   </Link>{" "}
-                  e la{" "}
+                  {t("register.and")}{" "}
                   <Link to="/privacy" className="text-primary hover:text-primary/80 transition-colors">
-                    Privacy Policy
+                    {t("register.privacyLink")}
                   </Link>
                 </p>
 
                 <p className="text-center text-sm text-muted-foreground mt-6">
-                  Hai già un account?{" "}
+                  {t("register.hasAccount")}{" "}
                   <Link to="/login" className="text-primary font-semibold hover:text-primary/80 transition-colors">
-                    Accedi
+                    {t("register.login")}
                   </Link>
                 </p>
               </div>

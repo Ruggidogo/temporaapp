@@ -8,9 +8,11 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import temporaLogo from "@/assets/tempora-logo-light.svg";
 import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,16 +31,16 @@ export default function Login() {
       if (error) throw error;
 
       toast({
-        title: "Benvenuto! 👋",
-        description: "Accesso effettuato con successo",
+        title: t("login.successTitle"),
+        description: t("login.successDesc"),
       });
       navigate("/dashboard");
     } catch (error: any) {
       toast({
-        title: "Errore di accesso",
+        title: t("login.errorTitle"),
         description:
           error.message === "Invalid login credentials"
-            ? "Email o password non corretti"
+            ? t("login.invalidCredentials")
             : error.message,
         variant: "destructive",
       });
@@ -50,8 +52,8 @@ export default function Login() {
   const handleMagicLink = async () => {
     if (!email.trim()) {
       toast({
-        title: "Email richiesta",
-        description: "Inserisci la tua email per ricevere il magic link.",
+        title: t("login.magicLinkRequired"),
+        description: t("login.magicLinkRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -69,12 +71,12 @@ export default function Login() {
       if (error) throw error;
 
       toast({
-        title: "Magic Link inviato! ✨",
-        description: "Controlla la tua email e clicca sul link per accedere.",
+        title: t("login.magicLinkSentTitle"),
+        description: t("login.magicLinkSentDesc"),
       });
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -114,20 +116,20 @@ export default function Login() {
 
           <div className="space-y-8">
             <div>
-              <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-                Bentornato nel tuo spazio di lavoro
-              </h1>
-              <p className="text-white/80 text-xl leading-relaxed">
-                Riprendi da dove hai lasciato e continua a tracciare il tuo tempo in modo intelligente.
-              </p>
-            </div>
+            <h1 className="text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+              {t("login.welcome")}
+            </h1>
+            <p className="text-white/80 text-xl leading-relaxed">
+              {t("login.welcomeDesc")}
+            </p>
           </div>
-
-          <p className="text-white/50 text-sm">
-            © 2026 Tempora. Tutti i diritti riservati.
-          </p>
         </div>
+
+        <p className="text-white/50 text-sm">
+          {t("common.allRightsReserved")}
+        </p>
       </div>
+    </div>
 
       {/* Right side - Form */}
       <div className="flex-1 flex flex-col bg-gradient-to-b from-background to-muted/30 relative overflow-hidden">
@@ -161,24 +163,24 @@ export default function Login() {
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 text-sm font-medium mb-6">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span>Accedi al tuo account</span>
+                    <span>{t("login.badge")}</span>
                   </div>
-                  <h2 className="text-3xl font-bold mb-2">Bentornato!</h2>
+                  <h2 className="text-3xl font-bold mb-2">{t("login.title")}</h2>
                   <p className="text-muted-foreground">
-                    Inserisci le tue credenziali per continuare
+                    {t("login.subtitle")}
                   </p>
                 </div>
 
                 {/* Email/Password form */}
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium">{t("login.email")}</Label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <Input
                         id="email"
                         type="email"
-                        placeholder="tu@esempio.com"
+                        placeholder={t("login.emailPlaceholder")}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-11 h-12 bg-muted/50 border-border/50 focus:border-primary/50 focus:bg-background transition-all"
@@ -189,12 +191,12 @@ export default function Login() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                      <Label htmlFor="password" className="text-sm font-medium">{t("login.password")}</Label>
                       <Link 
                         to="/forgot-password" 
                         className="text-xs text-primary hover:text-primary/80 transition-colors"
                       >
-                        Password dimenticata?
+                        {t("login.forgotPassword")}
                       </Link>
                     </div>
                     <div className="relative group">
@@ -218,7 +220,7 @@ export default function Login() {
                     className="w-full h-12 shadow-lg shadow-primary/25" 
                     disabled={loading}
                   >
-                    {loading ? "Accesso in corso..." : "Accedi"}
+                    {loading ? t("login.submitting") : t("login.submit")}
                     {!loading && <ArrowRight className="w-4 h-4 ml-2" />}
                   </Button>
                 </form>
@@ -228,7 +230,7 @@ export default function Login() {
                     <div className="w-full border-t border-border/50"></div>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-3 text-muted-foreground">oppure</span>
+                    <span className="bg-card px-3 text-muted-foreground">{t("common.or")}</span>
                   </div>
                 </div>
 
@@ -239,13 +241,13 @@ export default function Login() {
                   disabled={magicLinkLoading}
                 >
                   <Mail className="w-4 h-4 mr-2" />
-                  {magicLinkLoading ? "Invio in corso..." : "Accedi con Magic Link"}
+                  {magicLinkLoading ? t("login.magicLinkSending") : t("login.magicLink")}
                 </Button>
 
                 <p className="text-center text-sm text-muted-foreground mt-8">
-                  Non hai un account?{" "}
+                  {t("login.noAccount")}{" "}
                   <Link to="/register" className="text-primary font-semibold hover:text-primary/80 transition-colors">
-                    Registrati gratis
+                    {t("login.register")}
                   </Link>
                 </p>
               </div>
