@@ -447,6 +447,26 @@ const translations: Record<string, string> = {
   "nav.timesheet": "Timesheet",
   "nav.reports": "Informes",
   "nav.settings": "Configuración",
+
+  // Edit Entry Dialog
+  "editEntry.title": "Editar registro",
+  "editEntry.date": "Fecha",
+  "editEntry.selectDate": "Seleccionar fecha",
+  "editEntry.start": "Inicio",
+  "editEntry.end": "Fin",
+  "editEntry.duration": "Duración",
+  "editEntry.client": "Cliente",
+  "editEntry.selectClient": "Seleccionar cliente",
+  "editEntry.noClient": "Sin cliente",
+  "editEntry.description": "Descripción",
+  "editEntry.descriptionPlaceholder": "¿En qué trabajaste?",
+  "editEntry.saving": "Guardando...",
+  "editEntry.save": "Guardar cambios",
+
+  // Delete Entry Dialog
+  "deleteEntry.title": "¿Eliminar registro?",
+  "deleteEntry.description": "Esta acción no se puede deshacer. El registro de tiempo se eliminará permanentemente.",
+  "deleteEntry.deleting": "Eliminando...",
 };
 
 export default translations;

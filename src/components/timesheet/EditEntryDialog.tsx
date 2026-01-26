@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { it } from "date-fns/locale";
+import { format, Locale } from "date-fns";
+import { it, enUS, es, fr, de } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,9 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 
 interface Client {
   id: string;
@@ -96,6 +99,9 @@ export function EditEntryDialog({
   clients,
   isLoading,
 }: EditEntryDialogProps) {
+  const { language, t } = useLanguage();
+  const locale = dateLocales[language] || enUS;
+
   const [date, setDate] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
@@ -166,12 +172,12 @@ export function EditEntryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Modifica registrazione</DialogTitle>
+          <DialogTitle>{t("editEntry.title")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Date picker */}
           <div className="space-y-2">
-            <Label>Data</Label>
+            <Label>{t("editEntry.date")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -182,7 +188,7 @@ export function EditEntryDialog({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP", { locale: it }) : "Seleziona data"}
+                  {date ? format(date, "PPP", { locale }) : t("editEntry.selectDate")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -201,7 +207,7 @@ export function EditEntryDialog({
           {/* Time inputs */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="editStartTime">Inizio</Label>
+              <Label htmlFor="editStartTime">{t("editEntry.start")}</Label>
               <Input
                 id="editStartTime"
                 type="time"
@@ -213,7 +219,7 @@ export function EditEntryDialog({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="editEndTime">Fine</Label>
+              <Label htmlFor="editEndTime">{t("editEntry.end")}</Label>
               <Input
                 id="editEndTime"
                 type="time"
@@ -229,22 +235,22 @@ export function EditEntryDialog({
           {/* Duration preview */}
           {durationPreview && (
             <div className="text-sm text-muted-foreground text-center">
-              Durata: <span className="font-medium text-foreground">{durationPreview}</span>
+              {t("editEntry.duration")}: <span className="font-medium text-foreground">{durationPreview}</span>
             </div>
           )}
 
           {/* Client selector */}
           <div className="space-y-2">
-            <Label>Cliente</Label>
+            <Label>{t("editEntry.client")}</Label>
             <Select
               value={clientId || "none"}
               onValueChange={(v) => setClientId(v === "none" ? null : v)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Seleziona cliente" />
+                <SelectValue placeholder={t("editEntry.selectClient")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Nessun cliente</SelectItem>
+                <SelectItem value="none">{t("editEntry.noClient")}</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     <div className="flex items-center gap-2">
@@ -262,12 +268,12 @@ export function EditEntryDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="editDescription">Descrizione</Label>
+            <Label htmlFor="editDescription">{t("editEntry.description")}</Label>
             <Input
               id="editDescription"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Su cosa hai lavorato?"
+              placeholder={t("editEntry.descriptionPlaceholder")}
               maxLength={500}
             />
           </div>
@@ -279,10 +285,10 @@ export function EditEntryDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Annulla
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Salvataggio..." : "Salva modifiche"}
+              {isLoading ? t("editEntry.saving") : t("editEntry.save")}
             </Button>
           </div>
         </form>

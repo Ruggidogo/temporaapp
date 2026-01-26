@@ -447,6 +447,26 @@ const translations: Record<string, string> = {
   "nav.timesheet": "Zeiterfassung",
   "nav.reports": "Berichte",
   "nav.settings": "Einstellungen",
+
+  // Edit Entry Dialog
+  "editEntry.title": "Eintrag bearbeiten",
+  "editEntry.date": "Datum",
+  "editEntry.selectDate": "Datum auswählen",
+  "editEntry.start": "Beginn",
+  "editEntry.end": "Ende",
+  "editEntry.duration": "Dauer",
+  "editEntry.client": "Kunde",
+  "editEntry.selectClient": "Kunde auswählen",
+  "editEntry.noClient": "Kein Kunde",
+  "editEntry.description": "Beschreibung",
+  "editEntry.descriptionPlaceholder": "Woran haben Sie gearbeitet?",
+  "editEntry.saving": "Speichern...",
+  "editEntry.save": "Änderungen speichern",
+
+  // Delete Entry Dialog
+  "deleteEntry.title": "Eintrag löschen?",
+  "deleteEntry.description": "Diese Aktion kann nicht rückgängig gemacht werden. Der Zeiteintrag wird dauerhaft gelöscht.",
+  "deleteEntry.deleting": "Löschen...",
 };
 
 export default translations;
