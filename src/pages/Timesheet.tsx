@@ -25,10 +25,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, ChevronLeft, ChevronRight, Clock, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, subWeeks, addMonths, subMonths, eachDayOfInterval, isSameDay } from "date-fns";
-import { it } from "date-fns/locale";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, subWeeks, addMonths, subMonths, eachDayOfInterval, isSameDay, Locale } from "date-fns";
+import { it, enUS, es, fr, de } from "date-fns/locale";
+
+const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 import { cn } from "@/lib/utils";
 import { EditEntryDialog } from "@/components/timesheet/EditEntryDialog";
 import { DeleteEntryDialog } from "@/components/timesheet/DeleteEntryDialog";
@@ -72,6 +75,9 @@ function formatTimeOfDay(isoString: string): string {
 
 export default function Timesheet() {
   const { user, profile } = useAuth();
+  const { language, t } = useLanguage();
+  const locale = dateLocales[language] || enUS;
+
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [clients, setClients] = useState<Client[]>([]);
@@ -202,10 +208,10 @@ export default function Timesheet() {
 
   const periodLabel = useMemo(() => {
     if (viewMode === "week") {
-      return `${format(dateRange.start, "d MMM", { locale: it })} - ${format(dateRange.end, "d MMM yyyy", { locale: it })}`;
+      return `${format(dateRange.start, "d MMM", { locale })} - ${format(dateRange.end, "d MMM yyyy", { locale })}`;
     }
-    return format(currentDate, "MMMM yyyy", { locale: it });
-  }, [viewMode, currentDate, dateRange]);
+    return format(currentDate, "MMMM yyyy", { locale });
+  }, [viewMode, currentDate, dateRange, locale]);
 
   const handleEditEntry = async (data: {
     id: string;
@@ -247,15 +253,15 @@ export default function Timesheet() {
       if (error) throw error;
 
       toast({
-        title: "Registrazione aggiornata",
-        description: "Le modifiche sono state salvate con successo.",
+        title: t("timesheet.entryUpdated"),
+        description: t("timesheet.entryUpdatedDesc"),
       });
 
       setEditingEntry(null);
       fetchData();
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -278,15 +284,15 @@ export default function Timesheet() {
       if (error) throw error;
 
       toast({
-        title: "Registrazione eliminata",
-        description: "La registrazione è stata eliminata con successo.",
+        title: t("timesheet.entryDeleted"),
+        description: t("timesheet.entryDeletedDesc"),
       });
 
       setDeletingEntry(null);
       fetchData();
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -311,19 +317,19 @@ export default function Timesheet() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Timesheet</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t("timesheet.title")}</h1>
             <p className="text-muted-foreground mt-1">
-              Visualizza le tue registrazioni orarie
+              {t("timesheet.subtitle")}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <Select value={selectedClient} onValueChange={setSelectedClient}>
               <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card/50">
-                <SelectValue placeholder="Filtra cliente" />
+                <SelectValue placeholder={t("timesheet.filterClient")} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="all">Tutti i clienti</SelectItem>
+                <SelectItem value="all">{t("timesheet.allClients")}</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     <div className="flex items-center gap-2">
@@ -357,13 +363,13 @@ export default function Timesheet() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="week">Settimana</SelectItem>
-                  <SelectItem value="month">Mese</SelectItem>
+                  <SelectItem value="week">{t("timesheet.week")}</SelectItem>
+                  <SelectItem value="month">{t("timesheet.month")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Button variant="outline" size="sm" onClick={goToToday} className="rounded-xl">
-                Oggi
+                {t("timesheet.today")}
               </Button>
             </div>
 
@@ -381,7 +387,7 @@ export default function Timesheet() {
 
             <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl border border-primary/20">
               <Clock className="w-4 h-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Totale:</span>
+              <span className="text-sm text-muted-foreground">{t("timesheet.total")}:</span>
               <span className="font-bold text-primary">{formatDuration(totalSeconds)}</span>
             </div>
           </div>
@@ -393,9 +399,9 @@ export default function Timesheet() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[140px]">Giorno</TableHead>
-                  <TableHead>Attività</TableHead>
-                  <TableHead className="w-[100px] text-right">Totale</TableHead>
+                  <TableHead className="w-[140px]">{t("timesheet.day")}</TableHead>
+                  <TableHead>{t("timesheet.activities")}</TableHead>
+                  <TableHead className="w-[100px] text-right">{t("timesheet.total")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -421,10 +427,10 @@ export default function Timesheet() {
                             "capitalize font-semibold",
                             isToday && "text-primary"
                           )}>
-                            {format(day, "EEEE", { locale: it })}
+                            {format(day, "EEEE", { locale })}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {format(day, "d MMMM", { locale: it })}
+                            {format(day, "d MMMM", { locale })}
                           </span>
                         </div>
                       </TableCell>
@@ -449,7 +455,7 @@ export default function Timesheet() {
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                       <span className="text-sm font-medium">
-                                        {client?.name || "Senza cliente"}
+                                        {client?.name || t("timesheet.noClient")}
                                       </span>
                                       <Badge variant="outline" className="text-xs rounded-full">
                                         {formatDuration(entry.duration_seconds || 0)}
@@ -478,14 +484,14 @@ export default function Timesheet() {
                                     <DropdownMenuContent align="end" className="rounded-xl">
                                       <DropdownMenuItem onClick={() => setEditingEntry(entry)} className="rounded-lg">
                                         <Pencil className="h-4 w-4 mr-2" />
-                                        Modifica
+                                        {t("common.edit")}
                                       </DropdownMenuItem>
                                       <DropdownMenuItem
                                         onClick={() => setDeletingEntry(entry)}
                                         className="text-destructive focus:text-destructive rounded-lg"
                                       >
                                         <Trash2 className="h-4 w-4 mr-2" />
-                                        Elimina
+                                        {t("common.delete")}
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>

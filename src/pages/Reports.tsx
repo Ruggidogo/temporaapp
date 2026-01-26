@@ -49,9 +49,12 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from "date-fns";
-import { it } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, Locale } from "date-fns";
+import { it, enUS, es, fr, de } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
+
+const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 
 interface Client {
   id: string;
@@ -68,14 +71,6 @@ interface TimeEntry {
   date: string;
   description: string | null;
 }
-
-const periodOptions = [
-  { label: "Oggi", value: "today" },
-  { label: "Settimana", value: "week" },
-  { label: "Mese", value: "month" },
-  { label: "Anno", value: "year" },
-  { label: "Personalizzato", value: "custom" },
-];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -113,6 +108,17 @@ const CustomPieTooltip = ({ active, payload }: any) => {
 
 export default function Reports() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
+  const locale = dateLocales[language] || enUS;
+
+  const periodOptions = [
+    { label: t("reports.today"), value: "today" },
+    { label: t("reports.week"), value: "week" },
+    { label: t("reports.month"), value: "month" },
+    { label: t("reports.year"), value: "year" },
+    { label: t("reports.custom"), value: "custom" },
+  ];
+
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [selectedClient, setSelectedClient] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -242,30 +248,30 @@ export default function Reports() {
 
   const statCards = [
     {
-      title: "Ore totali",
+      title: t("reports.totalHours"),
       value: `${totalHours.toFixed(1)}h`,
       icon: Clock,
       gradient: "from-primary to-purple-500",
       shadowColor: "shadow-primary/20",
     },
     {
-      title: "Media/giorno",
+      title: t("reports.avgPerDay"),
       value: `${avgHoursPerDay.toFixed(1)}h`,
       icon: TrendingUp,
       gradient: "from-emerald-500 to-teal-500",
       shadowColor: "shadow-emerald-500/20",
     },
     {
-      title: "Cliente top",
+      title: t("reports.topClient"),
       value: topClient?.name || "-",
-      subtitle: topClient ? `${topClient.hours.toFixed(1)} ore` : undefined,
+      subtitle: topClient ? `${topClient.hours.toFixed(1)} ${t("reports.hours")}` : undefined,
       icon: Users,
       gradient: "from-violet-500 to-purple-600",
       shadowColor: "shadow-violet-500/20",
     },
     {
-      title: "Valore generato",
-      value: `€${totalValue.toLocaleString('it-IT', { maximumFractionDigits: 0 })}`,
+      title: t("reports.valueGenerated"),
+      value: `€${totalValue.toLocaleString(language === "en" ? "en-US" : language, { maximumFractionDigits: 0 })}`,
       icon: DollarSign,
       gradient: "from-amber-500 to-orange-500",
       shadowColor: "shadow-amber-500/20",
@@ -282,9 +288,9 @@ export default function Reports() {
               <div className="p-2 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20">
                 <BarChart3 className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold">Report</h1>
+              <h1 className="text-2xl font-bold">{t("reports.title")}</h1>
             </div>
-            <p className="text-muted-foreground">Analizza dove va il tuo tempo e massimizza la produttività</p>
+            <p className="text-muted-foreground">{t("reports.subtitle")}</p>
           </div>
           <div className="flex gap-3">
             <Button 
@@ -292,7 +298,7 @@ export default function Reports() {
               className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all"
             >
               <Download className="w-4 h-4 mr-2" />
-              Esporta
+              {t("reports.export")}
             </Button>
             <Button 
               variant="outline"
@@ -300,7 +306,7 @@ export default function Reports() {
               onClick={() => setReportDialogOpen(true)}
             >
               <Mail className="w-4 h-4 mr-2" />
-              Invia report
+              {t("reports.sendReport")}
             </Button>
           </div>
         </div>
@@ -340,7 +346,7 @@ export default function Reports() {
               )}
             >
               <Filter className="w-4 h-4 mr-2" />
-              Filtri
+              {t("reports.filters")}
               {activeFiltersCount > 0 && (
                 <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">
                   {activeFiltersCount}
@@ -357,7 +363,7 @@ export default function Reports() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4 mr-1" />
-                Cancella filtri
+                {t("reports.clearFilters")}
               </Button>
             )}
           </div>
@@ -372,17 +378,17 @@ export default function Reports() {
                   <div className="space-y-2 min-w-[200px]">
                     <label className="text-sm font-medium flex items-center gap-2">
                       <Users className="w-4 h-4 text-muted-foreground" />
-                      Cliente
+                      {t("reports.client")}
                     </label>
                     <Select value={selectedClient} onValueChange={setSelectedClient}>
                       <SelectTrigger className="h-11 bg-muted/50 border-border/50">
-                        <SelectValue placeholder="Tutti i clienti" />
+                        <SelectValue placeholder={t("reports.allClients")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-primary to-purple-500" />
-                            Tutti i clienti
+                            {t("reports.allClients")}
                           </div>
                         </SelectItem>
                         {clients.map(client => (
@@ -405,7 +411,7 @@ export default function Reports() {
                     <div className="space-y-2 min-w-[280px]">
                       <label className="text-sm font-medium flex items-center gap-2">
                         <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                        Periodo personalizzato
+                        {t("reports.customPeriod")}
                       </label>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -420,13 +426,13 @@ export default function Reports() {
                             {dateRange?.from ? (
                               dateRange.to ? (
                                 <>
-                                  {format(dateRange.from, "d MMM", { locale: it })} - {format(dateRange.to, "d MMM yyyy", { locale: it })}
+                                  {format(dateRange.from, "d MMM", { locale })} - {format(dateRange.to, "d MMM yyyy", { locale })}
                                 </>
                               ) : (
-                                format(dateRange.from, "d MMM yyyy", { locale: it })
+                                format(dateRange.from, "d MMM yyyy", { locale })
                               )
                             ) : (
-                              <span>Seleziona periodo</span>
+                              <span>{t("reports.selectPeriod")}</span>
                             )}
                           </Button>
                         </PopoverTrigger>
@@ -438,7 +444,7 @@ export default function Reports() {
                             selected={dateRange}
                             onSelect={setDateRange}
                             numberOfMonths={2}
-                            locale={it}
+                            locale={locale}
                             className="pointer-events-auto"
                           />
                         </PopoverContent>
