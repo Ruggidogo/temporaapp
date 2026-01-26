@@ -307,6 +307,7 @@ const translations: Record<string, string> = {
   "dashboard.stop": "Stop",
   "dashboard.manual": "Manuale",
   "dashboard.keyboardHint": "Premi",
+  "dashboard.spaceKey": "Spazio",
   "dashboard.keyboardHintAction": "per start/stop",
   "dashboard.today": "Oggi",
   "dashboard.total": "Totale:",
