@@ -467,6 +467,23 @@ const translations: Record<string, string> = {
   "deleteEntry.title": "¿Eliminar registro?",
   "deleteEntry.description": "Esta acción no se puede deshacer. El registro de tiempo se eliminará permanentemente.",
   "deleteEntry.deleting": "Eliminando...",
+
+  // Export PDF Dialog
+  "exportPdf.title": "Exportar PDF",
+  "exportPdf.filterByClient": "Filtrar por cliente",
+  "exportPdf.selectClient": "Seleccionar cliente",
+  "exportPdf.allClients": "Todos los clientes",
+  "exportPdf.noClient": "Sin cliente",
+  "exportPdf.documentPreview": "Vista previa del documento",
+  "exportPdf.entries": "Registros",
+  "exportPdf.noEntriesInPeriod": "No hay registros en el período seleccionado",
+  "exportPdf.noData": "Sin datos",
+  "exportPdf.noDataDesc": "No hay registros para exportar.",
+  "exportPdf.exported": "PDF exportado",
+  "exportPdf.exportedDesc": "El archivo se ha descargado correctamente.",
+  "exportPdf.exportError": "Se produjo un error durante la exportación.",
+  "exportPdf.exporting": "Exportando...",
+  "exportPdf.exportButton": "Exportar PDF",
 };
 
 export default translations;

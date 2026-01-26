@@ -467,6 +467,23 @@ const translations: Record<string, string> = {
   "deleteEntry.title": "Delete entry?",
   "deleteEntry.description": "This action cannot be undone. The time entry will be permanently deleted.",
   "deleteEntry.deleting": "Deleting...",
+
+  // Export PDF Dialog
+  "exportPdf.title": "Export PDF",
+  "exportPdf.filterByClient": "Filter by client",
+  "exportPdf.selectClient": "Select client",
+  "exportPdf.allClients": "All clients",
+  "exportPdf.noClient": "No client",
+  "exportPdf.documentPreview": "Document preview",
+  "exportPdf.entries": "Entries",
+  "exportPdf.noEntriesInPeriod": "No entries in the selected period",
+  "exportPdf.noData": "No data",
+  "exportPdf.noDataDesc": "There are no entries to export.",
+  "exportPdf.exported": "PDF exported",
+  "exportPdf.exportedDesc": "The file has been downloaded successfully.",
+  "exportPdf.exportError": "An error occurred during export.",
+  "exportPdf.exporting": "Exporting...",
+  "exportPdf.exportButton": "Export PDF",
 };
 
 export default translations;

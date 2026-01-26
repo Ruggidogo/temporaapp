@@ -467,6 +467,23 @@ const translations: Record<string, string> = {
   "deleteEntry.title": "Eintrag löschen?",
   "deleteEntry.description": "Diese Aktion kann nicht rückgängig gemacht werden. Der Zeiteintrag wird dauerhaft gelöscht.",
   "deleteEntry.deleting": "Löschen...",
+
+  // Export PDF Dialog
+  "exportPdf.title": "PDF exportieren",
+  "exportPdf.filterByClient": "Nach Kunde filtern",
+  "exportPdf.selectClient": "Kunde auswählen",
+  "exportPdf.allClients": "Alle Kunden",
+  "exportPdf.noClient": "Kein Kunde",
+  "exportPdf.documentPreview": "Dokumentvorschau",
+  "exportPdf.entries": "Einträge",
+  "exportPdf.noEntriesInPeriod": "Keine Einträge im ausgewählten Zeitraum",
+  "exportPdf.noData": "Keine Daten",
+  "exportPdf.noDataDesc": "Es gibt keine Einträge zum Exportieren.",
+  "exportPdf.exported": "PDF exportiert",
+  "exportPdf.exportedDesc": "Die Datei wurde erfolgreich heruntergeladen.",
+  "exportPdf.exportError": "Beim Exportieren ist ein Fehler aufgetreten.",
+  "exportPdf.exporting": "Exportieren...",
+  "exportPdf.exportButton": "PDF exportieren",
 };
 
 export default translations;

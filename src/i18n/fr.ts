@@ -467,6 +467,23 @@ const translations: Record<string, string> = {
   "deleteEntry.title": "Supprimer l'entrée ?",
   "deleteEntry.description": "Cette action est irréversible. L'entrée de temps sera définitivement supprimée.",
   "deleteEntry.deleting": "Suppression...",
+
+  // Export PDF Dialog
+  "exportPdf.title": "Exporter en PDF",
+  "exportPdf.filterByClient": "Filtrer par client",
+  "exportPdf.selectClient": "Sélectionner un client",
+  "exportPdf.allClients": "Tous les clients",
+  "exportPdf.noClient": "Aucun client",
+  "exportPdf.documentPreview": "Aperçu du document",
+  "exportPdf.entries": "Entrées",
+  "exportPdf.noEntriesInPeriod": "Aucune entrée dans la période sélectionnée",
+  "exportPdf.noData": "Aucune donnée",
+  "exportPdf.noDataDesc": "Il n'y a pas d'entrées à exporter.",
+  "exportPdf.exported": "PDF exporté",
+  "exportPdf.exportedDesc": "Le fichier a été téléchargé avec succès.",
+  "exportPdf.exportError": "Une erreur s'est produite lors de l'exportation.",
+  "exportPdf.exporting": "Exportation...",
+  "exportPdf.exportButton": "Exporter en PDF",
 };
 
 export default translations;
