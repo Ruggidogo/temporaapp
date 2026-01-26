@@ -1,13 +1,20 @@
 import { Link } from "react-router-dom";
-import { Heart, Twitter, Linkedin, Github } from "lucide-react";
+import { Heart, Twitter, Linkedin, Github, Cookie } from "lucide-react";
 import temporaLogo from "@/assets/tempora-logo-light.svg";
 import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+const COOKIE_CONSENT_KEY = "tempora-cookie-consent";
+
 export function Footer() {
   const { ref: footerRef, isVisible: footerVisible } = useScrollAnimation();
   const { t } = useLanguage();
+
+  const handleManageCookies = () => {
+    localStorage.removeItem(COOKIE_CONSENT_KEY);
+    window.location.reload();
+  };
 
   const socialLinks = [
     { icon: Twitter, href: "#", label: "Twitter" },
@@ -101,9 +108,18 @@ export function Footer() {
         </div>
 
         <div className="mt-16 pt-8 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            © 2026 Tempora. {t("footer.rights")}
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              © 2026 Tempora. {t("footer.rights")}
+            </p>
+            <button
+              onClick={handleManageCookies}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center gap-1.5"
+            >
+              <Cookie className="w-3.5 h-3.5" />
+              {t("footer.manageCookies")}
+            </button>
+          </div>
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             {t("footer.madeWith")} 
             <Heart className="w-4 h-4 text-red-500 fill-current animate-pulse" /> 

@@ -82,6 +82,7 @@ const translations: Record<string, string> = {
   "footer.rights": "All rights reserved.",
   "footer.madeWith": "Made with",
   "footer.inCountry": "in Italy",
+  "footer.manageCookies": "Manage Cookies",
 
   // Privacy Page
   "privacy.title": "Privacy Policy",
