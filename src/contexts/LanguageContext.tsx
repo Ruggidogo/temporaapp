@@ -82,8 +82,26 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
 export function useLanguage() {
   const context = useContext(LanguageContext);
+
+  // Safety fallback: in rare cases (multiple roots, isolated renders, etc.) a component
+  // might render without the provider. Don't crash the whole app; degrade gracefully.
   if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
+    if (typeof window !== "undefined") {
+      // Avoid noisy logs during SSR (not used here) and keep this warning browser-only.
+      // eslint-disable-next-line no-console
+      console.warn(
+        "useLanguage was called outside LanguageProvider. Falling back to default translations."
+      );
+    }
+
+    return {
+      language: "en" as Language,
+      setLanguage: () => {
+        // no-op fallback
+      },
+      t: (key: string) => key,
+    };
   }
+
   return context;
 }
