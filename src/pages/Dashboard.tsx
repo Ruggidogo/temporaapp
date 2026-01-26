@@ -22,6 +22,7 @@ import { SendReportDialog } from "@/components/reports/SendReportDialog";
 import { cn } from "@/lib/utils";
 import { useTimer } from "@/hooks/useTimer";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -72,6 +73,7 @@ function formatTimeOfDay(isoString: string): string {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const timer = useTimer();
 
   const [clients, setClients] = useState<Client[]>([]);
@@ -118,7 +120,7 @@ export default function Dashboard() {
       }
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("dashboard.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -193,14 +195,14 @@ export default function Dashboard() {
       if (error) throw error;
 
       toast({
-        title: "Salvato",
-        description: "Voce inserita con successo",
+        title: t("dashboard.entrySaved"),
+        description: t("dashboard.entrySavedDesc"),
       });
       setManualDialogOpen(false);
       fetchData();
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("dashboard.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -224,12 +226,12 @@ export default function Dashboard() {
 
       setTodayEntries((prev) => prev.filter((e) => e.id !== entryId));
       toast({
-        title: "Eliminato",
-        description: "Voce eliminata con successo",
+        title: t("dashboard.entryDeleted"),
+        description: t("dashboard.entryDeletedDesc"),
       });
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("dashboard.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -278,14 +280,14 @@ export default function Dashboard() {
       if (error) throw error;
 
       toast({
-        title: "Modificato",
-        description: "Registrazione aggiornata con successo",
+        title: t("dashboard.entryEdited"),
+        description: t("dashboard.entryEditedDesc"),
       });
       setEditingEntry(null);
       fetchData();
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("dashboard.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -359,7 +361,7 @@ export default function Dashboard() {
                         </>
                       ) : (
                         <span className="text-muted-foreground">
-                          Seleziona cliente
+                          {t("dashboard.selectClient")}
                         </span>
                       )}
                       <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -389,7 +391,7 @@ export default function Dashboard() {
                           className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-sm text-primary font-medium"
                         >
                           <Plus className="w-4 h-4" />
-                          Nuovo cliente
+                          {t("dashboard.newClient")}
                         </Link>
                       </div>
                     )}
@@ -398,7 +400,7 @@ export default function Dashboard() {
                   <Link to="/clients">
                     <Button variant="outline" className="rounded-2xl">
                       <Plus className="w-4 h-4 mr-2" />
-                      Aggiungi cliente
+                      {t("dashboard.addClient")}
                     </Button>
                   </Link>
                 )}
@@ -421,7 +423,7 @@ export default function Dashboard() {
 
               {/* Description input */}
               <Input
-                placeholder="Su cosa stai lavorando?"
+                placeholder={t("dashboard.workingOn")}
                 value={timer.description}
                 onChange={(e) => timer.setDescription(e.target.value)}
                 className="max-w-md text-center border-dashed border-border/60 mb-10 rounded-2xl h-12 bg-card/50 focus:bg-card transition-colors"
@@ -446,12 +448,12 @@ export default function Dashboard() {
                   ) : timer.isRunning ? (
                     <>
                       <Square className="w-5 h-5 mr-2 fill-current" />
-                      Stop
+                      {t("dashboard.stop")}
                     </>
                   ) : (
                     <>
                       <Play className="w-5 h-5 mr-2 fill-current" />
-                      Inizia
+                      {t("dashboard.start")}
                     </>
                   )}
                 </Button>
@@ -463,14 +465,14 @@ export default function Dashboard() {
                   className="h-14 rounded-2xl hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
                 >
                   <Clock className="w-5 h-5 mr-2" />
-                  Manuale
+                  {t("dashboard.manual")}
                 </Button>
               </div>
 
               {/* Keyboard hint */}
               <p className="mt-8 text-xs text-muted-foreground flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-full">
                 <Keyboard className="w-3.5 h-3.5" />
-                Premi <kbd className="px-1.5 py-0.5 bg-card rounded text-[10px] font-mono border">Spazio</kbd> per start/stop
+                {t("dashboard.keyboardHint")} <kbd className="px-1.5 py-0.5 bg-card rounded text-[10px] font-mono border">Spazio</kbd> {t("dashboard.keyboardHintAction")}
               </p>
             </div>
           </div>
@@ -480,9 +482,9 @@ export default function Dashboard() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold tracking-tight">Oggi</h2>
+              <h2 className="text-xl font-bold tracking-tight">{t("dashboard.today")}</h2>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Totale:{" "}
+                {t("dashboard.total")}{" "}
                 <span className="font-semibold text-primary">
                   {formatDuration(totalTodaySeconds)}
                 </span>
@@ -497,7 +499,7 @@ export default function Dashboard() {
                   className="rounded-xl hover:bg-primary/10 hover:border-primary/30"
                 >
                   <Mail className="w-4 h-4 mr-2" />
-                  Invia report
+                  {t("dashboard.sendReport")}
                 </Button>
               )}
               {clients.length > 0 && todayEntries.length > 0 && (
@@ -533,10 +535,10 @@ export default function Dashboard() {
                   <Sparkles className="w-8 h-8 text-primary" />
                 </div>
                 <p className="text-lg font-medium mb-2">
-                  Nessuna attività oggi
+                  {t("dashboard.noEntries")}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Pronto a iniziare? 🚀
+                  {t("dashboard.noEntriesDesc")}
                 </p>
               </div>
             ) : (
@@ -557,11 +559,11 @@ export default function Dashboard() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold truncate">
-                            {client?.name || "Senza cliente"}
+                            {client?.name || t("dashboard.noClient")}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground truncate">
-                          {entry.description || "Nessuna descrizione"}
+                          {entry.description || t("dashboard.noDescription")}
                         </p>
                       </div>
 

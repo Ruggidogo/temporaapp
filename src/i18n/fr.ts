@@ -298,14 +298,28 @@ const translations: Record<string, string> = {
   "dashboard.today": "Aujourd'hui",
   "dashboard.total": "Total :",
   "dashboard.sendReport": "Envoyer le rapport",
-  "dashboard.noEntries": "Aucune entrée aujourd'hui",
-  "dashboard.noEntriesDesc": "Commencez à suivre votre temps pour voir vos activités ici.",
+  "dashboard.noEntries": "Aucune activité aujourd'hui",
+  "dashboard.noEntriesDesc": "Prêt à commencer ? 🚀",
   "dashboard.entryDeleted": "Supprimé",
   "dashboard.entryDeletedDesc": "Entrée supprimée avec succès",
   "dashboard.entryEdited": "Modifié",
   "dashboard.entryEditedDesc": "Entrée mise à jour avec succès",
   "dashboard.entrySaved": "Enregistré",
   "dashboard.entrySavedDesc": "Entrée ajoutée avec succès",
+  "dashboard.noClient": "Sans client",
+  "dashboard.noDescription": "Aucune description",
+  "dashboard.error": "Erreur",
+
+  // Onboarding additional
+  "onboarding.step3.configured": "Compte configuré !",
+  "onboarding.step3.readyTitle": "Vous êtes prêt !",
+  "onboarding.step3.readySubtitle": "Commencez à suivre votre temps et gérer vos projets",
+  "onboarding.step3.feature1": "Suivez le temps en un clic",
+  "onboarding.step3.feature2": "Organisez les activités par client",
+  "onboarding.step3.feature3": "Générez des rapports professionnels",
+  "onboarding.step3.startTracking": "Commencer à suivre",
+  "onboarding.step3.trialInfo": "7 jours d'essai gratuit avec toutes les fonctionnalités",
+  "onboarding.loading": "Chargement...",
 };
 
 export default translations;
