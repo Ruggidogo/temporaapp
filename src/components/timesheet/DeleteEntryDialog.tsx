@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DeleteEntryDialogProps {
   open: boolean;
@@ -22,24 +23,24 @@ export function DeleteEntryDialog({
   onConfirm,
   isLoading,
 }: DeleteEntryDialogProps) {
+  const { t } = useLanguage();
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Eliminare la registrazione?</AlertDialogTitle>
+          <AlertDialogTitle>{t("deleteEntry.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Questa azione non può essere annullata. La registrazione oraria sarà
-            eliminata definitivamente.
+            {t("deleteEntry.description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>Annulla</AlertDialogCancel>
+          <AlertDialogCancel disabled={isLoading}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isLoading ? "Eliminazione..." : "Elimina"}
+            {isLoading ? t("deleteEntry.deleting") : t("common.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

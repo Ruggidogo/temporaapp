@@ -447,6 +447,26 @@ const translations: Record<string, string> = {
   "nav.timesheet": "Timesheet",
   "nav.reports": "Reports",
   "nav.settings": "Settings",
+
+  // Edit Entry Dialog
+  "editEntry.title": "Edit entry",
+  "editEntry.date": "Date",
+  "editEntry.selectDate": "Select date",
+  "editEntry.start": "Start",
+  "editEntry.end": "End",
+  "editEntry.duration": "Duration",
+  "editEntry.client": "Client",
+  "editEntry.selectClient": "Select client",
+  "editEntry.noClient": "No client",
+  "editEntry.description": "Description",
+  "editEntry.descriptionPlaceholder": "What did you work on?",
+  "editEntry.saving": "Saving...",
+  "editEntry.save": "Save changes",
+
+  // Delete Entry Dialog
+  "deleteEntry.title": "Delete entry?",
+  "deleteEntry.description": "This action cannot be undone. The time entry will be permanently deleted.",
+  "deleteEntry.deleting": "Deleting...",
 };
 
 export default translations;

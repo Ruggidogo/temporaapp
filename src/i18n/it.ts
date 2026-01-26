@@ -447,6 +447,26 @@ const translations: Record<string, string> = {
   "nav.timesheet": "Timesheet",
   "nav.reports": "Report",
   "nav.settings": "Impostazioni",
+
+  // Edit Entry Dialog
+  "editEntry.title": "Modifica registrazione",
+  "editEntry.date": "Data",
+  "editEntry.selectDate": "Seleziona data",
+  "editEntry.start": "Inizio",
+  "editEntry.end": "Fine",
+  "editEntry.duration": "Durata",
+  "editEntry.client": "Cliente",
+  "editEntry.selectClient": "Seleziona cliente",
+  "editEntry.noClient": "Nessun cliente",
+  "editEntry.description": "Descrizione",
+  "editEntry.descriptionPlaceholder": "Su cosa hai lavorato?",
+  "editEntry.saving": "Salvataggio...",
+  "editEntry.save": "Salva modifiche",
+
+  // Delete Entry Dialog
+  "deleteEntry.title": "Eliminare la registrazione?",
+  "deleteEntry.description": "Questa azione non può essere annullata. La registrazione oraria sarà eliminata definitivamente.",
+  "deleteEntry.deleting": "Eliminazione...",
 };
 
 export default translations;

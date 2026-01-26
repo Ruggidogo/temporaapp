@@ -447,6 +447,26 @@ const translations: Record<string, string> = {
   "nav.timesheet": "Feuille de temps",
   "nav.reports": "Rapports",
   "nav.settings": "Paramètres",
+
+  // Edit Entry Dialog
+  "editEntry.title": "Modifier l'entrée",
+  "editEntry.date": "Date",
+  "editEntry.selectDate": "Sélectionner une date",
+  "editEntry.start": "Début",
+  "editEntry.end": "Fin",
+  "editEntry.duration": "Durée",
+  "editEntry.client": "Client",
+  "editEntry.selectClient": "Sélectionner un client",
+  "editEntry.noClient": "Aucun client",
+  "editEntry.description": "Description",
+  "editEntry.descriptionPlaceholder": "Sur quoi avez-vous travaillé ?",
+  "editEntry.saving": "Enregistrement...",
+  "editEntry.save": "Enregistrer les modifications",
+
+  // Delete Entry Dialog
+  "deleteEntry.title": "Supprimer l'entrée ?",
+  "deleteEntry.description": "Cette action est irréversible. L'entrée de temps sera définitivement supprimée.",
+  "deleteEntry.deleting": "Suppression...",
 };
 
 export default translations;
