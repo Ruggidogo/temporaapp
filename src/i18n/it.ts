@@ -298,14 +298,28 @@ const translations: Record<string, string> = {
   "dashboard.today": "Oggi",
   "dashboard.total": "Totale:",
   "dashboard.sendReport": "Invia report",
-  "dashboard.noEntries": "Nessuna registrazione oggi",
-  "dashboard.noEntriesDesc": "Inizia a tracciare il tuo tempo per vedere le tue attività qui.",
+  "dashboard.noEntries": "Nessuna attività oggi",
+  "dashboard.noEntriesDesc": "Pronto a iniziare? 🚀",
   "dashboard.entryDeleted": "Eliminato",
   "dashboard.entryDeletedDesc": "Voce eliminata con successo",
   "dashboard.entryEdited": "Modificato",
   "dashboard.entryEditedDesc": "Registrazione aggiornata con successo",
   "dashboard.entrySaved": "Salvato",
   "dashboard.entrySavedDesc": "Voce inserita con successo",
+  "dashboard.noClient": "Senza cliente",
+  "dashboard.noDescription": "Nessuna descrizione",
+  "dashboard.error": "Errore",
+
+  // Onboarding additional
+  "onboarding.step3.configured": "Account configurato!",
+  "onboarding.step3.readyTitle": "Sei pronto!",
+  "onboarding.step3.readySubtitle": "Inizia a tracciare il tempo e gestire i tuoi progetti",
+  "onboarding.step3.feature1": "Traccia il tempo con un click",
+  "onboarding.step3.feature2": "Organizza le attività per cliente",
+  "onboarding.step3.feature3": "Genera report professionali",
+  "onboarding.step3.startTracking": "Inizia a tracciare",
+  "onboarding.step3.trialInfo": "7 giorni di prova gratuita con tutte le funzionalità",
+  "onboarding.loading": "Caricamento...",
 };
 
 export default translations;

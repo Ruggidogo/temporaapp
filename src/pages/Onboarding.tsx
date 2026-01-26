@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Timer, Users, User, ArrowRight, ArrowLeft, Check, Sparkles, Rocket, BarChart3, FileText } from 'lucide-react';
@@ -19,6 +20,7 @@ const COLORS = [
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
@@ -33,8 +35,8 @@ export default function Onboarding() {
   const handleStep1Next = async () => {
     if (!name.trim() || !workType) {
       toast({
-        title: "Compila tutti i campi",
-        description: "Inserisci il tuo nome e seleziona come lavori",
+        title: t("onboarding.step1.error"),
+        description: t("onboarding.step1.errorDesc"),
         variant: "destructive"
       });
       return;
@@ -51,7 +53,7 @@ export default function Onboarding() {
       setStep(2);
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive"
       });
@@ -78,7 +80,7 @@ export default function Onboarding() {
       setStep(3);
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive"
       });
@@ -99,13 +101,13 @@ export default function Onboarding() {
       
       await refreshProfile();
       toast({
-        title: "Benvenuto in Tempora! 🎉",
-        description: "Sei pronto per iniziare a tracciare il tuo tempo"
+        title: t("onboarding.complete.title"),
+        description: t("onboarding.complete.desc")
       });
       navigate('/dashboard');
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive"
       });
@@ -115,9 +117,9 @@ export default function Onboarding() {
   };
 
   const features = [
-    { icon: Timer, text: "Timer con un click" },
-    { icon: BarChart3, text: "Report dettagliati" },
-    { icon: FileText, text: "Export professionali" },
+    { icon: Timer, text: t("onboarding.benefit1") },
+    { icon: BarChart3, text: t("onboarding.benefit2") },
+    { icon: FileText, text: t("onboarding.benefit3") },
   ];
 
   return (
@@ -155,17 +157,17 @@ export default function Onboarding() {
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
-                Configura il tuo account in pochi passi
+                {t("onboarding.welcome")}
               </h1>
               <p className="text-white/80 text-lg leading-relaxed">
-                Personalizza Tempora per le tue esigenze e inizia subito a tracciare.
+                {t("onboarding.welcomeDesc")}
               </p>
             </div>
 
             <ul className="space-y-4">
               {features.map((feature, index) => (
                 <li 
-                  key={feature.text} 
+                  key={index} 
                   className="flex items-center gap-4 text-white"
                 >
                   <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center flex-shrink-0">
@@ -178,7 +180,7 @@ export default function Onboarding() {
           </div>
 
           <p className="text-white/50 text-sm">
-            © 2026 Tempora. Tutti i diritti riservati.
+            {t("common.allRightsReserved")}
           </p>
         </div>
       </div>
@@ -246,18 +248,18 @@ export default function Onboarding() {
                       <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-purple-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-primary/30">
                         <Timer className="w-8 h-8 text-white" />
                       </div>
-                      <h2 className="text-2xl font-bold mb-2">Benvenuto in Tempora!</h2>
+                      <h2 className="text-2xl font-bold mb-2">{t("onboarding.step1.title")}</h2>
                       <p className="text-muted-foreground">
-                        Prima di iniziare, raccontaci un po' di te
+                        {t("onboarding.step1.subtitle")}
                       </p>
                     </div>
                     
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name" className="text-sm font-medium">Come ti chiami?</Label>
+                        <Label htmlFor="name" className="text-sm font-medium">{t("onboarding.step1.nameLabel")}</Label>
                         <Input
                           id="name"
-                          placeholder="Il tuo nome"
+                          placeholder={t("onboarding.step1.namePlaceholder")}
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           className="h-12 bg-muted/50 border-border/50 focus:border-primary/50 focus:bg-background transition-all"
@@ -265,7 +267,7 @@ export default function Onboarding() {
                       </div>
 
                       <div className="space-y-3">
-                        <Label className="text-sm font-medium">Come lavori?</Label>
+                        <Label className="text-sm font-medium">{t("onboarding.step1.workLabel")}</Label>
                         <div className="grid grid-cols-2 gap-4">
                           <button
                             type="button"
@@ -291,8 +293,8 @@ export default function Onboarding() {
                                 workType === 'freelancer' ? "text-white" : "text-muted-foreground"
                               )} />
                             </div>
-                            <p className="relative font-semibold mb-1">Freelancer</p>
-                            <p className="relative text-sm text-muted-foreground">Lavoro da solo</p>
+                            <p className="relative font-semibold mb-1">{t("onboarding.step1.freelancer")}</p>
+                            <p className="relative text-sm text-muted-foreground">{t("onboarding.step1.freelancerDesc")}</p>
                           </button>
                           
                           <button
@@ -319,8 +321,8 @@ export default function Onboarding() {
                                 workType === 'team' ? "text-white" : "text-muted-foreground"
                               )} />
                             </div>
-                            <p className="relative font-semibold mb-1">Team</p>
-                            <p className="relative text-sm text-muted-foreground">Lavoro in squadra</p>
+                            <p className="relative font-semibold mb-1">{t("onboarding.step1.team")}</p>
+                            <p className="relative text-sm text-muted-foreground">{t("onboarding.step1.teamDesc")}</p>
                           </button>
                         </div>
                       </div>
@@ -332,7 +334,7 @@ export default function Onboarding() {
                         className="w-full h-12 shadow-lg shadow-primary/25"
                         disabled={loading || !name.trim() || !workType}
                       >
-                        {loading ? "Salvataggio..." : "Continua"}
+                        {loading ? t("onboarding.saving") : t("common.continue")}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </div>
@@ -346,18 +348,18 @@ export default function Onboarding() {
                       <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30">
                         <Users className="w-8 h-8 text-white" />
                       </div>
-                      <h2 className="text-2xl font-bold mb-2">Aggiungi il tuo primo cliente</h2>
+                      <h2 className="text-2xl font-bold mb-2">{t("onboarding.step2.title")}</h2>
                       <p className="text-muted-foreground">
-                        Puoi sempre aggiungerne altri in seguito
+                        {t("onboarding.step2.subtitle")}
                       </p>
                     </div>
                     
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <Label htmlFor="clientName" className="text-sm font-medium">Nome cliente</Label>
+                        <Label htmlFor="clientName" className="text-sm font-medium">{t("onboarding.step2.clientName")}</Label>
                         <Input
                           id="clientName"
-                          placeholder="Es. Acme Corp"
+                          placeholder={t("onboarding.step2.clientPlaceholder")}
                           value={clientName}
                           onChange={(e) => setClientName(e.target.value)}
                           className="h-12 bg-muted/50 border-border/50 focus:border-primary/50 focus:bg-background transition-all"
@@ -365,7 +367,7 @@ export default function Onboarding() {
                       </div>
 
                       <div className="space-y-3">
-                        <Label className="text-sm font-medium">Colore identificativo</Label>
+                        <Label className="text-sm font-medium">{t("onboarding.step2.colorLabel")}</Label>
                         <div className="flex flex-wrap gap-3">
                           {COLORS.map((color) => (
                             <button
@@ -394,7 +396,7 @@ export default function Onboarding() {
                           className="h-12 border-border/50"
                         >
                           <ArrowLeft className="w-4 h-4 mr-2" />
-                          Indietro
+                          {t("common.back")}
                         </Button>
                         <Button 
                           variant="ghost"
@@ -402,7 +404,7 @@ export default function Onboarding() {
                           className="h-12"
                           disabled={loading}
                         >
-                          Salta
+                          {t("common.skip")}
                         </Button>
                         <Button 
                           onClick={() => handleStep2Next(false)} 
@@ -410,7 +412,7 @@ export default function Onboarding() {
                           className="flex-1 h-12 shadow-lg shadow-primary/25"
                           disabled={loading || !clientName.trim()}
                         >
-                          {loading ? "Salvataggio..." : "Continua"}
+                          {loading ? t("onboarding.saving") : t("common.continue")}
                           <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                       </div>
@@ -427,23 +429,23 @@ export default function Onboarding() {
                       </div>
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-success/10 to-emerald-400/10 border border-success/20 text-sm font-medium text-success mb-4">
                         <Sparkles className="w-4 h-4" />
-                        Account configurato!
+                        {t("onboarding.step3.configured")}
                       </div>
-                      <h2 className="text-2xl font-bold mb-2">Sei pronto!</h2>
+                      <h2 className="text-2xl font-bold mb-2">{t("onboarding.step3.readyTitle")}</h2>
                       <p className="text-muted-foreground">
-                        Inizia a tracciare il tempo e gestire i tuoi progetti
+                        {t("onboarding.step3.readySubtitle")}
                       </p>
                     </div>
                     
                     <div className="space-y-6">
                       <div className="bg-gradient-to-b from-muted/50 to-muted/30 rounded-xl p-5 space-y-4 border border-border/30">
                         {[
-                          "Traccia il tempo con un click",
-                          "Organizza le attività per cliente",
-                          "Genera report professionali"
+                          t("onboarding.step3.feature1"),
+                          t("onboarding.step3.feature2"),
+                          t("onboarding.step3.feature3")
                         ].map((text, index) => (
                           <div 
-                            key={text} 
+                            key={index} 
                             className="flex items-center gap-4"
                             style={{ animationDelay: `${index * 100}ms` }}
                           >
@@ -462,13 +464,13 @@ export default function Onboarding() {
                         className="w-full h-14 text-lg shadow-xl shadow-primary/30"
                         disabled={loading}
                       >
-                        {loading ? "Caricamento..." : "Inizia a tracciare"}
+                        {loading ? t("onboarding.loading") : t("onboarding.step3.startTracking")}
                         <Timer className="w-5 h-5 ml-2" />
                       </Button>
 
                       <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                        7 giorni di prova gratuita con tutte le funzionalità
+                        {t("onboarding.step3.trialInfo")}
                       </p>
                     </div>
                   </div>
