@@ -10,6 +10,7 @@ import { Download, FileText, FileSpreadsheet } from "lucide-react";
 import { exportToCSV } from "@/lib/export-timesheet";
 import { toast } from "@/hooks/use-toast";
 import { ExportPDFDialog } from "./ExportPDFDialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Client {
   id: string;
@@ -45,13 +46,14 @@ export function ExportMenu({
   logoUrl,
   selectedClientId,
 }: ExportMenuProps) {
+  const { t } = useLanguage();
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
 
   const handleExportCSV = () => {
     if (entries.length === 0) {
       toast({
-        title: "Nessun dato",
-        description: "Non ci sono registrazioni da esportare nel periodo selezionato.",
+        title: t("exportMenu.noData"),
+        description: t("exportMenu.noDataDesc"),
         variant: "destructive",
       });
       return;
@@ -67,16 +69,16 @@ export function ExportMenu({
     });
 
     toast({
-      title: "CSV esportato",
-      description: "Il file è stato scaricato con successo.",
+      title: t("exportMenu.csvExported"),
+      description: t("exportMenu.csvExportedDesc"),
     });
   };
 
   const handleOpenPDFDialog = () => {
     if (entries.length === 0) {
       toast({
-        title: "Nessun dato",
-        description: "Non ci sono registrazioni da esportare nel periodo selezionato.",
+        title: t("exportMenu.noData"),
+        description: t("exportMenu.noDataDesc"),
         variant: "destructive",
       });
       return;
@@ -90,17 +92,17 @@ export function ExportMenu({
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
-            Esporta
+            {t("exportMenu.export")}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleOpenPDFDialog}>
             <FileText className="w-4 h-4 mr-2" />
-            Esporta PDF
+            {t("exportMenu.exportPdf")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleExportCSV}>
             <FileSpreadsheet className="w-4 h-4 mr-2" />
-            Esporta CSV
+            {t("exportMenu.exportCsv")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
