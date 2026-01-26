@@ -383,6 +383,15 @@ const translations: Record<string, string> = {
   "reports.weeklyTrend": "Weekly trend",
   "reports.monthlyTrend": "Monthly trend",
 
+  // Export Menu
+  "exportMenu.export": "Export",
+  "exportMenu.exportPdf": "Export PDF",
+  "exportMenu.exportCsv": "Export CSV",
+  "exportMenu.noData": "No data",
+  "exportMenu.noDataDesc": "There are no records to export in the selected period.",
+  "exportMenu.csvExported": "CSV exported",
+  "exportMenu.csvExportedDesc": "The file was downloaded successfully.",
+
   // Settings Page
   "settings.title": "Settings",
   "settings.subtitle": "Manage your profile and preferences",
