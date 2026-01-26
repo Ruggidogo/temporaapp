@@ -467,6 +467,23 @@ const translations: Record<string, string> = {
   "deleteEntry.title": "Eliminare la registrazione?",
   "deleteEntry.description": "Questa azione non può essere annullata. La registrazione oraria sarà eliminata definitivamente.",
   "deleteEntry.deleting": "Eliminazione...",
+
+  // Export PDF Dialog
+  "exportPdf.title": "Esporta PDF",
+  "exportPdf.filterByClient": "Filtra per cliente",
+  "exportPdf.selectClient": "Seleziona cliente",
+  "exportPdf.allClients": "Tutti i clienti",
+  "exportPdf.noClient": "Senza cliente",
+  "exportPdf.documentPreview": "Anteprima documento",
+  "exportPdf.entries": "Registrazioni",
+  "exportPdf.noEntriesInPeriod": "Nessuna registrazione nel periodo selezionato",
+  "exportPdf.noData": "Nessun dato",
+  "exportPdf.noDataDesc": "Non ci sono registrazioni da esportare.",
+  "exportPdf.exported": "PDF esportato",
+  "exportPdf.exportedDesc": "Il file è stato scaricato con successo.",
+  "exportPdf.exportError": "Si è verificato un errore durante l'esportazione.",
+  "exportPdf.exporting": "Esportazione...",
+  "exportPdf.exportButton": "Esporta PDF",
 };
 
 export default translations;

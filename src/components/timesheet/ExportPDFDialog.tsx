@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { format } from "date-fns";
-import { it } from "date-fns/locale";
+import { format, Locale } from "date-fns";
+import { it, enUS, es, fr, de } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +22,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, Loader2, Clock, User, Calendar, Building2 } from "lucide-react";
 import { exportToPDF } from "@/lib/export-timesheet";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 
 interface Client {
   id: string;
@@ -76,6 +79,9 @@ export function ExportPDFDialog({
   userName,
   logoUrl,
 }: ExportPDFDialogProps) {
+  const { language, t } = useLanguage();
+  const locale = dateLocales[language] || enUS;
+
   const [selectedClientId, setSelectedClientId] = useState<string>("all");
   const [exporting, setExporting] = useState(false);
 
@@ -94,13 +100,13 @@ export function ExportPDFDialog({
   }, [selectedClientId, clients]);
 
   const getClientName = (clientId: string | null) =>
-    clients.find((c) => c.id === clientId)?.name || "Senza cliente";
+    clients.find((c) => c.id === clientId)?.name || t("exportPdf.noClient");
 
   const handleExport = async () => {
     if (filteredEntries.length === 0) {
       toast({
-        title: "Nessun dato",
-        description: "Non ci sono registrazioni da esportare.",
+        title: t("exportPdf.noData"),
+        description: t("exportPdf.noDataDesc"),
         variant: "destructive",
       });
       return;
@@ -119,15 +125,15 @@ export function ExportPDFDialog({
       });
 
       toast({
-        title: "PDF esportato",
-        description: "Il file è stato scaricato con successo.",
+        title: t("exportPdf.exported"),
+        description: t("exportPdf.exportedDesc"),
       });
 
       onOpenChange(false);
     } catch (error) {
       toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante l'esportazione.",
+        title: t("common.error"),
+        description: t("exportPdf.exportError"),
         variant: "destructive",
       });
     } finally {
@@ -141,20 +147,20 @@ export function ExportPDFDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            Esporta PDF
+            {t("exportPdf.title")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
           {/* Client selector */}
           <div className="space-y-2">
-            <Label>Filtra per cliente</Label>
+            <Label>{t("exportPdf.filterByClient")}</Label>
             <Select value={selectedClientId} onValueChange={setSelectedClientId}>
               <SelectTrigger>
-                <SelectValue placeholder="Seleziona cliente" />
+                <SelectValue placeholder={t("exportPdf.selectClient")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tutti i clienti</SelectItem>
+                <SelectItem value="all">{t("exportPdf.allClients")}</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     <div className="flex items-center gap-2">
@@ -175,7 +181,7 @@ export function ExportPDFDialog({
           {/* Preview header */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Anteprima documento</h3>
+              <h3 className="font-semibold text-lg">{t("exportPdf.documentPreview")}</h3>
               {logoUrl && (
                 <img
                   src={logoUrl}
@@ -192,8 +198,8 @@ export function ExportPDFDialog({
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="w-4 h-4" />
                 <span>
-                  {format(dateRange.start, "d MMM", { locale: it })} -{" "}
-                  {format(dateRange.end, "d MMM yyyy", { locale: it })}
+                  {format(dateRange.start, "d MMM", { locale })} -{" "}
+                  {format(dateRange.end, "d MMM yyyy", { locale })}
                 </span>
               </div>
               {selectedClient && (
@@ -212,12 +218,12 @@ export function ExportPDFDialog({
           {/* Preview entries */}
           <div className="flex-1 min-h-0">
             <Label className="mb-2 block">
-              Registrazioni ({filteredEntries.length})
+              {t("exportPdf.entries")} ({filteredEntries.length})
             </Label>
             <ScrollArea className="h-[200px] border rounded-lg">
               {filteredEntries.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
-                  Nessuna registrazione nel periodo selezionato
+                  {t("exportPdf.noEntriesInPeriod")}
                 </div>
               ) : (
                 <div className="divide-y">
@@ -267,7 +273,7 @@ export function ExportPDFDialog({
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annulla
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={handleExport}
@@ -276,12 +282,12 @@ export function ExportPDFDialog({
             {exporting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Esportazione...
+                {t("exportPdf.exporting")}
               </>
             ) : (
               <>
                 <FileText className="w-4 h-4 mr-2" />
-                Esporta PDF
+                {t("exportPdf.exportButton")}
               </>
             )}
           </Button>
