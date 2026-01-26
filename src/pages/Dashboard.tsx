@@ -472,7 +472,7 @@ export default function Dashboard() {
               {/* Keyboard hint */}
               <p className="mt-8 text-xs text-muted-foreground flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-full">
                 <Keyboard className="w-3.5 h-3.5" />
-                {t("dashboard.keyboardHint")} <kbd className="px-1.5 py-0.5 bg-card rounded text-[10px] font-mono border">Spazio</kbd> {t("dashboard.keyboardHintAction")}
+                {t("dashboard.keyboardHint")} <kbd className="px-1.5 py-0.5 bg-card rounded text-[10px] font-mono border">{t("dashboard.spaceKey")}</kbd> {t("dashboard.keyboardHintAction")}
               </p>
             </div>
           </div>
