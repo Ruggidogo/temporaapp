@@ -21,17 +21,18 @@ import temporaLogoLight from "@/assets/tempora-logo-light.svg";
 import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
 import temporaIcon from "@/assets/tempora-icon.svg";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Clienti", href: "/clients", icon: Users },
-  { name: "Timesheet", href: "/timesheet", icon: Calendar },
-  { name: "Report", href: "/reports", icon: BarChart3 },
-  { name: "Impostazioni", href: "/settings", icon: Settings },
+  { key: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "nav.clients", href: "/clients", icon: Users },
+  { key: "nav.timesheet", href: "/timesheet", icon: Calendar },
+  { key: "nav.reports", href: "/reports", icon: BarChart3 },
+  { key: "nav.settings", href: "/settings", icon: Settings },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -40,6 +41,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
 
   const trialDaysRemaining = useMemo(() => {
     if (!profile?.trial_ends_at) return null;
@@ -105,7 +107,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             const isActive = location.pathname === item.href;
             return (
               <Link
-                key={item.name}
+                key={item.key}
                 to={item.href}
                 className={cn(
                   "nav-item",
@@ -115,7 +117,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 )}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
-                {sidebarOpen && <span>{item.name}</span>}
+                {sidebarOpen && <span>{t(item.key)}</span>}
               </Link>
             );
           })}
@@ -139,21 +141,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   "font-semibold text-sm",
                   trialDaysRemaining <= 3 ? "text-destructive" : "text-primary"
                 )}>
-                  Trial gratuito
+                  {t("nav.freeTrial")}
                 </p>
               </div>
               <p className="text-xs text-muted-foreground">
                 {trialDaysRemaining === 0 
-                  ? "Scade oggi!" 
+                  ? t("nav.expirestoday") 
                   : trialDaysRemaining === 1 
-                    ? "1 giorno rimanente" 
-                    : `${trialDaysRemaining} giorni rimanenti`}
+                    ? t("nav.oneDayRemaining") 
+                    : t("nav.daysRemaining").replace("{days}", String(trialDaysRemaining))}
               </p>
               <Button 
                 size="sm" 
                 className="w-full mt-3 btn-gradient text-xs h-8"
               >
-                Passa a Pro
+                {t("nav.upgradeToPro")}
               </Button>
             </div>
           </div>
@@ -169,7 +171,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             {sidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate">{profile?.name || "Utente"}</p>
+                <p className="text-sm font-semibold truncate">{profile?.name || t("nav.user")}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
             )}
@@ -226,7 +228,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
-                    key={item.name}
+                    key={item.key}
                     to={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
@@ -237,7 +239,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     )}
                   >
                     <item.icon className="w-5 h-5" />
-                    <span>{item.name}</span>
+                    <span>{t(item.key)}</span>
                   </Link>
                 );
               })}
