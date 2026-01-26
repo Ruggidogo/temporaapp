@@ -164,6 +164,23 @@ const translations: Record<string, string> = {
 
   // Common
   "common.backToHome": "Torna alla Home",
+
+  // Cookie Banner
+  "cookieBanner.title": "Utilizziamo i cookie",
+  "cookieBanner.description": "Utilizziamo cookie tecnici necessari per il funzionamento del sito e, con il tuo consenso, cookie analitici e di marketing per migliorare la tua esperienza. Puoi personalizzare le tue preferenze o rifiutare i cookie non essenziali.",
+  "cookieBanner.acceptAll": "Accetta tutti",
+  "cookieBanner.rejectAll": "Rifiuta non essenziali",
+  "cookieBanner.customize": "Personalizza",
+  "cookieBanner.settings.title": "Preferenze Cookie",
+  "cookieBanner.settings.description": "Gestisci le tue preferenze sui cookie. I cookie necessari non possono essere disattivati.",
+  "cookieBanner.settings.necessary": "Cookie Necessari",
+  "cookieBanner.settings.necessaryDesc": "Essenziali per il funzionamento del sito. Includono autenticazione, sicurezza e preferenze.",
+  "cookieBanner.settings.analytics": "Cookie Analitici",
+  "cookieBanner.settings.analyticsDesc": "Ci aiutano a capire come usi il sito per migliorarlo.",
+  "cookieBanner.settings.marketing": "Cookie di Marketing",
+  "cookieBanner.settings.marketingDesc": "Utilizzati per mostrarti pubblicità pertinente.",
+  "cookieBanner.settings.save": "Salva preferenze",
+  "cookieBanner.settings.cancel": "Annulla",
 };
 
 export default translations;

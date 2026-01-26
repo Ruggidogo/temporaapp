@@ -164,6 +164,23 @@ const translations: Record<string, string> = {
 
   // Common
   "common.backToHome": "Back to Home",
+
+  // Cookie Banner
+  "cookieBanner.title": "We use cookies",
+  "cookieBanner.description": "We use necessary technical cookies for the site to function and, with your consent, analytics and marketing cookies to improve your experience. You can customize your preferences or reject non-essential cookies.",
+  "cookieBanner.acceptAll": "Accept all",
+  "cookieBanner.rejectAll": "Reject non-essential",
+  "cookieBanner.customize": "Customize",
+  "cookieBanner.settings.title": "Cookie Preferences",
+  "cookieBanner.settings.description": "Manage your cookie preferences. Necessary cookies cannot be disabled.",
+  "cookieBanner.settings.necessary": "Necessary Cookies",
+  "cookieBanner.settings.necessaryDesc": "Essential for the site to function. Includes authentication, security, and preferences.",
+  "cookieBanner.settings.analytics": "Analytics Cookies",
+  "cookieBanner.settings.analyticsDesc": "Help us understand how you use the site to improve it.",
+  "cookieBanner.settings.marketing": "Marketing Cookies",
+  "cookieBanner.settings.marketingDesc": "Used to show you relevant advertising.",
+  "cookieBanner.settings.save": "Save preferences",
+  "cookieBanner.settings.cancel": "Cancel",
 };
 
 export default translations;
