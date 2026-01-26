@@ -6,6 +6,19 @@ const translations: Record<string, string> = {
   "nav.login": "Connexion",
   "nav.register": "Essai gratuit",
 
+  // Sidebar Navigation
+  "nav.dashboard": "Tableau de bord",
+  "nav.clients": "Clients",
+  "nav.timesheet": "Feuille de temps",
+  "nav.reports": "Rapports",
+  "nav.settings": "Paramètres",
+  "nav.freeTrial": "Essai gratuit",
+  "nav.expirestoday": "Expire aujourd'hui !",
+  "nav.oneDayRemaining": "1 jour restant",
+  "nav.daysRemaining": "{days} jours restants",
+  "nav.upgradeToPro": "Passer à Pro",
+  "nav.user": "Utilisateur",
+
   // Hero Section
   "hero.badge.trial": "Essai gratuit de 7 jours",
   "hero.badge.noCard": "Aucune carte requise",
@@ -440,13 +453,6 @@ const translations: Record<string, string> = {
   "timesheet.entryDeleted": "Entrée supprimée",
   "timesheet.entryDeletedDesc": "L'entrée a été supprimée avec succès.",
   "timesheet.error": "Erreur",
-
-  // Sidebar Navigation
-  "nav.dashboard": "Tableau de bord",
-  "nav.clients": "Clients",
-  "nav.timesheet": "Feuille de temps",
-  "nav.reports": "Rapports",
-  "nav.settings": "Paramètres",
 
   // Edit Entry Dialog
   "editEntry.title": "Modifier l'entrée",

@@ -6,6 +6,19 @@ const translations: Record<string, string> = {
   "nav.login": "Sign In",
   "nav.register": "Try Free",
 
+  // Sidebar Navigation
+  "nav.dashboard": "Dashboard",
+  "nav.clients": "Clients",
+  "nav.timesheet": "Timesheet",
+  "nav.reports": "Reports",
+  "nav.settings": "Settings",
+  "nav.freeTrial": "Free trial",
+  "nav.expirestoday": "Expires today!",
+  "nav.oneDayRemaining": "1 day remaining",
+  "nav.daysRemaining": "{days} days remaining",
+  "nav.upgradeToPro": "Upgrade to Pro",
+  "nav.user": "User",
+
   // Hero Section
   "hero.badge.trial": "7-day free trial",
   "hero.badge.noCard": "No credit card required",
@@ -440,13 +453,6 @@ const translations: Record<string, string> = {
   "timesheet.entryDeleted": "Entry deleted",
   "timesheet.entryDeletedDesc": "The entry has been deleted successfully.",
   "timesheet.error": "Error",
-
-  // Sidebar Navigation
-  "nav.dashboard": "Dashboard",
-  "nav.clients": "Clients",
-  "nav.timesheet": "Timesheet",
-  "nav.reports": "Reports",
-  "nav.settings": "Settings",
 
   // Edit Entry Dialog
   "editEntry.title": "Edit entry",
