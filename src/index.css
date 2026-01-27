@@ -531,4 +531,33 @@
   .stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
   .stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
   .stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+
+  /* Flip clock animations */
+  @keyframes flip-top {
+    0% {
+      transform: rotateX(0deg);
+    }
+    100% {
+      transform: rotateX(-90deg);
+    }
+  }
+
+  @keyframes flip-bottom {
+    0% {
+      transform: rotateX(90deg);
+    }
+    100% {
+      transform: rotateX(0deg);
+    }
+  }
+
+  .animate-flip-top {
+    animation: flip-top 0.3s ease-in forwards;
+  }
+
+  .animate-flip-bottom {
+    animation: flip-bottom 0.3s ease-out forwards;
+    animation-delay: 0.15s;
+    transform: rotateX(90deg);
+  }
 }
