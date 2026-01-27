@@ -192,6 +192,36 @@ const translations: Record<string, string> = {
   "common.skip": "Skip",
   "common.or": "or",
   "common.allRightsReserved": "© 2026 Tempora. All rights reserved.",
+  "common.saving": "Saving...",
+  "common.deleting": "Deleting...",
+  "common.create": "Create",
+
+  // Client Dialog
+  "clientDialog.titleNew": "New client",
+  "clientDialog.titleEdit": "Edit client",
+  "clientDialog.nameLabel": "Name *",
+  "clientDialog.namePlaceholder": "Client name",
+  "clientDialog.nameRequired": "Name is required",
+  "clientDialog.emailLabel": "Email",
+  "clientDialog.emailPlaceholder": "email@example.com",
+  "clientDialog.emailInvalid": "Invalid email",
+  "clientDialog.hourlyRateLabel": "Hourly rate (€)",
+  "clientDialog.hourlyRatePlaceholder": "0.00",
+  "clientDialog.hourlyRateInvalid": "Rate must be positive",
+  "clientDialog.colorLabel": "Color",
+  "clientDialog.colorInvalid": "Invalid color",
+  "clientDialog.notesLabel": "Notes",
+  "clientDialog.notesPlaceholder": "Additional notes...",
+  "clientDialog.colorViolet": "Violet",
+  "clientDialog.colorBlue": "Blue",
+  "clientDialog.colorPink": "Pink",
+  "clientDialog.colorGreen": "Green",
+  "clientDialog.colorOrange": "Orange",
+  "clientDialog.colorAmber": "Amber",
+
+  // Delete Client Dialog
+  "deleteClientDialog.title": "Delete client?",
+  "deleteClientDialog.description": "You are about to delete <strong>{clientName}</strong>. This action cannot be undone. Associated time entries will remain in the database but will no longer be linked to this client.",
 
   // Cookie Banner
   "cookieBanner.title": "We use cookies",

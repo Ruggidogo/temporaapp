@@ -192,6 +192,36 @@ const translations: Record<string, string> = {
   "common.skip": "Ueberspringen",
   "common.or": "oder",
   "common.allRightsReserved": "© 2026 Tempora. Alle Rechte vorbehalten.",
+  "common.saving": "Speichern...",
+  "common.deleting": "Löschen...",
+  "common.create": "Erstellen",
+
+  // Client Dialog
+  "clientDialog.titleNew": "Neuer Kunde",
+  "clientDialog.titleEdit": "Kunde bearbeiten",
+  "clientDialog.nameLabel": "Name *",
+  "clientDialog.namePlaceholder": "Kundenname",
+  "clientDialog.nameRequired": "Name ist erforderlich",
+  "clientDialog.emailLabel": "E-Mail",
+  "clientDialog.emailPlaceholder": "email@beispiel.com",
+  "clientDialog.emailInvalid": "Ungültige E-Mail",
+  "clientDialog.hourlyRateLabel": "Stundensatz (€)",
+  "clientDialog.hourlyRatePlaceholder": "0.00",
+  "clientDialog.hourlyRateInvalid": "Der Satz muss positiv sein",
+  "clientDialog.colorLabel": "Farbe",
+  "clientDialog.colorInvalid": "Ungültige Farbe",
+  "clientDialog.notesLabel": "Notizen",
+  "clientDialog.notesPlaceholder": "Zusätzliche Notizen...",
+  "clientDialog.colorViolet": "Violett",
+  "clientDialog.colorBlue": "Blau",
+  "clientDialog.colorPink": "Rosa",
+  "clientDialog.colorGreen": "Grün",
+  "clientDialog.colorOrange": "Orange",
+  "clientDialog.colorAmber": "Bernstein",
+
+  // Delete Client Dialog
+  "deleteClientDialog.title": "Kunde löschen?",
+  "deleteClientDialog.description": "Sie sind dabei, <strong>{clientName}</strong> zu löschen. Diese Aktion kann nicht rückgängig gemacht werden. Zugehörige Zeiteinträge verbleiben in der Datenbank, sind aber nicht mehr mit diesem Kunden verknüpft.",
 
   // Cookie Banner
   "cookieBanner.title": "Wir verwenden Cookies",
