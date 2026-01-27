@@ -283,29 +283,29 @@ export default function Reports() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto overflow-x-hidden">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col gap-4 mb-6 sm:mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20">
                 <BarChart3 className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold">{t("reports.title")}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">{t("reports.title")}</h1>
             </div>
-            <p className="text-muted-foreground">{t("reports.subtitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("reports.subtitle")}</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Button 
               variant="outline" 
-              className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all"
+              className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all w-full sm:w-auto"
             >
               <Download className="w-4 h-4 mr-2" />
               {t("reports.export")}
             </Button>
             <Button 
               variant="outline"
-              className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all"
+              className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all w-full sm:w-auto"
               onClick={() => setReportDialogOpen(true)}
             >
               <Mail className="w-4 h-4 mr-2" />
@@ -315,12 +315,12 @@ export default function Reports() {
         </div>
 
         {/* Filters section */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-6 sm:mb-8 space-y-3 sm:space-y-4">
           {/* Period selector */}
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-purple-500/10 to-primary/20 rounded-2xl blur-lg opacity-30" />
-              <div className="relative flex gap-1 p-1.5 bg-muted/50 backdrop-blur-sm rounded-xl border border-border/50">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            <div className="relative w-full sm:w-auto">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-purple-500/10 to-primary/20 rounded-2xl blur-lg opacity-30 hidden sm:block" />
+              <div className="relative flex flex-wrap sm:flex-nowrap gap-1 p-1.5 bg-muted/50 backdrop-blur-sm rounded-xl border border-border/50">
                 {periodOptions.map((period) => (
                   <Button
                     key={period.value}
@@ -328,7 +328,7 @@ export default function Reports() {
                     size="sm"
                     onClick={() => setSelectedPeriod(period.value)}
                     className={cn(
-                      "transition-all duration-300 rounded-lg px-4",
+                      "transition-all duration-300 rounded-lg px-3 sm:px-4 text-xs sm:text-sm flex-1 sm:flex-none",
                       selectedPeriod === period.value 
                         ? "bg-gradient-to-r from-primary to-purple-500 text-white shadow-lg shadow-primary/30 hover:from-primary hover:to-purple-500" 
                         : "hover:bg-muted"
@@ -340,51 +340,53 @@ export default function Reports() {
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className={cn(
-                "border-border/50 transition-all",
-                showFilters || activeFiltersCount > 0 ? "border-primary/50 bg-primary/5" : ""
-              )}
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              {t("reports.filters")}
-              {activeFiltersCount > 0 && (
-                <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">
-                  {activeFiltersCount}
-                </span>
-              )}
-              <ChevronDown className={cn("w-4 h-4 ml-2 transition-transform", showFilters && "rotate-180")} />
-            </Button>
-
-            {activeFiltersCount > 0 && (
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="text-muted-foreground hover:text-foreground"
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className={cn(
+                  "border-border/50 transition-all flex-1 sm:flex-none",
+                  showFilters || activeFiltersCount > 0 ? "border-primary/50 bg-primary/5" : ""
+                )}
               >
-                <X className="w-4 h-4 mr-1" />
-                {t("reports.clearFilters")}
+                <Filter className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">{t("reports.filters")}</span>
+                {activeFiltersCount > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">
+                    {activeFiltersCount}
+                  </span>
+                )}
+                <ChevronDown className={cn("w-4 h-4 ml-2 transition-transform", showFilters && "rotate-180")} />
               </Button>
-            )}
+
+              {activeFiltersCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4 sm:mr-1" />
+                  <span className="hidden sm:inline">{t("reports.clearFilters")}</span>
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Advanced filters panel */}
           {showFilters && (
             <div className="relative animate-fade-in">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-2xl blur opacity-50" />
-              <div className="relative p-5 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
-                <div className="flex flex-wrap gap-6">
+              <div className="relative p-4 sm:p-5 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                   {/* Client filter */}
-                  <div className="space-y-2 min-w-[200px]">
+                  <div className="space-y-2 w-full sm:min-w-[200px] sm:w-auto">
                     <label className="text-sm font-medium flex items-center gap-2">
                       <Users className="w-4 h-4 text-muted-foreground" />
                       {t("reports.client")}
                     </label>
                     <Select value={selectedClient} onValueChange={setSelectedClient}>
-                      <SelectTrigger className="h-11 bg-muted/50 border-border/50">
+                      <SelectTrigger className="h-11 bg-muted/50 border-border/50 w-full">
                         <SelectValue placeholder={t("reports.allClients")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -398,10 +400,10 @@ export default function Reports() {
                           <SelectItem key={client.id} value={client.id}>
                             <div className="flex items-center gap-2">
                               <div 
-                                className="w-3 h-3 rounded-full" 
+                                className="w-3 h-3 rounded-full flex-shrink-0" 
                                 style={{ backgroundColor: client.color }} 
                               />
-                              {client.name}
+                              <span className="truncate">{client.name}</span>
                             </div>
                           </SelectItem>
                         ))}
@@ -411,7 +413,7 @@ export default function Reports() {
 
                   {/* Custom date range */}
                   {selectedPeriod === "custom" && (
-                    <div className="space-y-2 min-w-[280px]">
+                    <div className="space-y-2 w-full sm:min-w-[280px] sm:w-auto">
                       <label className="text-sm font-medium flex items-center gap-2">
                         <CalendarIcon className="w-4 h-4 text-muted-foreground" />
                         {t("reports.customPeriod")}
@@ -446,7 +448,7 @@ export default function Reports() {
                             defaultMonth={dateRange?.from}
                             selected={dateRange}
                             onSelect={setDateRange}
-                            numberOfMonths={2}
+                            numberOfMonths={1}
                             locale={locale}
                             className="pointer-events-auto"
                           />
@@ -491,24 +493,24 @@ export default function Reports() {
         </div>
 
         {/* Stats cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {statCards.map((stat, index) => (
             <div 
               key={stat.title} 
               className="group relative"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className={cn("absolute -inset-0.5 bg-gradient-to-r rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500", stat.gradient)} />
-              <div className="relative p-5 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm hover:border-border transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={cn("p-3 rounded-xl bg-gradient-to-r shadow-lg", stat.gradient, stat.shadowColor)}>
-                    <stat.icon className="w-5 h-5 text-white" />
+              <div className={cn("absolute -inset-0.5 bg-gradient-to-r rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500 hidden sm:block", stat.gradient)} />
+              <div className="relative p-3 sm:p-5 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm hover:border-border transition-all duration-300 hover:shadow-xl sm:hover:-translate-y-0.5">
+                <div className="flex items-start justify-between mb-2 sm:mb-4">
+                  <div className={cn("p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r shadow-lg", stat.gradient, stat.shadowColor)}>
+                    <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                 </div>
-                <p className="text-2xl font-bold mb-1 truncate">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.title}</p>
+                <p className="text-lg sm:text-2xl font-bold mb-0.5 sm:mb-1 truncate">{stat.value}</p>
+                <p className="text-[10px] sm:text-sm text-muted-foreground truncate">{stat.title}</p>
                 {stat.subtitle && (
-                  <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
+                  <p className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">{stat.subtitle}</p>
                 )}
               </div>
             </div>
@@ -516,30 +518,30 @@ export default function Reports() {
         </div>
 
         {/* Charts row 1 */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           {/* Weekly bar chart */}
           <div className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-            <div className="relative p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-6">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500 hidden sm:block" />
+            <div className="relative p-4 sm:p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">{t("reports.hoursPerDay")}</h3>
-                  <p className="text-sm text-muted-foreground">{t("reports.hoursPerDayDesc")}</p>
+                  <h3 className="text-base sm:text-lg font-semibold mb-0.5 sm:mb-1">{t("reports.hoursPerDay")}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{t("reports.hoursPerDayDesc")}</p>
                 </div>
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-primary to-purple-500" />
+                <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gradient-to-r from-primary to-purple-500" />
                     <span className="text-muted-foreground">{t("reports.workedHours")}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-muted" />
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-muted" />
                     <span className="text-muted-foreground">{t("reports.target")}</span>
                   </div>
                 </div>
               </div>
-              <div className="h-[280px]">
+              <div className="h-[200px] sm:h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyData} barGap={8}>
+                  <BarChart data={weeklyData} barGap={4}>
                     <CartesianGrid 
                       strokeDasharray="3 3" 
                       stroke="hsl(var(--border))" 
@@ -549,25 +551,26 @@ export default function Reports() {
                       dataKey="day" 
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
                     />
                     <YAxis 
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
                       tickFormatter={(value) => `${value}h`}
+                      width={35}
                     />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted)/0.3)' }} />
                     <Bar 
                       dataKey="target" 
                       fill="hsl(var(--muted))" 
-                      radius={[6, 6, 0, 0]}
+                      radius={[4, 4, 0, 0]}
                       name={t("reports.target")}
                     />
                     <Bar 
                       dataKey="hours" 
                       fill="url(#barGradient)" 
-                      radius={[6, 6, 0, 0]}
+                      radius={[4, 4, 0, 0]}
                       name={t("reports.hours")}
                     />
                     <defs>
@@ -584,28 +587,28 @@ export default function Reports() {
 
           {/* Client pie chart */}
           <div className="group relative">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-500/20 to-pink-500/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-            <div className="relative p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-6">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-500/20 to-pink-500/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500 hidden sm:block" />
+            <div className="relative p-4 sm:p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">{t("reports.clientDistribution")}</h3>
-                  <p className="text-sm text-muted-foreground">{t("reports.clientDistributionDesc")}</p>
+                  <h3 className="text-base sm:text-lg font-semibold mb-0.5 sm:mb-1">{t("reports.clientDistribution")}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{t("reports.clientDistributionDesc")}</p>
                 </div>
                 <div className="p-2 rounded-lg bg-muted/50">
                   <PieChartIcon className="w-4 h-4 text-muted-foreground" />
                 </div>
               </div>
-              <div className="h-[280px] flex items-center">
+              <div className="h-[250px] sm:h-[280px]">
                 {clientStats.length > 0 ? (
-                  <>
-                    <ResponsiveContainer width="55%" height="100%">
+                  <div className="flex flex-col sm:flex-row items-center h-full">
+                    <ResponsiveContainer width="100%" height={180} className="sm:!w-[55%] sm:!h-full">
                       <PieChart>
                         <Pie
                           data={clientStats}
                           cx="50%"
                           cy="50%"
-                          innerRadius={55}
-                          outerRadius={90}
+                          innerRadius={40}
+                          outerRadius={70}
                           paddingAngle={4}
                           dataKey="hours"
                           onMouseEnter={(_, index) => setHoveredClient(clientStats[index].name)}
@@ -626,50 +629,50 @@ export default function Reports() {
                           ))}
                         </Pie>
                         <Tooltip content={<CustomPieTooltip />} />
-                        <text x="50%" y="45%" textAnchor="middle" className="fill-foreground font-bold text-2xl">
+                        <text x="50%" y="45%" textAnchor="middle" className="fill-foreground font-bold text-lg sm:text-2xl">
                           {totalHours.toFixed(1)}h
                         </text>
-                        <text x="50%" y="58%" textAnchor="middle" className="fill-muted-foreground text-xs">
+                        <text x="50%" y="58%" textAnchor="middle" className="fill-muted-foreground text-[10px] sm:text-xs">
                           {t("reports.total")}
                         </text>
                       </PieChart>
                     </ResponsiveContainer>
-                    <div className="flex-1 space-y-3">
-                      {clientStats.slice(0, 5).map((client) => (
+                    <div className="w-full sm:flex-1 space-y-2 sm:space-y-3 mt-3 sm:mt-0">
+                      {clientStats.slice(0, 4).map((client) => (
                         <div 
                           key={client.id} 
                           className={cn(
-                            "flex items-center gap-3 p-2 rounded-lg transition-all duration-300 cursor-pointer",
+                            "flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-lg transition-all duration-300 cursor-pointer",
                             hoveredClient === client.name ? "bg-muted/50" : "hover:bg-muted/30"
                           )}
                           onMouseEnter={() => setHoveredClient(client.name)}
                           onMouseLeave={() => setHoveredClient(null)}
                         >
                           <div 
-                            className="w-4 h-4 rounded-lg shadow-md" 
+                            className="w-3 h-3 sm:w-4 sm:h-4 rounded-lg shadow-md flex-shrink-0" 
                             style={{ 
                               backgroundColor: client.color,
                               boxShadow: `0 4px 12px -2px ${client.color}40`
                             }}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{client.name}</p>
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs text-muted-foreground">{client.hours.toFixed(1)}h</p>
-                              <span className="text-xs text-muted-foreground">•</span>
-                              <p className="text-xs font-medium" style={{ color: client.color }}>{client.percentage}%</p>
+                            <p className="text-xs sm:text-sm font-medium truncate">{client.name}</p>
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <p className="text-[10px] sm:text-xs text-muted-foreground">{client.hours.toFixed(1)}h</p>
+                              <span className="text-[10px] sm:text-xs text-muted-foreground">•</span>
+                              <p className="text-[10px] sm:text-xs font-medium" style={{ color: client.color }}>{client.percentage}%</p>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                  </>
+                  </div>
                 ) : (
-                  <div className="w-full flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-                      <PieChartIcon className="w-8 h-8 text-muted-foreground" />
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                      <PieChartIcon className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
                     </div>
-                    <p className="text-muted-foreground">{t("reports.noDataForPeriod")}</p>
+                    <p className="text-sm text-muted-foreground">{t("reports.noDataForPeriod")}</p>
                   </div>
                 )}
               </div>
@@ -679,21 +682,21 @@ export default function Reports() {
 
         {/* Monthly trend chart */}
         <div className="group relative">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-          <div className="relative p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-6">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500 hidden sm:block" />
+          <div className="relative p-4 sm:p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">{t("reports.periodTrend")}</h3>
-                  <p className="text-sm text-muted-foreground">{t("reports.periodTrendDesc")}</p>
+                  <h3 className="text-base sm:text-lg font-semibold mb-0.5 sm:mb-1">{t("reports.periodTrend")}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{t("reports.periodTrendDesc")}</p>
                 </div>
                 {totalHours > 0 && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20">
-                    <Sparkles className="w-4 h-4 text-success" />
-                    <span className="text-sm font-medium text-success">{totalHours.toFixed(1)}h {t("reports.totalLabel")}</span>
+                  <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-success/10 border border-success/20 w-fit">
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success" />
+                    <span className="text-xs sm:text-sm font-medium text-success">{totalHours.toFixed(1)}h {t("reports.totalLabel")}</span>
                   </div>
                 )}
               </div>
-            <div className="h-[200px]">
+            <div className="h-[160px] sm:h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyTrend}>
                   <defs>
@@ -711,20 +714,21 @@ export default function Reports() {
                     dataKey="week" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
                     tickFormatter={(value) => `${value}h`}
+                    width={35}
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Area 
                     type="monotone" 
                     dataKey="hours" 
                     stroke="#10B981" 
-                    strokeWidth={3}
+                    strokeWidth={2}
                     fill="url(#areaGradient)"
                     name={t("reports.hours")}
                   />
