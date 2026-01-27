@@ -313,19 +313,19 @@ export default function Timesheet() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-6xl mx-auto space-y-6 tempora-animate-in">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-4 sm:space-y-6 tempora-animate-in overflow-x-hidden">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t("timesheet.title")}</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("timesheet.title")}</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               {t("timesheet.subtitle")}
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Select value={selectedClient} onValueChange={setSelectedClient}>
-              <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card/50">
+              <SelectTrigger className="w-full sm:w-[180px] rounded-xl border-border/60 bg-card/50">
                 <SelectValue placeholder={t("timesheet.filterClient")} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -334,10 +334,10 @@ export default function Timesheet() {
                   <SelectItem key={client.id} value={client.id}>
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="w-3 h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: client.color }}
                       />
-                      {client.name}
+                      <span className="truncate">{client.name}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -355,37 +355,48 @@ export default function Timesheet() {
         </div>
 
         {/* Navigation */}
-        <div className="card-premium p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                <SelectTrigger className="w-[140px] rounded-xl">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="week">{t("timesheet.week")}</SelectItem>
-                  <SelectItem value="month">{t("timesheet.month")}</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="card-premium p-4 sm:p-5">
+          <div className="flex flex-col gap-4">
+            {/* Row 1: View mode and Today button */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                  <SelectTrigger className="w-[110px] sm:w-[140px] rounded-xl text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="week">{t("timesheet.week")}</SelectItem>
+                    <SelectItem value="month">{t("timesheet.month")}</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Button variant="outline" size="sm" onClick={goToToday} className="rounded-xl">
-                {t("timesheet.today")}
-              </Button>
+                <Button variant="outline" size="sm" onClick={goToToday} className="rounded-xl text-sm">
+                  {t("timesheet.today")}
+                </Button>
+              </div>
+
+              {/* Total - visible on mobile in row 1 */}
+              <div className="flex sm:hidden items-center gap-2 px-3 py-2 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl border border-primary/20">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="font-bold text-primary text-sm">{formatDuration(totalSeconds)}</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="icon" onClick={navigatePrevious} className="rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/30">
+            {/* Row 2: Period navigation */}
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <Button variant="outline" size="icon" onClick={navigatePrevious} className="rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/30 h-9 w-9 sm:h-10 sm:w-10">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="text-sm font-semibold min-w-[200px] text-center capitalize px-4 py-2 bg-muted/50 rounded-xl">
+              <span className="text-xs sm:text-sm font-semibold flex-1 sm:flex-none sm:min-w-[200px] text-center capitalize px-3 sm:px-4 py-2 bg-muted/50 rounded-xl truncate">
                 {periodLabel}
               </span>
-              <Button variant="outline" size="icon" onClick={navigateNext} className="rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/30">
+              <Button variant="outline" size="icon" onClick={navigateNext} className="rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/30 h-9 w-9 sm:h-10 sm:w-10">
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl border border-primary/20">
+            {/* Total - visible on desktop */}
+            <div className="hidden sm:flex items-center justify-center gap-3 px-4 py-2.5 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl border border-primary/20 w-fit mx-auto">
               <Clock className="w-4 h-4 text-primary" />
               <span className="text-sm text-muted-foreground">{t("timesheet.total")}:</span>
               <span className="font-bold text-primary">{formatDuration(totalSeconds)}</span>
@@ -399,9 +410,9 @@ export default function Timesheet() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[140px]">{t("timesheet.day")}</TableHead>
-                  <TableHead>{t("timesheet.activities")}</TableHead>
-                  <TableHead className="w-[100px] text-right">{t("timesheet.total")}</TableHead>
+                  <TableHead className="w-[100px] sm:w-[140px] text-xs sm:text-sm">{t("timesheet.day")}</TableHead>
+                  <TableHead className="text-xs sm:text-sm">{t("timesheet.activities")}</TableHead>
+                  <TableHead className="w-[60px] sm:w-[100px] text-right text-xs sm:text-sm">{t("timesheet.total")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -421,22 +432,26 @@ export default function Timesheet() {
                         isWeekend && !isToday && "bg-muted/30"
                       )}
                     >
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium p-2 sm:p-4">
                         <div className="flex flex-col">
                           <span className={cn(
-                            "capitalize font-semibold",
+                            "capitalize font-semibold text-xs sm:text-sm",
                             isToday && "text-primary"
                           )}>
-                            {format(day, "EEEE", { locale })}
+                            {format(day, "EEE", { locale })}
+                            <span className="hidden sm:inline">
+                              {format(day, "EE", { locale }).length < format(day, "EEEE", { locale }).length && 
+                                format(day, "EEEE", { locale }).slice(format(day, "EEE", { locale }).length)}
+                            </span>
                           </span>
-                          <span className="text-xs text-muted-foreground">
-                            {format(day, "d MMMM", { locale })}
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
+                            {format(day, "d MMM", { locale })}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="p-2 sm:p-4">
                         {dayEntries.length === 0 ? (
-                          <span className="text-muted-foreground text-sm">-</span>
+                          <span className="text-muted-foreground text-xs sm:text-sm">-</span>
                         ) : (
                           <div className="space-y-2">
                             {dayEntries.map((entry) => {
@@ -444,30 +459,36 @@ export default function Timesheet() {
                               return (
                                 <div
                                   key={entry.id}
-                                  className="flex items-center gap-3 py-1.5 group"
+                                  className="flex items-start sm:items-center gap-2 sm:gap-3 py-1 sm:py-1.5 group"
                                 >
                                   <div
-                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5 sm:mt-0"
                                     style={{
                                       backgroundColor: client?.color || "#94a3b8",
                                     }}
                                   />
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium">
+                                    <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                                      <span className="text-xs sm:text-sm font-medium truncate max-w-[80px] sm:max-w-none">
                                         {client?.name || t("timesheet.noClient")}
                                       </span>
-                                      <Badge variant="outline" className="text-xs rounded-full">
+                                      <Badge variant="outline" className="text-[10px] sm:text-xs rounded-full px-1.5 sm:px-2">
                                         {formatDuration(entry.duration_seconds || 0)}
                                       </Badge>
                                     </div>
                                     {entry.description && (
-                                      <p className="text-xs text-muted-foreground truncate">
+                                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[120px] sm:max-w-none">
                                         {entry.description}
                                       </p>
                                     )}
+                                    {/* Time on mobile - below description */}
+                                    <span className="text-[10px] text-muted-foreground sm:hidden">
+                                      {formatTimeOfDay(entry.start_time)}
+                                      {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
+                                    </span>
                                   </div>
-                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                  {/* Time on desktop */}
+                                  <span className="hidden sm:block text-xs text-muted-foreground whitespace-nowrap">
                                     {formatTimeOfDay(entry.start_time)}
                                     {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
                                   </span>
@@ -476,7 +497,7 @@ export default function Timesheet() {
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"
+                                        className="h-7 w-7 sm:opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex-shrink-0"
                                       >
                                         <MoreHorizontal className="h-4 w-4" />
                                       </Button>
@@ -501,9 +522,9 @@ export default function Timesheet() {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right p-2 sm:p-4">
                         <span className={cn(
-                          "font-semibold",
+                          "font-semibold text-xs sm:text-sm",
                           dayTotal > 0 ? "text-foreground" : "text-muted-foreground"
                         )}>
                           {dayTotal > 0 ? formatDuration(dayTotal) : "-"}
@@ -519,9 +540,9 @@ export default function Timesheet() {
 
         {/* Summary by client */}
         {selectedClient === "all" && clients.length > 0 && (
-          <div className="card-premium p-6">
-            <h3 className="text-lg font-semibold mb-4">{t("timesheet.summaryByClient")}</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="card-premium p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">{t("timesheet.summaryByClient")}</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
               {clients.map((client) => {
                 const clientTotal = entries
                   .filter((e) => e.client_id === client.id)
@@ -536,21 +557,21 @@ export default function Timesheet() {
                 return (
                   <div
                     key={client.id}
-                    className="p-4 rounded-2xl border bg-gradient-to-br from-card to-muted/30 hover-lift"
+                    className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border bg-gradient-to-br from-card to-muted/30 hover-lift"
                   >
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: client.color }}
                       />
-                      <span className="font-semibold text-sm truncate">
+                      <span className="font-semibold text-xs sm:text-sm truncate">
                         {client.name}
                       </span>
                     </div>
-                    <div className="text-2xl font-bold text-gradient">
+                    <div className="text-xl sm:text-2xl font-bold text-gradient">
                       {formatDuration(clientTotal)}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                       {percentage}% {t("timesheet.ofTotal")}
                     </div>
                   </div>
