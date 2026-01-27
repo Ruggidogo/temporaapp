@@ -25,7 +25,7 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, '_blank');
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
@@ -47,7 +47,7 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, '_blank');
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error('Portal error:', error);
