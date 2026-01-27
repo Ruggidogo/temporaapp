@@ -1,12 +1,15 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { it } from "date-fns/locale";
+import { it, enUS, es, fr, de, Locale } from "date-fns/locale";
+
+const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 
 interface Client {
   id: string;
   name: string;
   color: string;
+  hourly_rate?: number | null;
 }
 
 interface TimeEntry {
@@ -27,7 +30,20 @@ interface ExportData {
   userName: string;
   logoUrl?: string | null;
   selectedClientId?: string;
+  language?: string;
 }
+
+// Brand colors
+const COLORS = {
+  primary: [99, 102, 241] as [number, number, number],      // Indigo-500
+  primaryDark: [79, 70, 229] as [number, number, number],   // Indigo-600
+  secondary: [168, 85, 247] as [number, number, number],    // Purple-500
+  dark: [17, 24, 39] as [number, number, number],           // Gray-900
+  gray: [107, 114, 128] as [number, number, number],        // Gray-500
+  lightGray: [243, 244, 246] as [number, number, number],   // Gray-100
+  white: [255, 255, 255] as [number, number, number],
+  success: [16, 185, 129] as [number, number, number],      // Emerald-500
+};
 
 function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -51,8 +67,16 @@ function formatTimeOfDay(isoString: string): string {
   });
 }
 
+function hexToRgb(hex: string): [number, number, number] {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+    : [99, 102, 241];
+}
+
 export function exportToCSV(data: ExportData): void {
-  const { entries, clients, dateRange, userName, selectedClientId } = data;
+  const { entries, clients, dateRange, userName, selectedClientId, language = "it" } = data;
+  const locale = dateLocales[language] || it;
   
   const getClientName = (clientId: string | null) => 
     clients.find(c => c.id === clientId)?.name || "Senza cliente";
@@ -67,7 +91,7 @@ export function exportToCSV(data: ExportData): void {
     const entryDate = new Date(entry.date);
     return [
       format(entryDate, "dd/MM/yyyy"),
-      format(entryDate, "EEEE", { locale: it }),
+      format(entryDate, "EEEE", { locale }),
       getClientName(entry.client_id),
       entry.description || "",
       formatTimeOfDay(entry.start_time),
@@ -108,10 +132,16 @@ export function exportToCSV(data: ExportData): void {
 }
 
 export async function exportToPDF(data: ExportData): Promise<void> {
-  const { entries, clients, dateRange, userName, logoUrl, selectedClientId } = data;
+  const { entries, clients, dateRange, userName, logoUrl, selectedClientId, language = "it" } = data;
+  const locale = dateLocales[language] || it;
   
   const getClientName = (clientId: string | null) => 
     clients.find(c => c.id === clientId)?.name || "Senza cliente";
+
+  const getClientColor = (clientId: string | null): [number, number, number] => {
+    const client = clients.find(c => c.id === clientId);
+    return client?.color ? hexToRgb(client.color) : COLORS.gray;
+  };
 
   const filteredEntries = selectedClientId && selectedClientId !== "all"
     ? entries.filter(e => e.client_id === selectedClientId)
@@ -122,9 +152,23 @@ export async function exportToPDF(data: ExportData): Promise<void> {
     : null;
 
   const doc = new jsPDF();
-  let yPos = 20;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  let yPos = margin;
 
-  // Load logo if available
+  // ============ HEADER SECTION ============
+  
+  // Header background gradient effect (simulated with rectangles)
+  doc.setFillColor(...COLORS.primary);
+  doc.rect(0, 0, pageWidth, 50, "F");
+  
+  // Add subtle gradient overlay
+  doc.setFillColor(...COLORS.primaryDark);
+  doc.rect(0, 0, pageWidth * 0.6, 50, "F");
+
+  // Logo
+  let logoLoaded = false;
   if (logoUrl) {
     try {
       const img = new Image();
@@ -135,9 +179,8 @@ export async function exportToPDF(data: ExportData): Promise<void> {
         img.src = logoUrl;
       });
       
-      // Calculate aspect ratio
-      const maxWidth = 40;
-      const maxHeight = 20;
+      const maxWidth = 35;
+      const maxHeight = 18;
       let width = img.width;
       let height = img.height;
       
@@ -150,133 +193,332 @@ export async function exportToPDF(data: ExportData): Promise<void> {
         height = maxHeight;
       }
       
-      doc.addImage(img, "PNG", 15, yPos, width, height);
-      yPos += height + 10;
+      // Add white background for logo
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin - 2, 8, width + 4, height + 4, 2, 2, "F");
+      doc.addImage(img, "PNG", margin, 10, width, height);
+      logoLoaded = true;
     } catch {
-      // Logo failed to load, continue without it
+      // Logo failed to load
     }
   }
 
-  // Header
-  doc.setFontSize(20);
+  // Title
+  doc.setTextColor(...COLORS.white);
+  doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("TIMESHEET", 15, yPos);
-  yPos += 10;
-
-  // User info
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text(userName, 15, yPos);
-  yPos += 8;
-
-  // Date range
+  const titleX = logoLoaded ? margin + 50 : margin;
+  doc.text("TIMESHEET", titleX, 25);
+  
+  // Subtitle
   doc.setFontSize(10);
-  doc.setTextColor(100);
-  const periodText = `Periodo: ${format(dateRange.start, "d MMMM yyyy", { locale: it })} - ${format(dateRange.end, "d MMMM yyyy", { locale: it })}`;
-  doc.text(periodText, 15, yPos);
-  yPos += 6;
+  doc.setFont("helvetica", "normal");
+  doc.text(userName, titleX, 33);
+  
+  // Period badge on right
+  doc.setFillColor(...COLORS.white);
+  const periodText = `${format(dateRange.start, "d MMM", { locale })} - ${format(dateRange.end, "d MMM yyyy", { locale })}`;
+  const periodWidth = doc.getTextWidth(periodText) + 12;
+  doc.roundedRect(pageWidth - margin - periodWidth, 18, periodWidth, 14, 3, 3, "F");
+  doc.setTextColor(...COLORS.primaryDark);
+  doc.setFontSize(9);
+  doc.text(periodText, pageWidth - margin - periodWidth + 6, 27);
 
-  // Client info if filtered
+  yPos = 60;
+
+  // ============ STATS CARDS ============
+  
+  const totalSeconds = filteredEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+  const totalHours = totalSeconds / 3600;
+  const uniqueDays = new Set(filteredEntries.map(e => e.date)).size;
+  const avgPerDay = uniqueDays > 0 ? totalHours / uniqueDays : 0;
+
+  // Stats container
+  const statsY = yPos;
+  const cardWidth = (pageWidth - margin * 2 - 10) / 3;
+  const cardHeight = 28;
+
+  // Card 1: Total Hours
+  doc.setFillColor(...COLORS.lightGray);
+  doc.roundedRect(margin, statsY, cardWidth, cardHeight, 3, 3, "F");
+  doc.setFillColor(...COLORS.primary);
+  doc.roundedRect(margin, statsY, 4, cardHeight, 2, 0, "F");
+  doc.setTextColor(...COLORS.gray);
+  doc.setFontSize(8);
+  doc.text("ORE TOTALI", margin + 10, statsY + 10);
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(formatDuration(totalSeconds), margin + 10, statsY + 22);
+
+  // Card 2: Entries
+  const card2X = margin + cardWidth + 5;
+  doc.setFillColor(...COLORS.lightGray);
+  doc.roundedRect(card2X, statsY, cardWidth, cardHeight, 3, 3, "F");
+  doc.setFillColor(...COLORS.secondary);
+  doc.roundedRect(card2X, statsY, 4, cardHeight, 2, 0, "F");
+  doc.setTextColor(...COLORS.gray);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text("REGISTRAZIONI", card2X + 10, statsY + 10);
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(String(filteredEntries.length), card2X + 10, statsY + 22);
+
+  // Card 3: Avg per day
+  const card3X = margin + (cardWidth + 5) * 2;
+  doc.setFillColor(...COLORS.lightGray);
+  doc.roundedRect(card3X, statsY, cardWidth, cardHeight, 3, 3, "F");
+  doc.setFillColor(...COLORS.success);
+  doc.roundedRect(card3X, statsY, 4, cardHeight, 2, 0, "F");
+  doc.setTextColor(...COLORS.gray);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text("MEDIA/GIORNO", card3X + 10, statsY + 10);
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(`${avgPerDay.toFixed(1)}h`, card3X + 10, statsY + 22);
+
+  yPos = statsY + cardHeight + 15;
+
+  // Client filter info
   if (selectedClient) {
-    doc.text(`Cliente: ${selectedClient.name}`, 15, yPos);
-    yPos += 6;
+    const clientColor = hexToRgb(selectedClient.color);
+    doc.setFillColor(...clientColor);
+    doc.roundedRect(margin, yPos, 8, 8, 2, 2, "F");
+    doc.setTextColor(...COLORS.dark);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Cliente: ${selectedClient.name}`, margin + 12, yPos + 6);
+    yPos += 15;
   }
 
-  // Generation date
-  doc.text(`Generato il: ${format(new Date(), "d MMMM yyyy", { locale: it })}`, 15, yPos);
-  yPos += 15;
-
-  // Reset text color
-  doc.setTextColor(0);
-
-  // Table data
-  const tableData = filteredEntries.map(entry => {
-    const entryDate = new Date(entry.date);
-    return [
-      format(entryDate, "dd/MM/yyyy"),
-      format(entryDate, "EEE", { locale: it }),
-      getClientName(entry.client_id),
-      entry.description || "-",
-      `${formatTimeOfDay(entry.start_time)}${entry.end_time ? ` - ${formatTimeOfDay(entry.end_time)}` : ""}`,
-      formatDuration(entry.duration_seconds || 0),
-    ];
+  // ============ MAIN TABLE ============
+  
+  // Group entries by date
+  const entriesByDate: Record<string, TimeEntry[]> = {};
+  filteredEntries.forEach(entry => {
+    if (!entriesByDate[entry.date]) entriesByDate[entry.date] = [];
+    entriesByDate[entry.date].push(entry);
   });
 
-  // Calculate total
-  const totalSeconds = filteredEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+  const sortedDates = Object.keys(entriesByDate).sort((a, b) => a.localeCompare(b));
 
-  // Add table
+  // Build table data with date grouping
+  const tableData: any[][] = [];
+  sortedDates.forEach(dateKey => {
+    const dayEntries = entriesByDate[dateKey];
+    const entryDate = new Date(dateKey);
+    const dayTotal = dayEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+    
+    // Date header row
+    tableData.push([
+      {
+        content: `${format(entryDate, "EEEE d MMMM", { locale })}`,
+        colSpan: 4,
+        styles: { 
+          fillColor: COLORS.lightGray,
+          textColor: COLORS.dark,
+          fontStyle: "bold",
+          fontSize: 9,
+        }
+      },
+      {
+        content: formatDuration(dayTotal),
+        styles: {
+          fillColor: COLORS.lightGray,
+          textColor: COLORS.primary,
+          fontStyle: "bold",
+          halign: "right",
+          fontSize: 9,
+        }
+      }
+    ]);
+
+    // Entry rows
+    dayEntries.forEach(entry => {
+      tableData.push([
+        {
+          content: "",
+          styles: { cellWidth: 3, fillColor: getClientColor(entry.client_id) }
+        },
+        getClientName(entry.client_id),
+        entry.description || "-",
+        `${formatTimeOfDay(entry.start_time)}${entry.end_time ? ` - ${formatTimeOfDay(entry.end_time)}` : ""}`,
+        formatDuration(entry.duration_seconds || 0),
+      ]);
+    });
+  });
+
+  // Table
   autoTable(doc, {
     startY: yPos,
-    head: [["Data", "Giorno", "Cliente", "Descrizione", "Orario", "Durata"]],
+    head: [[
+      { content: "", styles: { cellWidth: 3 } },
+      "Cliente",
+      "Descrizione", 
+      "Orario",
+      "Durata"
+    ]],
     body: tableData,
-    foot: [["", "", "", "", "TOTALE", formatDuration(totalSeconds)]],
-    theme: "striped",
+    foot: [[
+      { content: "", styles: { cellWidth: 3, fillColor: COLORS.primary } },
+      { content: "", colSpan: 2 },
+      { content: "TOTALE", styles: { fontStyle: "bold", halign: "right" } },
+      { content: formatDuration(totalSeconds), styles: { fontStyle: "bold", textColor: COLORS.primary } }
+    ]],
+    theme: "plain",
     headStyles: {
-      fillColor: [59, 130, 246],
-      textColor: 255,
+      fillColor: COLORS.dark,
+      textColor: COLORS.white,
       fontStyle: "bold",
-    },
-    footStyles: {
-      fillColor: [243, 244, 246],
-      textColor: 0,
-      fontStyle: "bold",
-    },
-    styles: {
-      fontSize: 9,
+      fontSize: 8,
       cellPadding: 4,
     },
+    footStyles: {
+      fillColor: COLORS.lightGray,
+      textColor: COLORS.dark,
+      fontStyle: "bold",
+      fontSize: 9,
+    },
+    styles: {
+      fontSize: 8,
+      cellPadding: 3,
+      lineColor: [229, 231, 235],
+      lineWidth: 0.1,
+    },
+    alternateRowStyles: {
+      fillColor: [250, 250, 250],
+    },
     columnStyles: {
-      0: { cellWidth: 22 },
-      1: { cellWidth: 18 },
-      2: { cellWidth: 35 },
-      3: { cellWidth: 50 },
-      4: { cellWidth: 35 },
-      5: { cellWidth: 20 },
+      0: { cellWidth: 3 },
+      1: { cellWidth: 40 },
+      2: { cellWidth: 70 },
+      3: { cellWidth: 35 },
+      4: { cellWidth: 25, halign: "right" },
+    },
+    margin: { left: margin, right: margin },
+    didDrawPage: (data) => {
+      // Footer on each page
+      doc.setFillColor(...COLORS.lightGray);
+      doc.rect(0, pageHeight - 12, pageWidth, 12, "F");
+      
+      doc.setTextColor(...COLORS.gray);
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      
+      const footerText = `Generato il ${format(new Date(), "d MMMM yyyy 'alle' HH:mm", { locale })}`;
+      doc.text(footerText, margin, pageHeight - 5);
+      
+      const pageText = `Pagina ${data.pageNumber}`;
+      doc.text(pageText, pageWidth - margin - doc.getTextWidth(pageText), pageHeight - 5);
     },
   });
 
-  // Summary by client (if showing all)
+  // ============ CLIENT SUMMARY (if showing all) ============
+  
   if (!selectedClient && clients.length > 0) {
     const finalY = (doc as any).lastAutoTable?.finalY || yPos + 50;
     
-    if (finalY < 250) {
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("Riepilogo per cliente", 15, finalY + 15);
-
-      const clientSummary = clients
-        .map(client => {
-          const clientTotal = filteredEntries
-            .filter(e => e.client_id === client.id)
-            .reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
-          return { name: client.name, total: clientTotal };
-        })
-        .filter(c => c.total > 0);
-
-      autoTable(doc, {
-        startY: finalY + 20,
-        head: [["Cliente", "Ore totali"]],
-        body: clientSummary.map(c => [c.name, formatDuration(c.total)]),
-        theme: "plain",
-        headStyles: {
-          fillColor: [243, 244, 246],
-          textColor: 0,
-          fontStyle: "bold",
-        },
-        styles: {
-          fontSize: 10,
-          cellPadding: 4,
-        },
-        columnStyles: {
-          0: { cellWidth: 100 },
-          1: { cellWidth: 40 },
-        },
-      });
+    // Check if we have enough space, otherwise add new page
+    if (finalY > pageHeight - 80) {
+      doc.addPage();
+      yPos = margin;
+    } else {
+      yPos = finalY + 12;
     }
+
+    // Section title
+    doc.setFillColor(...COLORS.secondary);
+    doc.roundedRect(margin, yPos, 4, 16, 1, 1, "F");
+    doc.setTextColor(...COLORS.dark);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Riepilogo per Cliente", margin + 10, yPos + 11);
+    yPos += 22;
+
+    const clientSummary = clients
+      .map(client => {
+        const clientTotal = filteredEntries
+          .filter(e => e.client_id === client.id)
+          .reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
+        const percentage = totalSeconds > 0 ? (clientTotal / totalSeconds) * 100 : 0;
+        return { 
+          name: client.name, 
+          color: hexToRgb(client.color),
+          total: clientTotal,
+          percentage 
+        };
+      })
+      .filter(c => c.total > 0)
+      .sort((a, b) => b.total - a.total);
+
+    // Client summary with visual bars
+    autoTable(doc, {
+      startY: yPos,
+      head: [[
+        { content: "", styles: { cellWidth: 4 } },
+        "Cliente",
+        "Ore",
+        "Percentuale",
+        ""
+      ]],
+      body: clientSummary.map(c => [
+        { content: "", styles: { fillColor: c.color, cellWidth: 4 } },
+        c.name,
+        formatDuration(c.total),
+        `${c.percentage.toFixed(1)}%`,
+        { 
+          content: "", 
+          styles: { 
+            fillColor: COLORS.lightGray,
+            cellPadding: { top: 8, bottom: 8, left: 0, right: 0 }
+          }
+        }
+      ]),
+      theme: "plain",
+      headStyles: {
+        fillColor: COLORS.lightGray,
+        textColor: COLORS.dark,
+        fontStyle: "bold",
+        fontSize: 8,
+      },
+      styles: {
+        fontSize: 9,
+        cellPadding: 4,
+      },
+      columnStyles: {
+        0: { cellWidth: 4 },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 30, halign: "right" },
+        3: { cellWidth: 25, halign: "right" },
+        4: { cellWidth: 50 },
+      },
+      margin: { left: margin, right: margin },
+      didDrawCell: (data) => {
+        // Draw percentage bar in last column
+        if (data.section === "body" && data.column.index === 4) {
+          const client = clientSummary[data.row.index];
+          if (client) {
+            const barWidth = (data.cell.width - 4) * (client.percentage / 100);
+            doc.setFillColor(...client.color);
+            doc.roundedRect(
+              data.cell.x + 2,
+              data.cell.y + data.cell.height / 2 - 3,
+              barWidth,
+              6,
+              1, 1, "F"
+            );
+          }
+        }
+      }
+    });
   }
 
-  // Save PDF
+  // ============ SAVE PDF ============
+  
   const fileName = selectedClient 
     ? `timesheet_${selectedClient.name.toLowerCase().replace(/\s+/g, "_")}_${format(dateRange.start, "yyyy-MM-dd")}.pdf`
     : `timesheet_${format(dateRange.start, "yyyy-MM-dd")}_${format(dateRange.end, "yyyy-MM-dd")}.pdf`;
