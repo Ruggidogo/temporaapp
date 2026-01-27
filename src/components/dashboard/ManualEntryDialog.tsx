@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { it } from "date-fns/locale";
+import { format, Locale } from "date-fns";
+import { it, enUS, es, fr, de } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,9 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 
 interface Client {
   id: string;
@@ -49,23 +52,6 @@ interface ManualEntryDialogProps {
 
 const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
-const entrySchema = z.object({
-  date: z.date(),
-  startTime: z.string().regex(timeRegex, "Formato orario non valido (HH:MM)"),
-  endTime: z.string().regex(timeRegex, "Formato orario non valido (HH:MM)"),
-  clientId: z.string().nullable(),
-  description: z.string().max(500).optional(),
-}).refine((data) => {
-  const [startH, startM] = data.startTime.split(":").map(Number);
-  const [endH, endM] = data.endTime.split(":").map(Number);
-  const startMinutes = startH * 60 + startM;
-  const endMinutes = endH * 60 + endM;
-  return endMinutes > startMinutes;
-}, {
-  message: "L'orario di fine deve essere successivo all'orario di inizio",
-  path: ["endTime"],
-});
-
 export function ManualEntryDialog({
   open,
   onOpenChange,
@@ -73,6 +59,26 @@ export function ManualEntryDialog({
   clients,
   isLoading,
 }: ManualEntryDialogProps) {
+  const { language, t } = useLanguage();
+  const locale = dateLocales[language] || enUS;
+
+  const entrySchema = z.object({
+    date: z.date(),
+    startTime: z.string().regex(timeRegex, t("manualEntry.invalidTimeFormat")),
+    endTime: z.string().regex(timeRegex, t("manualEntry.invalidTimeFormat")),
+    clientId: z.string().nullable(),
+    description: z.string().max(500).optional(),
+  }).refine((data) => {
+    const [startH, startM] = data.startTime.split(":").map(Number);
+    const [endH, endM] = data.endTime.split(":").map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    return endMinutes > startMinutes;
+  }, {
+    message: t("manualEntry.endAfterStart"),
+    path: ["endTime"],
+  });
+
   const [date, setDate] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
@@ -139,12 +145,12 @@ export function ManualEntryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Inserimento manuale</DialogTitle>
+          <DialogTitle>{t("manualEntry.title")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Date picker */}
           <div className="space-y-2">
-            <Label>Data</Label>
+            <Label>{t("manualEntry.date")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -155,7 +161,7 @@ export function ManualEntryDialog({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP", { locale: it }) : "Seleziona data"}
+                  {date ? format(date, "PPP", { locale }) : t("manualEntry.selectDate")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -165,6 +171,7 @@ export function ManualEntryDialog({
                   onSelect={(d) => d && setDate(d)}
                   disabled={(d) => d > new Date()}
                   initialFocus
+                  locale={locale}
                   className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
@@ -174,7 +181,7 @@ export function ManualEntryDialog({
           {/* Time inputs */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startTime">Inizio</Label>
+              <Label htmlFor="startTime">{t("manualEntry.start")}</Label>
               <Input
                 id="startTime"
                 type="time"
@@ -186,7 +193,7 @@ export function ManualEntryDialog({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endTime">Fine</Label>
+              <Label htmlFor="endTime">{t("manualEntry.end")}</Label>
               <Input
                 id="endTime"
                 type="time"
@@ -202,22 +209,22 @@ export function ManualEntryDialog({
           {/* Duration preview */}
           {durationPreview && (
             <div className="text-sm text-muted-foreground text-center">
-              Durata: <span className="font-medium text-foreground">{durationPreview}</span>
+              {t("manualEntry.duration")} <span className="font-medium text-foreground">{durationPreview}</span>
             </div>
           )}
 
           {/* Client selector */}
           <div className="space-y-2">
-            <Label>Cliente</Label>
+            <Label>{t("manualEntry.client")}</Label>
             <Select
               value={clientId || "none"}
               onValueChange={(v) => setClientId(v === "none" ? null : v)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Seleziona cliente" />
+                <SelectValue placeholder={t("manualEntry.selectClient")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Nessun cliente</SelectItem>
+                <SelectItem value="none">{t("manualEntry.noClient")}</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     <div className="flex items-center gap-2">
@@ -235,12 +242,12 @@ export function ManualEntryDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Descrizione</Label>
+            <Label htmlFor="description">{t("manualEntry.description")}</Label>
             <Input
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Su cosa hai lavorato?"
+              placeholder={t("manualEntry.descriptionPlaceholder")}
               maxLength={500}
             />
           </div>
@@ -252,10 +259,10 @@ export function ManualEntryDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Annulla
+              {t("manualEntry.cancel")}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Salvataggio..." : "Salva"}
+              {isLoading ? t("manualEntry.saving") : t("manualEntry.save")}
             </Button>
           </div>
         </form>

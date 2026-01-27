@@ -616,6 +616,24 @@ const translations: Record<string, string> = {
   "sendReport.emailRequired": "Bitte geben Sie eine E-Mail-Adresse ein",
   "sendReport.success": "Bericht erfolgreich gesendet!",
   "sendReport.error": "Fehler beim Senden des Berichts",
+
+  // Manual Entry Dialog
+  "manualEntry.title": "Manuelle Eingabe",
+  "manualEntry.date": "Datum",
+  "manualEntry.selectDate": "Datum auswählen",
+  "manualEntry.start": "Beginn",
+  "manualEntry.end": "Ende",
+  "manualEntry.duration": "Dauer:",
+  "manualEntry.client": "Kunde",
+  "manualEntry.selectClient": "Kunde auswählen",
+  "manualEntry.noClient": "Kein Kunde",
+  "manualEntry.description": "Beschreibung",
+  "manualEntry.descriptionPlaceholder": "Woran haben Sie gearbeitet?",
+  "manualEntry.cancel": "Abbrechen",
+  "manualEntry.save": "Speichern",
+  "manualEntry.saving": "Wird gespeichert...",
+  "manualEntry.invalidTimeFormat": "Ungültiges Zeitformat (HH:MM)",
+  "manualEntry.endAfterStart": "Die Endzeit muss nach der Startzeit liegen",
 };
 
 export default translations;

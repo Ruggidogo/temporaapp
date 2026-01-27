@@ -616,6 +616,24 @@ const translations: Record<string, string> = {
   "sendReport.emailRequired": "Please enter an email address",
   "sendReport.success": "Report sent successfully!",
   "sendReport.error": "Error sending report",
+
+  // Manual Entry Dialog
+  "manualEntry.title": "Manual entry",
+  "manualEntry.date": "Date",
+  "manualEntry.selectDate": "Select date",
+  "manualEntry.start": "Start",
+  "manualEntry.end": "End",
+  "manualEntry.duration": "Duration:",
+  "manualEntry.client": "Client",
+  "manualEntry.selectClient": "Select client",
+  "manualEntry.noClient": "No client",
+  "manualEntry.description": "Description",
+  "manualEntry.descriptionPlaceholder": "What did you work on?",
+  "manualEntry.cancel": "Cancel",
+  "manualEntry.save": "Save",
+  "manualEntry.saving": "Saving...",
+  "manualEntry.invalidTimeFormat": "Invalid time format (HH:MM)",
+  "manualEntry.endAfterStart": "End time must be after start time",
 };
 
 export default translations;
