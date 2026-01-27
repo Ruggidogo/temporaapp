@@ -166,7 +166,7 @@ export default function Reports() {
       case "today":
         return { start: today, end: today };
       case "week":
-        return { start: startOfWeek(today, { locale: it }), end: endOfWeek(today, { locale: it }) };
+        return { start: startOfWeek(today, { locale }), end: endOfWeek(today, { locale }) };
       case "month":
         return { start: startOfMonth(today), end: endOfMonth(today) };
       case "year":
@@ -213,7 +213,10 @@ export default function Reports() {
   const totalValue = clientStats.reduce((acc, c) => acc + c.value, 0);
 
   // Weekly chart data
-  const weekDays = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
+  const weekDays = [
+    t("reports.mon"), t("reports.tue"), t("reports.wed"), t("reports.thu"), 
+    t("reports.fri"), t("reports.sat"), t("reports.sun")
+  ];
   const weeklyData = weekDays.map((day, index) => {
     const dayEntries = filteredEntries.filter(e => {
       const entryDate = new Date(e.date);
@@ -235,7 +238,7 @@ export default function Reports() {
       return entryDate >= weekStart && entryDate <= weekEnd;
     });
     const hours = weekEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0) / 3600;
-    return { week: `Sett ${week}`, hours };
+    return { week: `${t("reports.weekLabel")} ${week}`, hours };
   });
 
   const activeFiltersCount = (selectedClient !== "all" ? 1 : 0) + (selectedPeriod === "custom" && dateRange?.from ? 1 : 0);
@@ -472,8 +475,8 @@ export default function Reports() {
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm">
                         <CalendarIcon className="w-3.5 h-3.5" />
                         <span>
-                          {format(dateRange.from, "d MMM", { locale: it })}
-                          {dateRange.to && ` - ${format(dateRange.to, "d MMM", { locale: it })}`}
+                          {format(dateRange.from, "d MMM", { locale })}
+                          {dateRange.to && ` - ${format(dateRange.to, "d MMM", { locale })}`}
                         </span>
                         <button onClick={() => setDateRange(undefined)} className="hover:text-primary">
                           <X className="w-3.5 h-3.5" />
@@ -520,17 +523,17 @@ export default function Reports() {
             <div className="relative p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Ore per giorno</h3>
-                  <p className="text-sm text-muted-foreground">Confronto con il target giornaliero</p>
+                  <h3 className="text-lg font-semibold mb-1">{t("reports.hoursPerDay")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("reports.hoursPerDayDesc")}</p>
                 </div>
                 <div className="flex items-center gap-4 text-xs">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-gradient-to-r from-primary to-purple-500" />
-                    <span className="text-muted-foreground">Ore lavorate</span>
+                    <span className="text-muted-foreground">{t("reports.workedHours")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-muted" />
-                    <span className="text-muted-foreground">Target</span>
+                    <span className="text-muted-foreground">{t("reports.target")}</span>
                   </div>
                 </div>
               </div>
@@ -559,13 +562,13 @@ export default function Reports() {
                       dataKey="target" 
                       fill="hsl(var(--muted))" 
                       radius={[6, 6, 0, 0]}
-                      name="Target"
+                      name={t("reports.target")}
                     />
                     <Bar 
                       dataKey="hours" 
                       fill="url(#barGradient)" 
                       radius={[6, 6, 0, 0]}
-                      name="Ore"
+                      name={t("reports.hours")}
                     />
                     <defs>
                       <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -585,8 +588,8 @@ export default function Reports() {
             <div className="relative p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Distribuzione clienti</h3>
-                  <p className="text-sm text-muted-foreground">Ore lavorate per cliente</p>
+                  <h3 className="text-lg font-semibold mb-1">{t("reports.clientDistribution")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("reports.clientDistributionDesc")}</p>
                 </div>
                 <div className="p-2 rounded-lg bg-muted/50">
                   <PieChartIcon className="w-4 h-4 text-muted-foreground" />
@@ -627,7 +630,7 @@ export default function Reports() {
                           {totalHours.toFixed(1)}h
                         </text>
                         <text x="50%" y="58%" textAnchor="middle" className="fill-muted-foreground text-xs">
-                          Totale
+                          {t("reports.total")}
                         </text>
                       </PieChart>
                     </ResponsiveContainer>
@@ -666,7 +669,7 @@ export default function Reports() {
                     <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
                       <PieChartIcon className="w-8 h-8 text-muted-foreground" />
                     </div>
-                    <p className="text-muted-foreground">Nessun dato per il periodo selezionato</p>
+                    <p className="text-muted-foreground">{t("reports.noDataForPeriod")}</p>
                   </div>
                 )}
               </div>
@@ -678,18 +681,18 @@ export default function Reports() {
         <div className="group relative">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
           <div className="relative p-6 rounded-xl border border-border/50 bg-gradient-to-b from-card to-card/80 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">Trend periodo</h3>
-                <p className="text-sm text-muted-foreground">Andamento delle ore lavorate</p>
-              </div>
-              {totalHours > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20">
-                  <Sparkles className="w-4 h-4 text-success" />
-                  <span className="text-sm font-medium text-success">{totalHours.toFixed(1)}h totali</span>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">{t("reports.periodTrend")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("reports.periodTrendDesc")}</p>
                 </div>
-              )}
-            </div>
+                {totalHours > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20">
+                    <Sparkles className="w-4 h-4 text-success" />
+                    <span className="text-sm font-medium text-success">{totalHours.toFixed(1)}h {t("reports.totalLabel")}</span>
+                  </div>
+                )}
+              </div>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyTrend}>
@@ -723,7 +726,7 @@ export default function Reports() {
                     stroke="#10B981" 
                     strokeWidth={3}
                     fill="url(#areaGradient)"
-                    name="Ore"
+                    name={t("reports.hours")}
                   />
                 </AreaChart>
               </ResponsiveContainer>
