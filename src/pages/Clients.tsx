@@ -201,16 +201,16 @@ export default function Clients() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-6xl mx-auto tempora-animate-in">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto tempora-animate-in overflow-x-hidden">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t("clients.title")}</h1>
-            <p className="text-muted-foreground mt-1">{t("clients.subtitle")}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("clients.title")}</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">{t("clients.subtitle")}</p>
           </div>
           <Button 
             onClick={() => { setSelectedClient(null); setDialogOpen(true); }}
-            className="btn-gradient rounded-xl"
+            className="btn-gradient rounded-xl w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             {t("clients.newClient")}
@@ -218,25 +218,25 @@ export default function Clients() {
         </div>
 
         {/* Search */}
-        <div className="relative mb-8">
+        <div className="relative mb-6 sm:mb-8">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder={t("clients.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-11 max-w-sm rounded-xl h-12 bg-card/50 border-border/60"
+            className="pl-11 w-full sm:max-w-sm rounded-xl h-11 sm:h-12 bg-card/50 border-border/60"
           />
         </div>
 
         {/* Empty state */}
         {clients.length === 0 && (
-          <div className="card-premium text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-primary" />
+          <div className="card-premium text-center py-12 sm:py-16 px-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
             </div>
-            <p className="text-lg font-medium mb-2">{t("clients.noClients")}</p>
-            <p className="text-sm text-muted-foreground mb-6">{t("clients.noClientsDesc")}</p>
-            <Button onClick={() => setDialogOpen(true)} className="btn-gradient rounded-xl">
+            <p className="text-base sm:text-lg font-medium mb-2">{t("clients.noClients")}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-6">{t("clients.noClientsDesc")}</p>
+            <Button onClick={() => setDialogOpen(true)} className="btn-gradient rounded-xl w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               {t("clients.createFirst")}
             </Button>
@@ -245,18 +245,18 @@ export default function Clients() {
 
         {/* Clients grid */}
         {clients.length > 0 && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 stagger-children">
             {filteredClients.map((client) => (
               <Link 
                 key={client.id} 
                 to={`/clients/${client.id}`}
                 className="block"
               >
-                <div className="card-premium group hover-lift p-6 cursor-pointer">
-                  <div className="flex items-start justify-between mb-5">
-                    <div className="flex items-center gap-4">
+                <div className="card-premium group hover-lift p-4 sm:p-6 cursor-pointer">
+                  <div className="flex items-start justify-between mb-4 sm:mb-5">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                       <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-lg"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-lg flex-shrink-0"
                         style={{ 
                           background: `linear-gradient(135deg, ${client.color}, ${client.color}cc)`,
                           boxShadow: `0 8px 24px -4px ${client.color}40`
@@ -264,9 +264,9 @@ export default function Clients() {
                       >
                         {client.name.charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <h3 className="font-bold text-lg">{client.name}</h3>
-                        <p className="text-xs text-muted-foreground">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-base sm:text-lg truncate">{client.name}</h3>
+                        <p className="text-xs text-muted-foreground truncate">
                           {client.email || t("clients.noEmail")}
                         </p>
                       </div>
@@ -276,7 +276,7 @@ export default function Clients() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
+                          className="sm:opacity-0 group-hover:opacity-100 transition-opacity rounded-xl h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
                           onClick={(e) => e.preventDefault()}
                         >
                           <MoreVertical className="w-4 h-4" />
@@ -309,34 +309,34 @@ export default function Clients() {
                     </DropdownMenu>
                   </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-primary" />
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl bg-muted/50">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-bold truncate">
+                          {client.total_hours?.toFixed(1) || "0"}h
+                        </p>
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wide truncate">{t("clients.totalHours")}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold">
-                        {client.total_hours?.toFixed(1) || "0"}h
-                      </p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("clients.totalHours")}</p>
+                    <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl bg-muted/50">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0">
+                        <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-bold truncate">
+                          {client.hourly_rate ? `€${client.hourly_rate}` : "-"}
+                        </p>
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wide truncate">{t("clients.hourlyRate")}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-                    <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 text-success" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold">
-                        {client.hourly_rate ? `€${client.hourly_rate}` : "-"}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("clients.hourlyRate")}</p>
-                    </div>
-                  </div>
-                </div>
 
                   {client.notes && (
-                    <div className="mt-4 pt-4 border-t border-border/50">
-                      <p className="text-xs text-muted-foreground line-clamp-2">
+                    <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/50">
+                      <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2">
                         {client.notes}
                       </p>
                     </div>
@@ -347,14 +347,14 @@ export default function Clients() {
 
             {/* Add new client card */}
             <div
-              className="card-premium border-dashed border-2 flex items-center justify-center min-h-[220px] cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+              className="card-premium border-dashed border-2 flex items-center justify-center min-h-[180px] sm:min-h-[220px] cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
               onClick={() => { setSelectedClient(null); setDialogOpen(true); }}
             >
               <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-4">
-                  <Plus className="w-7 h-7 text-muted-foreground" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <Plus className="w-6 h-6 sm:w-7 sm:h-7 text-muted-foreground" />
                 </div>
-                <p className="text-sm font-semibold">{t("clients.addClient")}</p>
+                <p className="text-xs sm:text-sm font-semibold">{t("clients.addClient")}</p>
               </div>
             </div>
           </div>
