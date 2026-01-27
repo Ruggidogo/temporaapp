@@ -474,6 +474,21 @@ const translations: Record<string, string> = {
   "settings.disconnected": "Signed out",
   "settings.disconnectedDesc": "You have been signed out successfully.",
 
+  // Logo Upload
+  "logoUpload.label": "Logo for PDF export",
+  "logoUpload.invalidType": "Invalid file type",
+  "logoUpload.invalidTypeDesc": "Select an image (PNG, JPG, GIF, SVG).",
+  "logoUpload.tooLarge": "File too large",
+  "logoUpload.tooLargeDesc": "Image must be less than 2MB.",
+  "logoUpload.uploaded": "Logo uploaded",
+  "logoUpload.uploadedDesc": "Your logo has been uploaded successfully.",
+  "logoUpload.removed": "Logo removed",
+  "logoUpload.removedDesc": "Your logo has been removed.",
+  "logoUpload.change": "Change logo",
+  "logoUpload.upload": "Upload logo",
+  "logoUpload.remove": "Remove",
+  "logoUpload.hint": "Upload your logo (max 2MB) to customize exported PDFs.",
+
   // Timesheet Page
   "timesheet.title": "Timesheet",
   "timesheet.subtitle": "View your time entries",

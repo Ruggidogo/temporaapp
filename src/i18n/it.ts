@@ -474,6 +474,21 @@ const translations: Record<string, string> = {
   "settings.disconnected": "Disconnesso",
   "settings.disconnectedDesc": "Sei stato disconnesso con successo.",
 
+  // Logo Upload
+  "logoUpload.label": "Logo per esportazione PDF",
+  "logoUpload.invalidType": "Tipo file non valido",
+  "logoUpload.invalidTypeDesc": "Seleziona un'immagine (PNG, JPG, GIF, SVG).",
+  "logoUpload.tooLarge": "File troppo grande",
+  "logoUpload.tooLargeDesc": "L'immagine deve essere inferiore a 2MB.",
+  "logoUpload.uploaded": "Logo caricato",
+  "logoUpload.uploadedDesc": "Il tuo logo è stato caricato con successo.",
+  "logoUpload.removed": "Logo rimosso",
+  "logoUpload.removedDesc": "Il tuo logo è stato rimosso.",
+  "logoUpload.change": "Cambia logo",
+  "logoUpload.upload": "Carica logo",
+  "logoUpload.remove": "Rimuovi",
+  "logoUpload.hint": "Carica il tuo logo (max 2MB) per personalizzare i PDF esportati.",
+
   // Timesheet Page
   "timesheet.title": "Timesheet",
   "timesheet.subtitle": "Visualizza le tue registrazioni orarie",
