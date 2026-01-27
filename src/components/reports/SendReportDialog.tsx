@@ -27,8 +27,11 @@ import {
 import { Mail, Send, Loader2, Calendar, User, FileText, Settings2, ChevronDown, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from "date-fns";
-import { it } from "date-fns/locale";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, Locale } from "date-fns";
+import { it, enUS, es, fr, de } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 
 interface Client {
   id: string;
@@ -53,21 +56,6 @@ interface PdfSection {
   enabled: boolean;
 }
 
-const periodOptions = [
-  { label: "Oggi", value: "today" },
-  { label: "Ieri", value: "yesterday" },
-  { label: "Questa settimana", value: "week" },
-  { label: "Questo mese", value: "month" },
-  { label: "Ultimi 7 giorni", value: "last7" },
-  { label: "Ultimi 30 giorni", value: "last30" },
-];
-
-const defaultSections: PdfSection[] = [
-  { id: "summary", label: "Riepilogo ore e valore", enabled: true },
-  { id: "clientBreakdown", label: "Riepilogo per cliente", enabled: true },
-  { id: "dailyDetails", label: "Dettaglio attività per giorno", enabled: true },
-];
-
 export function SendReportDialog({
   open,
   onOpenChange,
@@ -77,6 +65,9 @@ export function SendReportDialog({
   defaultDateFrom,
   defaultDateTo,
 }: SendReportDialogProps) {
+  const { language, t } = useLanguage();
+  const locale = dateLocales[language] || enUS;
+
   const [sending, setSending] = useState(false);
   const [email, setEmail] = useState("");
   const [recipientName, setRecipientName] = useState("");
@@ -84,8 +75,30 @@ export function SendReportDialog({
   const [selectedClient, setSelectedClient] = useState(defaultClientId || "all");
   const [selectedPeriod, setSelectedPeriod] = useState(defaultPeriod);
   const [includePdf, setIncludePdf] = useState(true);
-  const [pdfSections, setPdfSections] = useState<PdfSection[]>(defaultSections);
+  const [pdfSections, setPdfSections] = useState<PdfSection[]>([
+    { id: "summary", label: "summary", enabled: true },
+    { id: "clientBreakdown", label: "clientBreakdown", enabled: true },
+    { id: "dailyDetails", label: "dailyDetails", enabled: true },
+  ]);
   const [pdfOptionsOpen, setPdfOptionsOpen] = useState(false);
+
+  const periodOptions = [
+    { label: t("sendReport.today"), value: "today" },
+    { label: t("sendReport.yesterday"), value: "yesterday" },
+    { label: t("sendReport.thisWeek"), value: "week" },
+    { label: t("sendReport.thisMonth"), value: "month" },
+    { label: t("sendReport.last7Days"), value: "last7" },
+    { label: t("sendReport.last30Days"), value: "last30" },
+  ];
+
+  const getSectionLabel = (id: string) => {
+    switch (id) {
+      case "summary": return t("sendReport.sectionSummary");
+      case "clientBreakdown": return t("sendReport.sectionClientBreakdown");
+      case "dailyDetails": return t("sendReport.sectionDailyDetails");
+      default: return id;
+    }
+  };
 
   const getDateRange = () => {
     const today = new Date();
@@ -102,8 +115,8 @@ export function SendReportDialog({
         return { from: format(yesterday, "yyyy-MM-dd"), to: format(yesterday, "yyyy-MM-dd") };
       case "week":
         return { 
-          from: format(startOfWeek(today, { locale: it }), "yyyy-MM-dd"), 
-          to: format(endOfWeek(today, { locale: it }), "yyyy-MM-dd") 
+          from: format(startOfWeek(today, { locale }), "yyyy-MM-dd"), 
+          to: format(endOfWeek(today, { locale }), "yyyy-MM-dd") 
         };
       case "month":
         return { 
@@ -116,8 +129,8 @@ export function SendReportDialog({
         return { from: format(subDays(today, 29), "yyyy-MM-dd"), to: format(today, "yyyy-MM-dd") };
       default:
         return { 
-          from: format(startOfWeek(today, { locale: it }), "yyyy-MM-dd"), 
-          to: format(endOfWeek(today, { locale: it }), "yyyy-MM-dd") 
+          from: format(startOfWeek(today, { locale }), "yyyy-MM-dd"), 
+          to: format(endOfWeek(today, { locale }), "yyyy-MM-dd") 
         };
     }
   };
@@ -160,7 +173,7 @@ export function SendReportDialog({
 
   const handleSend = async () => {
     if (!email) {
-      toast.error("Inserisci un indirizzo email");
+      toast.error(t("sendReport.emailRequired"));
       return;
     }
 
@@ -188,21 +201,21 @@ export function SendReportDialog({
 
       if (error) throw error;
 
-      toast.success("Report inviato con successo!");
+      toast.success(t("sendReport.success"));
       onOpenChange(false);
       setEmail("");
       setRecipientName("");
       setSubject("");
     } catch (error: any) {
       console.error("Error sending report:", error);
-      toast.error(error.message || "Errore nell'invio del report");
+      toast.error(error.message || t("sendReport.error"));
     } finally {
       setSending(false);
     }
   };
 
   const { from, to } = getDateRange();
-  const periodLabel = `${format(new Date(from), "d MMM", { locale: it })} - ${format(new Date(to), "d MMM yyyy", { locale: it })}`;
+  const periodLabel = `${format(new Date(from), "d MMM", { locale })} - ${format(new Date(to), "d MMM yyyy", { locale })}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -212,10 +225,10 @@ export function SendReportDialog({
             <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 border border-primary/20">
               <Mail className="w-5 h-5 text-primary" />
             </div>
-            <DialogTitle className="text-xl">Invia Report via Email</DialogTitle>
+            <DialogTitle className="text-xl">{t("sendReport.title")}</DialogTitle>
           </div>
           <DialogDescription>
-            Invia un riepilogo delle ore lavorate direttamente via email
+            {t("sendReport.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -225,7 +238,7 @@ export function SendReportDialog({
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-sm font-medium">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                Periodo
+                {t("sendReport.period")}
               </Label>
               <Select value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as typeof selectedPeriod)}>
                 <SelectTrigger className="h-11 bg-muted/50 border-border/60">
@@ -245,17 +258,17 @@ export function SendReportDialog({
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">
               <User className="w-4 h-4 text-muted-foreground" />
-              Cliente (opzionale)
+              {t("sendReport.clientOptional")}
             </Label>
             <Select value={selectedClient} onValueChange={handleClientChange}>
               <SelectTrigger className="h-11 bg-muted/50 border-border/60">
-                <SelectValue placeholder="Tutti i clienti" />
+                <SelectValue placeholder={t("sendReport.allClients")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-gradient-to-r from-primary to-purple-500" />
-                    Tutti i clienti
+                    {t("sendReport.allClients")}
                   </div>
                 </SelectItem>
                 {clients.map(client => (
@@ -272,11 +285,11 @@ export function SendReportDialog({
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">Email destinatario *</Label>
+            <Label htmlFor="email" className="text-sm font-medium">{t("sendReport.recipientEmail")}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="cliente@email.com"
+              placeholder={t("sendReport.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-11 bg-muted/50 border-border/60"
@@ -285,10 +298,10 @@ export function SendReportDialog({
 
           {/* Recipient name */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium">Nome destinatario (opzionale)</Label>
+            <Label htmlFor="name" className="text-sm font-medium">{t("sendReport.recipientName")}</Label>
             <Input
               id="name"
-              placeholder="Mario Rossi"
+              placeholder={t("sendReport.namePlaceholder")}
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
               className="h-11 bg-muted/50 border-border/60"
@@ -297,10 +310,10 @@ export function SendReportDialog({
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label htmlFor="subject" className="text-sm font-medium">Oggetto (opzionale)</Label>
+            <Label htmlFor="subject" className="text-sm font-medium">{t("sendReport.subjectOptional")}</Label>
             <Input
               id="subject"
-              placeholder={`Report ore: ${periodLabel}`}
+              placeholder={`${t("sendReport.subjectPlaceholder")} ${periodLabel}`}
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="h-11 bg-muted/50 border-border/60"
@@ -316,10 +329,10 @@ export function SendReportDialog({
                 </div>
                 <div>
                   <Label htmlFor="include-pdf" className="text-sm font-medium cursor-pointer">
-                    Allega PDF
+                    {t("sendReport.attachPdf")}
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Includi il report in formato PDF
+                    {t("sendReport.attachPdfDesc")}
                   </p>
                 </div>
               </div>
@@ -341,7 +354,7 @@ export function SendReportDialog({
                   >
                     <span className="flex items-center gap-2">
                       <Settings2 className="w-4 h-4" />
-                      Personalizza layout PDF
+                      {t("sendReport.customizeLayout")}
                     </span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${pdfOptionsOpen ? 'rotate-180' : ''}`} />
                   </Button>
@@ -349,7 +362,7 @@ export function SendReportDialog({
                 <CollapsibleContent className="pt-2">
                   <div className="space-y-2 p-3 rounded-lg bg-muted/30 border border-border/40">
                     <p className="text-xs text-muted-foreground mb-3">
-                      Seleziona e riordina le sezioni del PDF
+                      {t("sendReport.customizeLayoutDesc")}
                     </p>
                     {pdfSections.map((section, index) => (
                       <div 
@@ -384,7 +397,7 @@ export function SendReportDialog({
                           htmlFor={`section-${section.id}`}
                           className={`text-sm flex-1 cursor-pointer ${!section.enabled ? 'text-muted-foreground line-through' : ''}`}
                         >
-                          {section.label}
+                          {getSectionLabel(section.id)}
                         </Label>
                       </div>
                     ))}
@@ -397,7 +410,7 @@ export function SendReportDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>
-            Annulla
+            {t("sendReport.cancel")}
           </Button>
           <Button onClick={handleSend} disabled={sending} className="btn-gradient">
             {sending ? (
@@ -405,7 +418,7 @@ export function SendReportDialog({
             ) : (
               <Send className="w-4 h-4 mr-2" />
             )}
-            Invia Report
+            {sending ? t("sendReport.sending") : t("sendReport.send")}
           </Button>
         </DialogFooter>
       </DialogContent>
