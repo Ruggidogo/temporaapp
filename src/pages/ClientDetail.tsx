@@ -269,10 +269,10 @@ export default function ClientDetail() {
   if (!client) {
     return (
       <DashboardLayout>
-        <div className="p-6 lg:p-8 max-w-6xl mx-auto text-center py-20">
-          <p className="text-lg text-muted-foreground mb-4">{t("clientDetail.notFound")}</p>
+        <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto text-center py-16 sm:py-20">
+          <p className="text-base sm:text-lg text-muted-foreground mb-4">{t("clientDetail.notFound")}</p>
           <Link to="/clients">
-            <Button variant="outline" className="rounded-xl">
+            <Button variant="outline" className="rounded-xl w-full sm:w-auto">
               <ArrowLeft className="w-4 h-4 mr-2" />
               {t("clientDetail.backToClients")}
             </Button>
@@ -284,20 +284,20 @@ export default function ClientDetail() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-6xl mx-auto space-y-8 tempora-animate-in">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-5 sm:space-y-8 tempora-animate-in overflow-x-hidden">
         {/* Back button & Header */}
         <div>
           <Link to="/clients">
-            <Button variant="ghost" size="sm" className="mb-4 -ml-2 rounded-xl hover:bg-primary/10">
+            <Button variant="ghost" size="sm" className="mb-3 sm:mb-4 -ml-2 rounded-xl hover:bg-primary/10">
               <ArrowLeft className="w-4 h-4 mr-2" />
               {t("clientDetail.backToClients")}
             </Button>
           </Link>
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg"
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-2xl font-bold text-white shadow-lg flex-shrink-0"
                 style={{ 
                   background: `linear-gradient(135deg, ${client.color}, ${client.color}cc)`,
                   boxShadow: `0 8px 24px -4px ${client.color}40`
@@ -305,15 +305,15 @@ export default function ClientDetail() {
               >
                 {client.name.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">{client.name}</h1>
-                <p className="text-muted-foreground">{client.email || t("clientDetail.noEmail")}</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-3xl font-bold tracking-tight truncate">{client.name}</h1>
+                <p className="text-sm text-muted-foreground truncate">{client.email || t("clientDetail.noEmail")}</p>
               </div>
             </div>
             
             <Button 
               onClick={() => setReportDialogOpen(true)}
-              className="btn-gradient rounded-xl"
+              className="btn-gradient rounded-xl w-full sm:w-auto"
             >
               <Mail className="w-4 h-4 mr-2" />
               {t("clientDetail.sendReport")}
@@ -322,43 +322,43 @@ export default function ClientDetail() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          <div className="card-premium p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="card-premium p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-primary" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{formatDuration(totalSeconds)}</p>
-                <p className="text-xs text-muted-foreground">{t("clientDetail.totalHoursFiltered")}</p>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold truncate">{formatDuration(totalSeconds)}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t("clientDetail.totalHoursFiltered")}</p>
               </div>
             </div>
           </div>
           
-          <div className="card-premium p-5">
+          <div className="card-premium p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-success" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-success/10 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold truncate">
                   {client.hourly_rate ? `€${client.hourly_rate}/h` : "-"}
                 </p>
-                <p className="text-xs text-muted-foreground">{t("clientDetail.hourlyRate")}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t("clientDetail.hourlyRate")}</p>
               </div>
             </div>
           </div>
           
-          <div className="card-premium p-5">
+          <div className="card-premium p-4 sm:p-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                <Euro className="w-5 h-5 text-amber-500" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <Euro className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold truncate">
                   {totalEarnings !== null ? `€${totalEarnings.toFixed(2)}` : "-"}
                 </p>
-                <p className="text-xs text-muted-foreground">{t("clientDetail.earningsFiltered")}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t("clientDetail.earningsFiltered")}</p>
               </div>
             </div>
           </div>
@@ -366,29 +366,29 @@ export default function ClientDetail() {
 
         {/* Notes */}
         {client.notes && (
-          <div className="card-premium p-5">
+          <div className="card-premium p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">{t("clientDetail.notes")}</span>
             </div>
-            <p className="text-sm text-muted-foreground">{client.notes}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">{client.notes}</p>
           </div>
         )}
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+          <div className="relative flex-1 sm:max-w-sm">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder={t("clientDetail.searchDescription")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 rounded-xl h-11 bg-card/50 border-border/60"
+              className="pl-11 rounded-xl h-11 bg-card/50 border-border/60 w-full"
             />
           </div>
           
           <Select value={periodFilter} onValueChange={setPeriodFilter}>
-            <SelectTrigger className="w-[180px] rounded-xl h-11">
+            <SelectTrigger className="w-full sm:w-[180px] rounded-xl h-11">
               <Calendar className="w-4 h-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -403,14 +403,14 @@ export default function ClientDetail() {
         </div>
 
         {/* Entries List */}
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           {entriesByDate.length === 0 ? (
-            <div className="card-premium text-center py-16">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-primary" />
+            <div className="card-premium text-center py-12 sm:py-16 px-4">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
               </div>
-              <p className="text-lg font-medium mb-2">{t("clientDetail.noEntries")}</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base sm:text-lg font-medium mb-2">{t("clientDetail.noEntries")}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {t("clientDetail.noEntriesDesc")}
               </p>
             </div>
@@ -418,57 +418,62 @@ export default function ClientDetail() {
             entriesByDate.map(([dateKey, dayEntries]) => {
               const dayTotal = dayEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
               return (
-                <div key={dateKey} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">
-                      {format(new Date(dateKey), "EEEE d MMMM yyyy", { locale })}
+                <div key={dateKey} className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-semibold text-sm sm:text-base truncate">
+                      {format(new Date(dateKey), "EEE d MMM yyyy", { locale })}
                     </h3>
-                    <span className="text-sm font-medium text-primary">
+                    <span className="text-xs sm:text-sm font-medium text-primary whitespace-nowrap">
                       {formatDuration(dayTotal)}
                     </span>
                   </div>
                   
                   <div className="space-y-2">
                     {dayEntries.map((entry) => (
-                      <div key={entry.id} className="card-premium group hover-lift p-4">
-                        <div className="flex items-center gap-4">
+                      <div key={entry.id} className="card-premium group hover-lift p-3 sm:p-4">
+                        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
                           <div
-                            className="w-1 h-12 rounded-full"
+                            className="w-1 h-10 sm:h-12 rounded-full flex-shrink-0"
                             style={{ backgroundColor: client.color }}
                           />
                           
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">
+                            <p className="font-medium text-sm sm:text-base truncate">
                               {entry.description || t("clientDetail.noDescription")}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatTimeOfDay(entry.start_time)}
-                              {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-x-2 text-[10px] sm:text-xs text-muted-foreground">
+                              <span>
+                                {formatTimeOfDay(entry.start_time)}
+                                {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
+                              </span>
+                              <span className="sm:hidden font-bold text-primary">
+                                {formatDuration(entry.duration_seconds || 0)}
+                              </span>
+                            </div>
                           </div>
                           
-                          <div className="text-right">
+                          <div className="hidden sm:block text-right flex-shrink-0">
                             <p className="font-bold text-gradient">
                               {formatDuration(entry.duration_seconds || 0)}
                             </p>
                           </div>
                           
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="rounded-xl hover:bg-primary/10"
+                              className="rounded-xl hover:bg-primary/10 h-8 w-8 sm:h-9 sm:w-9"
                               onClick={() => setEditingEntry(entry)}
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-destructive hover:bg-destructive/10 rounded-xl"
+                              className="text-destructive hover:bg-destructive/10 rounded-xl h-8 w-8 sm:h-9 sm:w-9"
                               onClick={() => setDeletingEntry(entry)}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </Button>
                           </div>
                         </div>
