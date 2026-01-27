@@ -17,94 +17,196 @@ export function TimerDisplay({ time, isRunning }: TimerDisplayProps) {
       )}
       
       {/* Timer display */}
-      <div
-        className={cn(
-          "relative flex items-center font-mono font-bold tracking-tighter",
-          "text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] xl:text-[12rem]",
-          "transition-colors duration-500",
-          isRunning 
-            ? "text-success drop-shadow-[0_0_40px_hsl(var(--success)/0.4)]" 
-            : "text-foreground"
-        )}
-      >
+      <div className="relative flex items-center gap-1 sm:gap-2">
         {time.split("").map((char, index) => (
-          <AnimatedDigit 
-            key={index} 
-            char={char} 
-            isRunning={isRunning}
-            isSeparator={char === ":"}
-          />
+          char === ":" ? (
+            <TimerSeparator key={index} isRunning={isRunning} />
+          ) : (
+            <FlipDigit 
+              key={index} 
+              digit={char} 
+              isRunning={isRunning}
+            />
+          )
         ))}
       </div>
       
       {/* Subtle underline accent */}
       {isRunning && (
-        <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-1 rounded-full bg-gradient-to-r from-transparent via-success/50 to-transparent" />
+        <div className="absolute bottom-0 sm:bottom-2 left-1/2 -translate-x-1/2 w-24 sm:w-40 h-1 rounded-full bg-gradient-to-r from-transparent via-success/40 to-transparent" />
       )}
     </div>
   );
 }
 
-interface AnimatedDigitProps {
-  char: string;
+interface FlipDigitProps {
+  digit: string;
   isRunning: boolean;
-  isSeparator: boolean;
 }
 
-function AnimatedDigit({ char, isRunning, isSeparator }: AnimatedDigitProps) {
-  const [displayChar, setDisplayChar] = useState(char);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const prevCharRef = useRef(char);
+function FlipDigit({ digit, isRunning }: FlipDigitProps) {
+  const [currentDigit, setCurrentDigit] = useState(digit);
+  const [previousDigit, setPreviousDigit] = useState(digit);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const prevDigitRef = useRef(digit);
 
   useEffect(() => {
-    if (prevCharRef.current !== char && !isSeparator) {
-      setIsAnimating(true);
+    if (prevDigitRef.current !== digit) {
+      setPreviousDigit(prevDigitRef.current);
+      setIsFlipping(true);
       
-      // Short delay before changing the character
-      const timeout = setTimeout(() => {
-        setDisplayChar(char);
-        prevCharRef.current = char;
-      }, 75);
+      // Change digit at the middle of the flip
+      const changeTimeout = setTimeout(() => {
+        setCurrentDigit(digit);
+      }, 150);
 
-      // Reset animation state
+      // Reset flip state
       const resetTimeout = setTimeout(() => {
-        setIsAnimating(false);
-      }, 200);
+        setIsFlipping(false);
+        prevDigitRef.current = digit;
+      }, 300);
 
       return () => {
-        clearTimeout(timeout);
+        clearTimeout(changeTimeout);
         clearTimeout(resetTimeout);
       };
-    } else {
-      setDisplayChar(char);
-      prevCharRef.current = char;
     }
-  }, [char, isSeparator]);
-
-  if (isSeparator) {
-    return (
-      <span 
-        className={cn(
-          "mx-1 sm:mx-2 transition-opacity duration-300",
-          isRunning ? "opacity-100 animate-pulse" : "opacity-60"
-        )}
-      >
-        {char}
-      </span>
-    );
-  }
+  }, [digit]);
 
   return (
-    <span
+    <div 
       className={cn(
-        "relative inline-block tabular-nums transition-all duration-200 ease-out",
-        isAnimating && "scale-110 opacity-70"
+        "relative",
+        "w-12 h-16 sm:w-20 sm:h-28 md:w-24 md:h-32 lg:w-28 lg:h-40",
+        "perspective-[500px]"
       )}
-      style={{
-        transform: isAnimating ? 'translateY(-4px)' : 'translateY(0)',
-      }}
+      style={{ perspective: "500px" }}
     >
-      {displayChar}
-    </span>
+      {/* Card background */}
+      <div 
+        className={cn(
+          "absolute inset-0 rounded-lg sm:rounded-xl",
+          "bg-gradient-to-b from-muted/80 to-muted/40",
+          "border border-border/30",
+          "shadow-lg",
+          "transition-all duration-300",
+          isRunning && "border-success/20 shadow-[0_4px_20px_-4px_hsl(var(--success)/0.2)]"
+        )}
+      />
+      
+      {/* Static bottom half (shows current digit) */}
+      <div className="absolute inset-0 overflow-hidden rounded-lg sm:rounded-xl">
+        <div 
+          className={cn(
+            "absolute inset-0 flex items-center justify-center",
+            "font-mono font-bold tabular-nums",
+            "text-4xl sm:text-6xl md:text-7xl lg:text-8xl",
+            "transition-colors duration-300",
+            isRunning ? "text-success" : "text-foreground"
+          )}
+        >
+          {currentDigit}
+        </div>
+      </div>
+
+      {/* Flip card - top half flipping down */}
+      {isFlipping && (
+        <>
+          {/* Top half - old digit flipping down */}
+          <div 
+            className={cn(
+              "absolute inset-x-0 top-0 h-1/2 overflow-hidden rounded-t-lg sm:rounded-t-xl",
+              "bg-gradient-to-b from-muted/90 to-muted/60",
+              "border-x border-t border-border/30",
+              "origin-bottom",
+              "animate-flip-top"
+            )}
+            style={{
+              transformStyle: "preserve-3d",
+              backfaceVisibility: "hidden",
+            }}
+          >
+            <div 
+              className={cn(
+                "absolute inset-0 flex items-end justify-center pb-0",
+                "font-mono font-bold tabular-nums",
+                "text-4xl sm:text-6xl md:text-7xl lg:text-8xl",
+                isRunning ? "text-success" : "text-foreground"
+              )}
+              style={{ 
+                height: "200%",
+              }}
+            >
+              {previousDigit}
+            </div>
+          </div>
+
+          {/* Bottom half - new digit flipping up */}
+          <div 
+            className={cn(
+              "absolute inset-x-0 bottom-0 h-1/2 overflow-hidden rounded-b-lg sm:rounded-b-xl",
+              "bg-gradient-to-t from-muted/90 to-muted/60",
+              "border-x border-b border-border/30",
+              "origin-top",
+              "animate-flip-bottom"
+            )}
+            style={{
+              transformStyle: "preserve-3d",
+              backfaceVisibility: "hidden",
+            }}
+          >
+            <div 
+              className={cn(
+                "absolute inset-0 flex items-start justify-center pt-0",
+                "font-mono font-bold tabular-nums",
+                "text-4xl sm:text-6xl md:text-7xl lg:text-8xl",
+                isRunning ? "text-success" : "text-foreground"
+              )}
+              style={{ 
+                height: "200%",
+                marginTop: "-100%",
+              }}
+            >
+              {currentDigit}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Center line */}
+      <div className="absolute inset-x-0 top-1/2 h-px bg-border/50 -translate-y-px z-10" />
+      
+      {/* Shine effect */}
+      <div className="absolute inset-0 rounded-lg sm:rounded-xl bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+    </div>
+  );
+}
+
+interface TimerSeparatorProps {
+  isRunning: boolean;
+}
+
+function TimerSeparator({ isRunning }: TimerSeparatorProps) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 sm:gap-3 px-1 sm:px-2">
+      <div
+        className={cn(
+          "w-2 h-2 sm:w-3 sm:h-3 rounded-full",
+          "transition-all duration-300",
+          isRunning 
+            ? "bg-success shadow-[0_0_10px_hsl(var(--success)/0.6)] animate-pulse" 
+            : "bg-muted-foreground/30"
+        )}
+      />
+      <div
+        className={cn(
+          "w-2 h-2 sm:w-3 sm:h-3 rounded-full",
+          "transition-all duration-300",
+          isRunning 
+            ? "bg-success shadow-[0_0_10px_hsl(var(--success)/0.6)] animate-pulse" 
+            : "bg-muted-foreground/30"
+        )}
+      />
+    </div>
   );
 }
