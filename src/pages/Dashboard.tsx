@@ -316,7 +316,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-8 tempora-animate-in">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6 sm:space-y-8 tempora-animate-in overflow-x-hidden">
         {/* Trial Banner */}
         <TrialBanner />
         {/* Timer Card - Premium Design */}
@@ -409,7 +409,7 @@ export default function Dashboard() {
               {/* Timer display - Premium */}
               <div
                 className={cn(
-                  "font-mono text-7xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-8 transition-all duration-300",
+                  "font-mono text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold tracking-tighter mb-6 sm:mb-8 transition-all duration-300",
                   timer.isRunning 
                     ? "text-gradient" 
                     : "text-foreground"
@@ -426,18 +426,18 @@ export default function Dashboard() {
                 placeholder={t("dashboard.workingOn")}
                 value={timer.description}
                 onChange={(e) => timer.setDescription(e.target.value)}
-                className="max-w-md text-center border-dashed border-border/60 mb-10 rounded-2xl h-12 bg-card/50 focus:bg-card transition-colors"
+                className="w-full max-w-md text-center border-dashed border-border/60 mb-8 sm:mb-10 rounded-2xl h-12 bg-card/50 focus:bg-card transition-colors"
                 disabled={timer.isRunning}
               />
 
               {/* Action buttons */}
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto px-4 sm:px-0">
                 <Button
                   size="lg"
                   onClick={handleStartStop}
                   disabled={timer.saving}
                   className={cn(
-                    "min-w-[160px] h-14 rounded-2xl text-base font-semibold transition-all duration-300",
+                    "w-full sm:w-auto sm:min-w-[160px] h-14 rounded-2xl text-base font-semibold transition-all duration-300",
                     timer.isRunning 
                       ? "bg-destructive hover:bg-destructive/90 shadow-lg" 
                       : "btn-gradient"
@@ -462,15 +462,15 @@ export default function Dashboard() {
                   size="lg"
                   onClick={() => setManualDialogOpen(true)}
                   disabled={timer.isRunning}
-                  className="h-14 rounded-2xl hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
+                  className="w-full sm:w-auto h-14 rounded-2xl hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
                 >
                   <Clock className="w-5 h-5 mr-2" />
                   {t("dashboard.manual")}
                 </Button>
               </div>
 
-              {/* Keyboard hint */}
-              <p className="mt-8 text-xs text-muted-foreground flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-full">
+              {/* Keyboard hint - hidden on mobile */}
+              <p className="hidden sm:flex mt-8 text-xs text-muted-foreground items-center gap-2 px-4 py-2 bg-muted/50 rounded-full">
                 <Keyboard className="w-3.5 h-3.5" />
                 {t("dashboard.keyboardHint")} <kbd className="px-1.5 py-0.5 bg-card rounded text-[10px] font-mono border">{t("dashboard.spaceKey")}</kbd> {t("dashboard.keyboardHintAction")}
               </p>
