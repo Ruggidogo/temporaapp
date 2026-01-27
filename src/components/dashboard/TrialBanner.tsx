@@ -40,6 +40,9 @@ export function TrialBanner({ onDismiss, className }: TrialBannerProps) {
       if (trialDaysRemaining === 0) {
         return t("trial.expirestoday");
       }
+      if (trialDaysRemaining === 1) {
+        return t("trial.only1DayLeft");
+      }
       return t("trial.onlyDaysLeft").replace("{days}", String(trialDaysRemaining));
     }
     return t("trial.usingTrial");
