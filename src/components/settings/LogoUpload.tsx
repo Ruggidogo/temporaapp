@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface LogoUploadProps {
   userId: string;
@@ -12,6 +13,7 @@ interface LogoUploadProps {
 }
 
 export function LogoUpload({ userId, currentLogoUrl, onLogoChange }: LogoUploadProps) {
+  const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,8 +25,8 @@ export function LogoUpload({ userId, currentLogoUrl, onLogoChange }: LogoUploadP
     // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
-        title: "Tipo file non valido",
-        description: "Seleziona un'immagine (PNG, JPG, GIF, SVG).",
+        title: t("logoUpload.invalidType"),
+        description: t("logoUpload.invalidTypeDesc"),
         variant: "destructive",
       });
       return;
@@ -33,8 +35,8 @@ export function LogoUpload({ userId, currentLogoUrl, onLogoChange }: LogoUploadP
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
-        title: "File troppo grande",
-        description: "L'immagine deve essere inferiore a 2MB.",
+        title: t("logoUpload.tooLarge"),
+        description: t("logoUpload.tooLargeDesc"),
         variant: "destructive",
       });
       return;
@@ -71,12 +73,12 @@ export function LogoUpload({ userId, currentLogoUrl, onLogoChange }: LogoUploadP
 
       onLogoChange(logoUrl);
       toast({
-        title: "Logo caricato",
-        description: "Il tuo logo è stato caricato con successo.",
+        title: t("logoUpload.uploaded"),
+        description: t("logoUpload.uploadedDesc"),
       });
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -111,12 +113,12 @@ export function LogoUpload({ userId, currentLogoUrl, onLogoChange }: LogoUploadP
 
       onLogoChange(null);
       toast({
-        title: "Logo rimosso",
-        description: "Il tuo logo è stato rimosso.",
+        title: t("logoUpload.removed"),
+        description: t("logoUpload.removedDesc"),
       });
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -127,7 +129,7 @@ export function LogoUpload({ userId, currentLogoUrl, onLogoChange }: LogoUploadP
 
   return (
     <div className="space-y-3">
-      <Label>Logo per esportazione PDF</Label>
+      <Label>{t("logoUpload.label")}</Label>
       <div className="flex items-center gap-4">
         {/* Logo preview */}
         <div className="w-20 h-20 rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/50">
@@ -163,7 +165,7 @@ export function LogoUpload({ userId, currentLogoUrl, onLogoChange }: LogoUploadP
             ) : (
               <Upload className="w-4 h-4 mr-2" />
             )}
-            {currentLogoUrl ? "Cambia logo" : "Carica logo"}
+            {currentLogoUrl ? t("logoUpload.change") : t("logoUpload.upload")}
           </Button>
           {currentLogoUrl && (
             <Button
@@ -179,13 +181,13 @@ export function LogoUpload({ userId, currentLogoUrl, onLogoChange }: LogoUploadP
               ) : (
                 <X className="w-4 h-4 mr-2" />
               )}
-              Rimuovi
+              {t("logoUpload.remove")}
             </Button>
           )}
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Carica il tuo logo (max 2MB) per personalizzare i PDF esportati.
+        {t("logoUpload.hint")}
       </p>
     </div>
   );
