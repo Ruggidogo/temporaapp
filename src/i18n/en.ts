@@ -634,6 +634,51 @@ const translations: Record<string, string> = {
   "manualEntry.saving": "Saving...",
   "manualEntry.invalidTimeFormat": "Invalid time format (HH:MM)",
   "manualEntry.endAfterStart": "End time must be after start time",
+
+  // Trial Banner
+  "trial.usingTrial": "You're using Tempora on trial",
+  "trial.daysRemaining": "You have {days} days left of your free trial. Upgrade to Pro for unlimited access.",
+  "trial.expirestoday": "Your trial expires today!",
+  "trial.onlyDaysLeft": "Only {days} {days, plural, one {day} other {days}} left!",
+  "trial.urgentMessage": "Upgrade to Pro to keep access to all features and your data.",
+  "trial.upgradeToPro": "Upgrade to Pro",
+  "trial.day1": "Day 1",
+  "trial.day7": "Day 7",
+
+  // Upgrade Button
+  "upgrade.pro": "Pro",
+  "upgrade.upgrade": "Upgrade",
+  "upgrade.manageSubscription": "Manage subscription",
+  "upgrade.upgradeToPro": "Upgrade to Pro",
+  "upgrade.bannerTitle": "Upgrade to Tempora Pro",
+  "upgrade.bannerDesc": "Unlock all features and remove limits",
+  "upgrade.price": "€14.99/month",
+  "upgrade.error": "Error",
+  "upgrade.checkoutError": "Unable to start checkout. Please try again.",
+  "upgrade.portalError": "Unable to open portal. Please try again.",
+
+  // Trial Expired Page
+  "trialExpired.badge": "Your trial period has ended",
+  "trialExpired.greeting": "Hi {name}! 👋",
+  "trialExpired.message": "Your 7-day trial has ended. Upgrade to <highlight>Tempora Pro</highlight> to continue tracking your time and managing your clients.",
+  "trialExpired.specialOffer": "Special offer: first month for only €9.99!",
+  "trialExpired.feature1Title": "Unlimited tracking",
+  "trialExpired.feature1Desc": "Track all the hours you want without limits",
+  "trialExpired.feature2Title": "Unlimited clients",
+  "trialExpired.feature2Desc": "Manage all your clients in one place",
+  "trialExpired.feature3Title": "Professional reports",
+  "trialExpired.feature3Desc": "Generate custom PDF reports with your logo",
+  "trialExpired.feature4Title": "Data export",
+  "trialExpired.feature4Desc": "Export your data to CSV, PDF and other formats",
+  "trialExpired.originalPrice": "€14.99",
+  "trialExpired.discountPrice": "€9.99",
+  "trialExpired.perMonth": "/month",
+  "trialExpired.pricingNote": "Then €14.99/month. Cancel anytime.",
+  "trialExpired.cta": "Upgrade to Pro Now",
+  "trialExpired.cancelAnytime": "Cancel anytime",
+  "trialExpired.securePayment": "Secure payment",
+  "trialExpired.contactUs": "Questions? Contact us at",
+  "trialExpired.signOut": "Sign out",
 };
 
 export default translations;

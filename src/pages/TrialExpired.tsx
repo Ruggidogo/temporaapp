@@ -4,35 +4,37 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import temporaLogoDark from "@/assets/tempora-logo-dark.svg";
 import temporaLogoLight from "@/assets/tempora-logo-light.svg";
-
-const features = [
-  {
-    icon: Clock,
-    title: "Tracking illimitato",
-    description: "Registra tutte le ore che vuoi senza limiti"
-  },
-  {
-    icon: Users,
-    title: "Clienti illimitati",
-    description: "Gestisci tutti i tuoi clienti in un unico posto"
-  },
-  {
-    icon: FileText,
-    title: "Report professionali",
-    description: "Genera report PDF personalizzati con il tuo logo"
-  },
-  {
-    icon: Zap,
-    title: "Esportazione dati",
-    description: "Esporta i tuoi dati in CSV, PDF e altri formati"
-  }
-];
 
 export default function TrialExpired() {
   const [loading, setLoading] = useState(false);
   const { signOut, profile } = useAuth();
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: Clock,
+      title: t("trialExpired.feature1Title"),
+      description: t("trialExpired.feature1Desc")
+    },
+    {
+      icon: Users,
+      title: t("trialExpired.feature2Title"),
+      description: t("trialExpired.feature2Desc")
+    },
+    {
+      icon: FileText,
+      title: t("trialExpired.feature3Title"),
+      description: t("trialExpired.feature3Desc")
+    },
+    {
+      icon: Zap,
+      title: t("trialExpired.feature4Title"),
+      description: t("trialExpired.feature4Desc")
+    }
+  ];
 
   const handleUpgrade = async () => {
     setLoading(true);
@@ -47,8 +49,8 @@ export default function TrialExpired() {
     } catch (error: any) {
       console.error('Checkout error:', error);
       toast({
-        title: "Errore",
-        description: "Impossibile avviare il checkout. Riprova.",
+        title: t("upgrade.error"),
+        description: t("upgrade.checkoutError"),
         variant: "destructive",
       });
     } finally {
@@ -72,7 +74,7 @@ export default function TrialExpired() {
             className="h-8 hidden dark:block" 
           />
           <Button variant="ghost" onClick={signOut}>
-            Esci
+            {t("trialExpired.signOut")}
           </Button>
         </div>
       </header>
@@ -84,7 +86,7 @@ export default function TrialExpired() {
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
               <Clock className="w-4 h-4" />
-              <span className="text-sm font-medium">Il tuo periodo di prova è terminato</span>
+              <span className="text-sm font-medium">{t("trialExpired.badge")}</span>
             </div>
           </div>
 
@@ -100,17 +102,23 @@ export default function TrialExpired() {
               </div>
               
               <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                Ciao {profile?.name || 'there'}! 👋
+                {t("trialExpired.greeting").replace("{name}", profile?.name || 'there')}
               </h1>
               
               <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-6">
-                Il tuo trial di 7 giorni è terminato. Passa a <span className="text-primary font-semibold">Tempora Pro</span> per continuare a tracciare il tuo tempo e gestire i tuoi clienti.
+                {t("trialExpired.message")
+                  .replace("<highlight>", "")
+                  .replace("</highlight>", "")
+                  .split("Tempora Pro")
+                  .map((part, i, arr) => i < arr.length - 1 ? (
+                    <span key={i}>{part}<span className="text-primary font-semibold">Tempora Pro</span></span>
+                  ) : part)}
               </p>
 
               {/* Special Offer */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 text-success border border-success/20 mb-8">
                 <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">Offerta speciale: primo mese a soli €9,99!</span>
+                <span className="text-sm font-medium">{t("trialExpired.specialOffer")}</span>
               </div>
             </div>
 
@@ -135,12 +143,12 @@ export default function TrialExpired() {
             {/* Pricing */}
             <div className="relative text-center mb-8">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-2xl text-muted-foreground line-through">€14,99</span>
-                <span className="text-4xl font-bold text-primary">€9,99</span>
-                <span className="text-muted-foreground">/mese</span>
+                <span className="text-2xl text-muted-foreground line-through">{t("trialExpired.originalPrice")}</span>
+                <span className="text-4xl font-bold text-primary">{t("trialExpired.discountPrice")}</span>
+                <span className="text-muted-foreground">{t("trialExpired.perMonth")}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Poi €14,99/mese. Cancella quando vuoi.
+                {t("trialExpired.pricingNote")}
               </p>
             </div>
 
@@ -157,7 +165,7 @@ export default function TrialExpired() {
                 ) : (
                   <Crown className="w-5 h-5 mr-2" />
                 )}
-                Passa a Pro Ora
+                {t("trialExpired.cta")}
               </Button>
             </div>
 
@@ -165,18 +173,18 @@ export default function TrialExpired() {
             <div className="relative flex items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-success" />
-                <span>Cancella quando vuoi</span>
+                <span>{t("trialExpired.cancelAnytime")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-success" />
-                <span>Pagamento sicuro</span>
+                <span>{t("trialExpired.securePayment")}</span>
               </div>
             </div>
           </div>
 
           {/* Footer note */}
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Hai domande? Contattaci a <a href="mailto:support@tempora.app" className="text-primary hover:underline">support@tempora.app</a>
+            {t("trialExpired.contactUs")} <a href="mailto:support@tempora.app" className="text-primary hover:underline">support@tempora.app</a>
           </p>
         </div>
       </main>
