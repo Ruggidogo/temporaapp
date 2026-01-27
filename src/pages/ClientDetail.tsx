@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import { it } from "date-fns/locale";
+import { format, startOfMonth, subMonths } from "date-fns";
+import { it, enUS, es, fr, de } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,7 +30,11 @@ import { DeleteEntryDialog } from "@/components/timesheet/DeleteEntryDialog";
 import { SendReportDialog } from "@/components/reports/SendReportDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
+import type { Locale } from "date-fns";
+
+const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 
 interface Client {
   id: string;
@@ -72,7 +76,8 @@ function formatTimeOfDay(isoString: string): string {
 export default function ClientDetail() {
   const { clientId } = useParams<{ clientId: string }>();
   const { user } = useAuth();
-  
+  const { language, t } = useLanguage();
+  const locale = dateLocales[language] || enUS;
   const [client, setClient] = useState<Client | null>(null);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +120,7 @@ export default function ClientDetail() {
       setEntries(entriesRes.data || []);
     } catch (error) {
       console.error("Error fetching client:", error);
-      toast.error("Errore nel caricamento del cliente");
+      toast.error(t("clientDetail.errorLoading"));
     } finally {
       setLoading(false);
     }
@@ -218,7 +223,7 @@ export default function ClientDetail() {
 
       if (error) throw error;
 
-      toast.success("Registrazione aggiornata");
+      toast.success(t("clientDetail.entryUpdated"));
       setEditingEntry(null);
       fetchData();
     } catch (error: any) {
@@ -241,7 +246,7 @@ export default function ClientDetail() {
 
       if (error) throw error;
 
-      toast.success("Registrazione eliminata");
+      toast.success(t("clientDetail.entryDeleted"));
       setDeletingEntry(null);
       fetchData();
     } catch (error: any) {
@@ -265,11 +270,11 @@ export default function ClientDetail() {
     return (
       <DashboardLayout>
         <div className="p-6 lg:p-8 max-w-6xl mx-auto text-center py-20">
-          <p className="text-lg text-muted-foreground mb-4">Cliente non trovato</p>
+          <p className="text-lg text-muted-foreground mb-4">{t("clientDetail.notFound")}</p>
           <Link to="/clients">
             <Button variant="outline" className="rounded-xl">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Torna ai clienti
+              {t("clientDetail.backToClients")}
             </Button>
           </Link>
         </div>
@@ -285,7 +290,7 @@ export default function ClientDetail() {
           <Link to="/clients">
             <Button variant="ghost" size="sm" className="mb-4 -ml-2 rounded-xl hover:bg-primary/10">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Tutti i clienti
+              {t("clientDetail.backToClients")}
             </Button>
           </Link>
           
@@ -302,7 +307,7 @@ export default function ClientDetail() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">{client.name}</h1>
-                <p className="text-muted-foreground">{client.email || "Nessuna email"}</p>
+                <p className="text-muted-foreground">{client.email || t("clientDetail.noEmail")}</p>
               </div>
             </div>
             
@@ -311,7 +316,7 @@ export default function ClientDetail() {
               className="btn-gradient rounded-xl"
             >
               <Mail className="w-4 h-4 mr-2" />
-              Invia report
+              {t("clientDetail.sendReport")}
             </Button>
           </div>
         </div>
@@ -325,7 +330,7 @@ export default function ClientDetail() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{formatDuration(totalSeconds)}</p>
-                <p className="text-xs text-muted-foreground">Ore totali (filtrate)</p>
+                <p className="text-xs text-muted-foreground">{t("clientDetail.totalHoursFiltered")}</p>
               </div>
             </div>
           </div>
@@ -339,7 +344,7 @@ export default function ClientDetail() {
                 <p className="text-2xl font-bold">
                   {client.hourly_rate ? `€${client.hourly_rate}/h` : "-"}
                 </p>
-                <p className="text-xs text-muted-foreground">Tariffa oraria</p>
+                <p className="text-xs text-muted-foreground">{t("clientDetail.hourlyRate")}</p>
               </div>
             </div>
           </div>
@@ -353,7 +358,7 @@ export default function ClientDetail() {
                 <p className="text-2xl font-bold">
                   {totalEarnings !== null ? `€${totalEarnings.toFixed(2)}` : "-"}
                 </p>
-                <p className="text-xs text-muted-foreground">Guadagno (filtrato)</p>
+                <p className="text-xs text-muted-foreground">{t("clientDetail.earningsFiltered")}</p>
               </div>
             </div>
           </div>
@@ -364,7 +369,7 @@ export default function ClientDetail() {
           <div className="card-premium p-5">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Note</span>
+              <span className="text-sm font-medium">{t("clientDetail.notes")}</span>
             </div>
             <p className="text-sm text-muted-foreground">{client.notes}</p>
           </div>
@@ -375,7 +380,7 @@ export default function ClientDetail() {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Cerca descrizione..."
+              placeholder={t("clientDetail.searchDescription")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-11 rounded-xl h-11 bg-card/50 border-border/60"
@@ -388,11 +393,11 @@ export default function ClientDetail() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="all">Tutto lo storico</SelectItem>
-              <SelectItem value="month">Questo mese</SelectItem>
-              <SelectItem value="3months">Ultimi 3 mesi</SelectItem>
-              <SelectItem value="6months">Ultimi 6 mesi</SelectItem>
-              <SelectItem value="year">Ultimo anno</SelectItem>
+              <SelectItem value="all">{t("clientDetail.allHistory")}</SelectItem>
+              <SelectItem value="month">{t("clientDetail.thisMonth")}</SelectItem>
+              <SelectItem value="3months">{t("clientDetail.last3Months")}</SelectItem>
+              <SelectItem value="6months">{t("clientDetail.last6Months")}</SelectItem>
+              <SelectItem value="year">{t("clientDetail.lastYear")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -404,9 +409,9 @@ export default function ClientDetail() {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-8 h-8 text-primary" />
               </div>
-              <p className="text-lg font-medium mb-2">Nessuna registrazione</p>
+              <p className="text-lg font-medium mb-2">{t("clientDetail.noEntries")}</p>
               <p className="text-sm text-muted-foreground">
-                Non ci sono attività registrate per questo cliente
+                {t("clientDetail.noEntriesDesc")}
               </p>
             </div>
           ) : (
@@ -416,7 +421,7 @@ export default function ClientDetail() {
                 <div key={dateKey} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">
-                      {format(new Date(dateKey), "EEEE d MMMM yyyy", { locale: it })}
+                      {format(new Date(dateKey), "EEEE d MMMM yyyy", { locale })}
                     </h3>
                     <span className="text-sm font-medium text-primary">
                       {formatDuration(dayTotal)}
@@ -434,7 +439,7 @@ export default function ClientDetail() {
                           
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">
-                              {entry.description || "Nessuna descrizione"}
+                              {entry.description || t("clientDetail.noDescription")}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {formatTimeOfDay(entry.start_time)}

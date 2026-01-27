@@ -388,6 +388,28 @@ const translations: Record<string, string> = {
   "clients.errorUpdating": "Error al actualizar cliente",
   "clients.errorDeleting": "Error al eliminar cliente",
 
+  // Client Detail Page
+  "clientDetail.backToClients": "Todos los clientes",
+  "clientDetail.notFound": "Cliente no encontrado",
+  "clientDetail.noEmail": "Sin email",
+  "clientDetail.sendReport": "Enviar informe",
+  "clientDetail.totalHoursFiltered": "Horas totales (filtradas)",
+  "clientDetail.hourlyRate": "Tarifa por hora",
+  "clientDetail.earningsFiltered": "Ganancias (filtradas)",
+  "clientDetail.notes": "Notas",
+  "clientDetail.searchDescription": "Buscar descripción...",
+  "clientDetail.allHistory": "Todo el historial",
+  "clientDetail.thisMonth": "Este mes",
+  "clientDetail.last3Months": "Últimos 3 meses",
+  "clientDetail.last6Months": "Últimos 6 meses",
+  "clientDetail.lastYear": "Último año",
+  "clientDetail.noEntries": "Sin registros",
+  "clientDetail.noEntriesDesc": "No hay actividades registradas para este cliente",
+  "clientDetail.noDescription": "Sin descripción",
+  "clientDetail.entryUpdated": "Registro actualizado",
+  "clientDetail.entryDeleted": "Registro eliminado",
+  "clientDetail.errorLoading": "Error al cargar cliente",
+
   // Reports Page
   "reports.title": "Informes",
   "reports.subtitle": "Analiza dónde va tu tiempo y maximiza la productividad",
