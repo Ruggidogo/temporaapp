@@ -656,6 +656,8 @@ const translations: Record<string, string> = {
   "upgrade.error": "Errore",
   "upgrade.checkoutError": "Impossibile avviare il checkout. Riprova.",
   "upgrade.portalError": "Impossibile aprire il portale. Riprova.",
+  "upgrade.redirecting": "Reindirizzamento a Stripe...",
+  "upgrade.pleaseWait": "Attendi mentre ti reindirizziamo alla pagina di pagamento",
 
   // Trial Expired Page
   "trialExpired.badge": "Il tuo periodo di prova è terminato",
