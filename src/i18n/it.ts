@@ -192,6 +192,36 @@ const translations: Record<string, string> = {
   "common.skip": "Salta",
   "common.or": "oppure",
   "common.allRightsReserved": "© 2026 Tempora. Tutti i diritti riservati.",
+  "common.saving": "Salvataggio...",
+  "common.deleting": "Eliminazione...",
+  "common.create": "Crea",
+
+  // Client Dialog
+  "clientDialog.titleNew": "Nuovo cliente",
+  "clientDialog.titleEdit": "Modifica cliente",
+  "clientDialog.nameLabel": "Nome *",
+  "clientDialog.namePlaceholder": "Nome del cliente",
+  "clientDialog.nameRequired": "Il nome è obbligatorio",
+  "clientDialog.emailLabel": "Email",
+  "clientDialog.emailPlaceholder": "email@esempio.com",
+  "clientDialog.emailInvalid": "Email non valida",
+  "clientDialog.hourlyRateLabel": "Tariffa oraria (€)",
+  "clientDialog.hourlyRatePlaceholder": "0.00",
+  "clientDialog.hourlyRateInvalid": "La tariffa deve essere positiva",
+  "clientDialog.colorLabel": "Colore",
+  "clientDialog.colorInvalid": "Colore non valido",
+  "clientDialog.notesLabel": "Note",
+  "clientDialog.notesPlaceholder": "Note aggiuntive...",
+  "clientDialog.colorViolet": "Viola",
+  "clientDialog.colorBlue": "Blu",
+  "clientDialog.colorPink": "Rosa",
+  "clientDialog.colorGreen": "Verde",
+  "clientDialog.colorOrange": "Arancione",
+  "clientDialog.colorAmber": "Ambra",
+
+  // Delete Client Dialog
+  "deleteClientDialog.title": "Eliminare il cliente?",
+  "deleteClientDialog.description": "Stai per eliminare <strong>{clientName}</strong>. Questa azione non può essere annullata. Le registrazioni orarie associate rimarranno nel database ma non saranno più collegate a questo cliente.",
 
   // Cookie Banner
   "cookieBanner.title": "Utilizziamo i cookie",

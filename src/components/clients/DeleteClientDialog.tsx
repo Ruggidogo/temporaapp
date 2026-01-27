@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DeleteClientDialogProps {
   open: boolean;
@@ -24,25 +25,28 @@ export function DeleteClientDialog({
   clientName,
   isLoading,
 }: DeleteClientDialogProps) {
+  const { t } = useLanguage();
+
+  // Replace {clientName} placeholder with actual client name
+  const description = t("deleteClientDialog.description").replace("{clientName}", clientName);
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Eliminare il cliente?</AlertDialogTitle>
+          <AlertDialogTitle>{t("deleteClientDialog.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Stai per eliminare <strong>{clientName}</strong>. Questa azione non
-            può essere annullata. Le registrazioni orarie associate rimarranno
-            nel database ma non saranno più collegate a questo cliente.
+            <span dangerouslySetInnerHTML={{ __html: description }} />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>Annulla</AlertDialogCancel>
+          <AlertDialogCancel disabled={isLoading}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isLoading ? "Eliminazione..." : "Elimina"}
+            {isLoading ? t("common.deleting") : t("common.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
