@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ManualEntryDialog } from "@/components/dashboard/ManualEntryDialog";
+import { TimerDisplay } from "@/components/dashboard/TimerDisplay";
 import { EditEntryDialog } from "@/components/timesheet/EditEntryDialog";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
 import { SendReportDialog } from "@/components/reports/SendReportDialog";
@@ -322,24 +323,28 @@ export default function Dashboard() {
         {/* Timer Card - Premium Design */}
         <div
           className={cn(
-            "card-premium relative overflow-hidden transition-all duration-500",
-            timer.isRunning && "timer-pulse shadow-success"
+            "relative overflow-hidden rounded-3xl border bg-card transition-all duration-500",
+            timer.isRunning 
+              ? "border-success/30 shadow-[0_0_60px_-12px_hsl(var(--success)/0.4)]" 
+              : "border-border/50 shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.15)]"
           )}
         >
-          {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5" />
+          {/* Background patterns */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-purple-500/[0.03]" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/[0.05] to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-500/[0.05] to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
           
           {/* Client color accent bar */}
           {selectedClient && (
             <div
-              className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl"
+              className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl"
               style={{ 
-                background: `linear-gradient(90deg, ${selectedClient.color}, ${selectedClient.color}80)` 
+                background: `linear-gradient(90deg, ${selectedClient.color}, ${selectedClient.color}80, transparent)` 
               }}
             />
           )}
 
-          <div className="relative pt-10 pb-10 px-6">
+          <div className="relative pt-8 pb-10 px-4 sm:px-6">
             <div className="flex flex-col items-center">
               {/* Client selector */}
               <div className="relative mb-8">
@@ -407,18 +412,11 @@ export default function Dashboard() {
               </div>
 
               {/* Timer display - Premium */}
-              <div
-                className={cn(
-                  "font-mono text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold tracking-tighter mb-6 sm:mb-8 transition-all duration-300",
-                  timer.isRunning 
-                    ? "text-gradient" 
-                    : "text-foreground"
-                )}
-                style={{
-                  textShadow: timer.isRunning ? '0 0 60px hsl(var(--success) / 0.3)' : 'none'
-                }}
-              >
-                {formatTime(timer.elapsedTime)}
+              <div className="mb-4 sm:mb-6 w-full flex justify-center">
+                <TimerDisplay
+                  time={formatTime(timer.elapsedTime)}
+                  isRunning={timer.isRunning}
+                />
               </div>
 
               {/* Description input */}
