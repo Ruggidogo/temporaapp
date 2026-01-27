@@ -21,21 +21,21 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/30">
-      {/* Animated gradient orbs with parallax */}
+      {/* Animated gradient orbs with parallax - hidden on mobile for performance */}
       <div 
-        className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-r from-primary/30 to-purple-500/20 rounded-full blur-3xl -translate-y-1/2 transition-transform duration-100 ease-out"
+        className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-gradient-to-r from-primary/30 to-purple-500/20 rounded-full blur-3xl -translate-y-1/2 transition-transform duration-100 ease-out hidden sm:block"
         style={{ 
           transform: `translate(${mousePosition.x * 0.5}px, calc(-50% + ${parallaxSlow}px + ${mousePosition.y * 0.5}px))` 
         }}
       />
       <div 
-        className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-gradient-to-l from-primary/20 to-blue-500/15 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        className="absolute bottom-0 right-1/4 w-[250px] md:w-[400px] h-[250px] md:h-[400px] bg-gradient-to-l from-primary/20 to-blue-500/15 rounded-full blur-3xl hidden sm:block transition-transform duration-100 ease-out"
         style={{ 
           transform: `translate(${-mousePosition.x * 0.3}px, calc(50% + ${parallaxMedium}px + ${-mousePosition.y * 0.3}px))` 
         }}
       />
       <div 
-        className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl transition-transform duration-100 ease-out"
+        className="absolute top-1/2 left-1/2 w-[400px] md:w-[800px] h-[400px] md:h-[800px] bg-primary/5 rounded-full blur-3xl transition-transform duration-100 ease-out"
         style={{ 
           transform: `translate(calc(-50% + ${mousePosition.x * 0.2}px), calc(-50% + ${parallaxFast}px + ${mousePosition.y * 0.2}px))` 
         }}
@@ -64,8 +64,8 @@ export function HeroSection() {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.3)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.3)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
       
-      <div className="container relative py-28 md:py-36 lg:py-44">
-        <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+      <div className="container relative px-4 sm:px-6 py-20 sm:py-28 md:py-36 lg:py-44">
+        <div className="flex flex-col items-center text-center max-w-4xl mx-auto overflow-hidden">
           {/* Badge */}
           <div 
             ref={badgeRef}
@@ -87,7 +87,7 @@ export function HeroSection() {
           {/* Headline */}
           <h1 
             ref={headlineRef}
-            className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 transition-all duration-700"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 sm:mb-8 transition-all duration-700 px-2"
             style={{
               opacity: headlineVisible ? 1 : 0,
               transform: headlineVisible ? "translateY(0)" : "translateY(30px)",
@@ -104,7 +104,7 @@ export function HeroSection() {
           {/* Subheadline */}
           <p 
             ref={subRef}
-            className="text-xl md:text-2xl text-muted-foreground max-w-2xl mb-12 leading-relaxed transition-all duration-700"
+            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mb-10 sm:mb-12 leading-relaxed transition-all duration-700 px-2"
             style={{
               opacity: subVisible ? 1 : 0,
               transform: subVisible ? "translateY(0)" : "translateY(30px)",
@@ -117,14 +117,14 @@ export function HeroSection() {
           {/* CTA Buttons */}
           <div 
             ref={ctaRef}
-            className="flex flex-col sm:flex-row gap-4 mb-20 transition-all duration-700"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-16 sm:mb-20 w-full sm:w-auto px-4 sm:px-0 transition-all duration-700"
             style={{
               opacity: ctaVisible ? 1 : 0,
               transform: ctaVisible ? "translateY(0)" : "translateY(30px)",
               transitionDelay: "300ms",
             }}
           >
-            <Button variant="hero" size="xl" className="group shadow-2xl shadow-primary/30" asChild>
+            <Button variant="hero" size="xl" className="group shadow-2xl shadow-primary/30 w-full sm:w-auto" asChild>
               <Link to="/register">
                 <Play className="w-5 h-5 fill-current" />
                 {t("hero.cta.start")}
@@ -134,7 +134,7 @@ export function HeroSection() {
             <Button 
               variant="outline" 
               size="xl" 
-              className="border-2 border-border/80 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 shadow-lg"
+              className="border-2 border-border/80 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 shadow-lg w-full sm:w-auto"
             >
               <Clock className="w-5 h-5" />
               {t("hero.cta.demo")}
@@ -144,7 +144,7 @@ export function HeroSection() {
           {/* Timer Preview Card */}
           <div 
             ref={cardRef}
-            className="w-full max-w-2xl transition-all duration-1000"
+            className="w-full max-w-2xl px-4 sm:px-0 transition-all duration-1000"
             style={{
               opacity: cardVisible ? 1 : 0,
               transform: cardVisible ? "translateY(0) scale(1)" : "translateY(50px) scale(0.95)",
@@ -173,7 +173,7 @@ export function HeroSection() {
                     <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("hero.timer.client")}</span>
                   </div>
                   
-                  <div className="font-mono text-7xl md:text-8xl font-bold tracking-tighter mb-6 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  <div className="font-mono text-5xl sm:text-7xl md:text-8xl font-bold tracking-tighter mb-6 bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
                     02:34:15
                   </div>
                   
