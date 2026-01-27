@@ -463,6 +463,8 @@ const translations: Record<string, string> = {
   "timesheet.entryDeleted": "Entrée supprimée",
   "timesheet.entryDeletedDesc": "L'entrée a été supprimée avec succès.",
   "timesheet.error": "Erreur",
+  "timesheet.summaryByClient": "Résumé par client",
+  "timesheet.ofTotal": "du total",
 
   // Edit Entry Dialog
   "editEntry.title": "Modifier l'entrée",

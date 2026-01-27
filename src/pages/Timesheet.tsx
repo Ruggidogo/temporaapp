@@ -138,7 +138,7 @@ export default function Timesheet() {
       setEntries(entriesRes.data || []);
     } catch (error: any) {
       toast({
-        title: "Errore",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -520,7 +520,7 @@ export default function Timesheet() {
         {/* Summary by client */}
         {selectedClient === "all" && clients.length > 0 && (
           <div className="card-premium p-6">
-            <h3 className="text-lg font-semibold mb-4">Riepilogo per cliente</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("timesheet.summaryByClient")}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {clients.map((client) => {
                 const clientTotal = entries
@@ -551,7 +551,7 @@ export default function Timesheet() {
                       {formatDuration(clientTotal)}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {percentage}% del totale
+                      {percentage}% {t("timesheet.ofTotal")}
                     </div>
                   </div>
                 );
