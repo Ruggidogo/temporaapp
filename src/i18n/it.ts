@@ -634,6 +634,51 @@ const translations: Record<string, string> = {
   "manualEntry.saving": "Salvataggio...",
   "manualEntry.invalidTimeFormat": "Formato orario non valido (HH:MM)",
   "manualEntry.endAfterStart": "L'orario di fine deve essere successivo all'orario di inizio",
+
+  // Trial Banner
+  "trial.usingTrial": "Stai usando Tempora in prova",
+  "trial.daysRemaining": "Hai ancora {days} giorni di prova gratuita. Passa a Pro per accesso illimitato.",
+  "trial.expirestoday": "Il tuo trial scade oggi!",
+  "trial.onlyDaysLeft": "Solo {days} {days, plural, one {giorno} other {giorni}} rimasti!",
+  "trial.urgentMessage": "Passa a Pro per non perdere l'accesso a tutte le funzionalità e ai tuoi dati.",
+  "trial.upgradeToPro": "Passa a Pro",
+  "trial.day1": "Giorno 1",
+  "trial.day7": "Giorno 7",
+
+  // Upgrade Button
+  "upgrade.pro": "Pro",
+  "upgrade.upgrade": "Upgrade",
+  "upgrade.manageSubscription": "Gestisci abbonamento",
+  "upgrade.upgradeToPro": "Passa a Pro",
+  "upgrade.bannerTitle": "Passa a Tempora Pro",
+  "upgrade.bannerDesc": "Sblocca tutte le funzionalità e rimuovi i limiti",
+  "upgrade.price": "€14,99/mese",
+  "upgrade.error": "Errore",
+  "upgrade.checkoutError": "Impossibile avviare il checkout. Riprova.",
+  "upgrade.portalError": "Impossibile aprire il portale. Riprova.",
+
+  // Trial Expired Page
+  "trialExpired.badge": "Il tuo periodo di prova è terminato",
+  "trialExpired.greeting": "Ciao {name}! 👋",
+  "trialExpired.message": "Il tuo trial di 7 giorni è terminato. Passa a <highlight>Tempora Pro</highlight> per continuare a tracciare il tuo tempo e gestire i tuoi clienti.",
+  "trialExpired.specialOffer": "Offerta speciale: primo mese a soli €9,99!",
+  "trialExpired.feature1Title": "Tracking illimitato",
+  "trialExpired.feature1Desc": "Registra tutte le ore che vuoi senza limiti",
+  "trialExpired.feature2Title": "Clienti illimitati",
+  "trialExpired.feature2Desc": "Gestisci tutti i tuoi clienti in un unico posto",
+  "trialExpired.feature3Title": "Report professionali",
+  "trialExpired.feature3Desc": "Genera report PDF personalizzati con il tuo logo",
+  "trialExpired.feature4Title": "Esportazione dati",
+  "trialExpired.feature4Desc": "Esporta i tuoi dati in CSV, PDF e altri formati",
+  "trialExpired.originalPrice": "€14,99",
+  "trialExpired.discountPrice": "€9,99",
+  "trialExpired.perMonth": "/mese",
+  "trialExpired.pricingNote": "Poi €14,99/mese. Cancella quando vuoi.",
+  "trialExpired.cta": "Passa a Pro Ora",
+  "trialExpired.cancelAnytime": "Cancella quando vuoi",
+  "trialExpired.securePayment": "Pagamento sicuro",
+  "trialExpired.contactUs": "Hai domande? Contattaci a",
+  "trialExpired.signOut": "Esci",
 };
 
 export default translations;

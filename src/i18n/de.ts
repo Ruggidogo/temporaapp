@@ -634,6 +634,51 @@ const translations: Record<string, string> = {
   "manualEntry.saving": "Wird gespeichert...",
   "manualEntry.invalidTimeFormat": "Ungültiges Zeitformat (HH:MM)",
   "manualEntry.endAfterStart": "Die Endzeit muss nach der Startzeit liegen",
+
+  // Trial Banner
+  "trial.usingTrial": "Du verwendest Tempora im Testmodus",
+  "trial.daysRemaining": "Du hast noch {days} Tage kostenlose Testversion. Upgrade auf Pro für unbegrenzten Zugang.",
+  "trial.expirestoday": "Deine Testversion läuft heute ab!",
+  "trial.onlyDaysLeft": "Nur noch {days} {days, plural, one {Tag} other {Tage}}!",
+  "trial.urgentMessage": "Upgrade auf Pro, um den Zugang zu allen Funktionen und deinen Daten zu behalten.",
+  "trial.upgradeToPro": "Auf Pro upgraden",
+  "trial.day1": "Tag 1",
+  "trial.day7": "Tag 7",
+
+  // Upgrade Button
+  "upgrade.pro": "Pro",
+  "upgrade.upgrade": "Upgrade",
+  "upgrade.manageSubscription": "Abonnement verwalten",
+  "upgrade.upgradeToPro": "Auf Pro upgraden",
+  "upgrade.bannerTitle": "Upgrade auf Tempora Pro",
+  "upgrade.bannerDesc": "Schalte alle Funktionen frei und entferne Limits",
+  "upgrade.price": "14,99 €/Monat",
+  "upgrade.error": "Fehler",
+  "upgrade.checkoutError": "Checkout konnte nicht gestartet werden. Bitte erneut versuchen.",
+  "upgrade.portalError": "Portal konnte nicht geöffnet werden. Bitte erneut versuchen.",
+
+  // Trial Expired Page
+  "trialExpired.badge": "Dein Testzeitraum ist abgelaufen",
+  "trialExpired.greeting": "Hallo {name}! 👋",
+  "trialExpired.message": "Deine 7-tägige Testversion ist abgelaufen. Upgrade auf <highlight>Tempora Pro</highlight>, um weiter deine Zeit zu erfassen und Kunden zu verwalten.",
+  "trialExpired.specialOffer": "Sonderangebot: erster Monat für nur 9,99 €!",
+  "trialExpired.feature1Title": "Unbegrenzte Erfassung",
+  "trialExpired.feature1Desc": "Erfasse alle Stunden, die du möchtest, ohne Limits",
+  "trialExpired.feature2Title": "Unbegrenzte Kunden",
+  "trialExpired.feature2Desc": "Verwalte alle deine Kunden an einem Ort",
+  "trialExpired.feature3Title": "Professionelle Berichte",
+  "trialExpired.feature3Desc": "Erstelle individuelle PDF-Berichte mit deinem Logo",
+  "trialExpired.feature4Title": "Datenexport",
+  "trialExpired.feature4Desc": "Exportiere deine Daten in CSV, PDF und andere Formate",
+  "trialExpired.originalPrice": "14,99 €",
+  "trialExpired.discountPrice": "9,99 €",
+  "trialExpired.perMonth": "/Monat",
+  "trialExpired.pricingNote": "Danach 14,99 €/Monat. Jederzeit kündbar.",
+  "trialExpired.cta": "Jetzt auf Pro upgraden",
+  "trialExpired.cancelAnytime": "Jederzeit kündbar",
+  "trialExpired.securePayment": "Sichere Zahlung",
+  "trialExpired.contactUs": "Fragen? Kontaktiere uns unter",
+  "trialExpired.signOut": "Abmelden",
 };
 
 export default translations;

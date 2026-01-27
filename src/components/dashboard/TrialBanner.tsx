@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { Sparkles, ArrowRight, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { UpgradeButton } from "@/components/billing/UpgradeButton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TrialBannerProps {
   onDismiss?: () => void;
@@ -12,6 +12,7 @@ interface TrialBannerProps {
 
 export function TrialBanner({ onDismiss, className }: TrialBannerProps) {
   const { profile, subscription } = useAuth();
+  const { t } = useLanguage();
 
   const trialDaysRemaining = useMemo(() => {
     if (!profile?.trial_ends_at) return null;
@@ -33,6 +34,23 @@ export function TrialBanner({ onDismiss, className }: TrialBannerProps) {
   }
 
   const isUrgent = trialDaysRemaining <= 3;
+
+  const getTitle = () => {
+    if (isUrgent) {
+      if (trialDaysRemaining === 0) {
+        return t("trial.expirestoday");
+      }
+      return t("trial.onlyDaysLeft").replace("{days}", String(trialDaysRemaining));
+    }
+    return t("trial.usingTrial");
+  };
+
+  const getMessage = () => {
+    if (isUrgent) {
+      return t("trial.urgentMessage");
+    }
+    return t("trial.daysRemaining").replace("{days}", String(trialDaysRemaining));
+  };
 
   return (
     <div
@@ -83,16 +101,10 @@ export function TrialBanner({ onDismiss, className }: TrialBannerProps) {
               isUrgent ? "text-destructive" : "text-foreground"
             )}
           >
-            {isUrgent
-              ? trialDaysRemaining === 0
-                ? "Il tuo trial scade oggi!"
-                : `Solo ${trialDaysRemaining} ${trialDaysRemaining === 1 ? "giorno" : "giorni"} rimasti!`
-              : "Stai usando Tempora in prova"}
+            {getTitle()}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {isUrgent
-              ? "Passa a Pro per non perdere l'accesso a tutte le funzionalità e ai tuoi dati."
-              : `Hai ancora ${trialDaysRemaining} giorni di prova gratuita. Passa a Pro per accesso illimitato.`}
+            {getMessage()}
           </p>
         </div>
 
@@ -106,7 +118,7 @@ export function TrialBanner({ onDismiss, className }: TrialBannerProps) {
               : "btn-gradient"
           )}
         >
-          Passa a Pro
+          {t("trial.upgradeToPro")}
           <ArrowRight className="w-4 h-4 ml-2" />
         </UpgradeButton>
       </div>
@@ -127,8 +139,8 @@ export function TrialBanner({ onDismiss, className }: TrialBannerProps) {
           />
         </div>
         <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-          <span>Giorno 1</span>
-          <span>Giorno 7</span>
+          <span>{t("trial.day1")}</span>
+          <span>{t("trial.day7")}</span>
         </div>
       </div>
     </div>

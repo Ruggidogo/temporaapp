@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { Crown, Loader2, Sparkles, Check, ExternalLink } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UpgradeButtonProps extends Omit<ButtonProps, 'onClick' | 'variant'> {
   upgradeVariant?: "default" | "compact" | "banner";
@@ -14,6 +15,7 @@ interface UpgradeButtonProps extends Omit<ButtonProps, 'onClick' | 'variant'> {
 export function UpgradeButton({ upgradeVariant = "default", className, size, children, ...props }: UpgradeButtonProps) {
   const [loading, setLoading] = useState(false);
   const { subscription } = useAuth();
+  const { t } = useLanguage();
 
   const handleUpgrade = async () => {
     setLoading(true);
@@ -28,8 +30,8 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
     } catch (error: any) {
       console.error('Checkout error:', error);
       toast({
-        title: "Errore",
-        description: "Impossibile avviare il checkout. Riprova.",
+        title: t("upgrade.error"),
+        description: t("upgrade.checkoutError"),
         variant: "destructive",
       });
     } finally {
@@ -50,8 +52,8 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
     } catch (error: any) {
       console.error('Portal error:', error);
       toast({
-        title: "Errore",
-        description: "Impossibile aprire il portale. Riprova.",
+        title: t("upgrade.error"),
+        description: t("upgrade.portalError"),
         variant: "destructive",
       });
     } finally {
@@ -75,7 +77,7 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
           ) : (
             <>
               <Check className="w-4 h-4 mr-1" />
-              Pro
+              {t("upgrade.pro")}
             </>
           )}
         </Button>
@@ -94,7 +96,7 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
         ) : (
           <Crown className="w-4 h-4 mr-2 text-success" />
         )}
-        Gestisci abbonamento
+        {t("upgrade.manageSubscription")}
         <ExternalLink className="w-3 h-3 ml-2 opacity-50" />
       </Button>
     );
@@ -117,7 +119,7 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
         ) : (
           <>
             <Crown className="w-4 h-4 mr-1" />
-            Upgrade
+            {t("upgrade.upgrade")}
           </>
         )}
       </Button>
@@ -135,9 +137,9 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
               <Crown className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg mb-1">Passa a Tempora Pro</h3>
+              <h3 className="font-semibold text-lg mb-1">{t("upgrade.bannerTitle")}</h3>
               <p className="text-sm text-muted-foreground">
-                Sblocca tutte le funzionalità e rimuovi i limiti
+                {t("upgrade.bannerDesc")}
               </p>
             </div>
           </div>
@@ -152,7 +154,7 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
             ) : (
               <Sparkles className="w-4 h-4 mr-2" />
             )}
-            €14,99/mese
+            {t("upgrade.price")}
           </Button>
         </div>
       </div>
@@ -178,7 +180,7 @@ export function UpgradeButton({ upgradeVariant = "default", className, size, chi
       ) : (
         <>
           <Crown className="w-4 h-4 mr-2" />
-          Passa a Pro
+          {t("upgrade.upgradeToPro")}
         </>
       )}
     </Button>
