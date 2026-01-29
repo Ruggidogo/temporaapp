@@ -680,6 +680,23 @@ const translations: Record<string, string> = {
   "trialExpired.securePayment": "Pago seguro",
   "trialExpired.contactUs": "¿Preguntas? Contáctanos en",
   "trialExpired.signOut": "Cerrar sesión",
+
+  // Checkout Success
+  "checkout.verifying": "Verificando...",
+  "checkout.verifyingDesc": "Estamos verificando tu pago. Un momento...",
+  "checkout.successTitle": "¡Bienvenido a Tempora Pro! 🎉",
+  "checkout.successDesc": "Tu suscripción ha sido activada con éxito. ¡Ahora tienes acceso a todas las funciones Pro!",
+  "checkout.processingTitle": "Pago recibido",
+  "checkout.processingDesc": "Estamos procesando tu suscripción. Esto puede tardar unos segundos.",
+  "checkout.unlocked": "Has desbloqueado:",
+  "checkout.feature1": "Temporizadores y seguimiento ilimitados",
+  "checkout.feature2": "Informes y exportación PDF profesionales",
+  "checkout.feature3": "Gestión avanzada de clientes",
+  "checkout.feature4": "Soporte prioritario",
+  "checkout.pleaseWait": "Por favor espera...",
+  "checkout.startWorking": "Empezar a trabajar",
+  "checkout.gotIt": "Entendido",
+  "checkout.refreshStatus": "Actualizar estado de suscripción",
 };
 
 export default translations;
