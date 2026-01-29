@@ -8,6 +8,7 @@ interface TimerState {
   elapsedTime: number;
   startTime: Date | null;
   clientId: string | null;
+  taskId: string | null;
   description: string;
 }
 
@@ -18,6 +19,7 @@ export function useTimer() {
     elapsedTime: 0,
     startTime: null,
     clientId: null,
+    taskId: null,
     description: "",
   });
   const [saving, setSaving] = useState(false);
@@ -64,12 +66,13 @@ export function useTimer() {
     };
   }, [state.isRunning, state.elapsedTime]);
 
-  const start = useCallback((clientId: string | null, description: string) => {
+  const start = useCallback((clientId: string | null, description: string, taskId: string | null = null) => {
     setState({
       isRunning: true,
       elapsedTime: 0,
       startTime: new Date(),
       clientId,
+      taskId,
       description,
     });
   }, []);
@@ -87,6 +90,7 @@ export function useTimer() {
       const { error } = await supabase.from("time_entries").insert({
         user_id: user.id,
         client_id: state.clientId,
+        task_id: state.taskId,
         description: state.description.trim() || null,
         start_time: state.startTime.toISOString(),
         end_time: endTime.toISOString(),
@@ -107,6 +111,7 @@ export function useTimer() {
         elapsedTime: 0,
         startTime: null,
         clientId: null,
+        taskId: null,
         description: "",
       });
 
@@ -129,6 +134,7 @@ export function useTimer() {
       elapsedTime: 0,
       startTime: null,
       clientId: null,
+      taskId: null,
       description: "",
     });
   }, []);
@@ -141,10 +147,15 @@ export function useTimer() {
     setState((prev) => ({ ...prev, clientId }));
   }, []);
 
+  const setTaskId = useCallback((taskId: string | null) => {
+    setState((prev) => ({ ...prev, taskId }));
+  }, []);
+
   return {
     isRunning: state.isRunning,
     elapsedTime: state.elapsedTime,
     clientId: state.clientId,
+    taskId: state.taskId,
     description: state.description,
     saving,
     start,
@@ -152,5 +163,6 @@ export function useTimer() {
     reset,
     setDescription,
     setClientId,
+    setTaskId,
   };
 }

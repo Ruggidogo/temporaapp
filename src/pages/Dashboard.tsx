@@ -36,6 +36,13 @@ interface Client {
   email: string | null;
 }
 
+interface Task {
+  id: string;
+  title: string;
+  client_id: string | null;
+  status: string;
+}
+
 interface TimeEntry {
   id: string;
   client_id: string | null;
@@ -79,9 +86,11 @@ export default function Dashboard() {
   const timer = useTimer();
 
   const [clients, setClients] = useState<Client[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [todayEntries, setTodayEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [showTaskDropdown, setShowTaskDropdown] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
@@ -90,6 +99,12 @@ export default function Dashboard() {
   const [savingManual, setSavingManual] = useState(false);
 
   const selectedClient = clients.find((c) => c.id === timer.clientId) || null;
+  const selectedTask = tasks.find((t) => t.id === timer.taskId) || null;
+  
+  // Filter tasks by selected client
+  const filteredTasks = tasks.filter(
+    (task) => !timer.clientId || task.client_id === timer.clientId || task.client_id === null
+  );
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -97,7 +112,7 @@ export default function Dashboard() {
     try {
       const today = new Date().toISOString().split("T")[0];
 
-      const [clientsRes, entriesRes] = await Promise.all([
+      const [clientsRes, entriesRes, tasksRes] = await Promise.all([
         supabase
           .from("clients")
           .select("id, name, color, email")
@@ -109,13 +124,21 @@ export default function Dashboard() {
           .eq("user_id", user.id)
           .eq("date", today)
           .order("start_time", { ascending: false }),
+        supabase
+          .from("tasks")
+          .select("id, title, client_id, status")
+          .eq("user_id", user.id)
+          .neq("status", "completed")
+          .order("created_at", { ascending: false }),
       ]);
 
       if (clientsRes.error) throw clientsRes.error;
       if (entriesRes.error) throw entriesRes.error;
+      if (tasksRes.error) throw tasksRes.error;
 
       setClients(clientsRes.data || []);
       setTodayEntries(entriesRes.data || []);
+      setTasks(tasksRes.data || []);
 
       if (!timer.clientId && clientsRes.data && clientsRes.data.length > 0) {
         timer.setClientId(clientsRes.data[0].id);
@@ -156,7 +179,7 @@ export default function Dashboard() {
     if (timer.isRunning) {
       await timer.stop();
     } else {
-      timer.start(timer.clientId, timer.description);
+      timer.start(timer.clientId, timer.description, timer.taskId);
     }
   }, [timer]);
 
@@ -165,6 +188,7 @@ export default function Dashboard() {
     startTime: string;
     endTime: string;
     clientId: string | null;
+    taskId: string | null;
     description: string;
   }) => {
     if (!user) return;
@@ -186,6 +210,7 @@ export default function Dashboard() {
       const { error } = await supabase.from("time_entries").insert({
         user_id: user.id,
         client_id: data.clientId,
+        task_id: data.taskId,
         description: data.description || null,
         date: dateStr,
         start_time: startDate.toISOString(),
@@ -350,68 +375,142 @@ export default function Dashboard() {
 
           <div className="relative pt-8 pb-10 px-4 sm:px-6">
             <div className="flex flex-col items-center">
-              {/* Client selector */}
-              <div className="relative mb-8">
-                {clients.length > 0 ? (
-                  <>
+              {/* Client & Task selectors */}
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+                {/* Client selector */}
+                <div className="relative">
+                  {clients.length > 0 ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="flex items-center gap-3 px-5 py-2.5 rounded-2xl border-border/60 bg-card/50 hover:bg-card hover:border-primary/30 transition-all"
+                        onClick={() => {
+                          setShowClientDropdown(!showClientDropdown);
+                          setShowTaskDropdown(false);
+                        }}
+                        disabled={timer.isRunning}
+                      >
+                        {selectedClient ? (
+                          <>
+                            <div
+                              className="w-3.5 h-3.5 rounded-full ring-2 ring-white/20"
+                              style={{ backgroundColor: selectedClient.color }}
+                            />
+                            <span className="font-medium">{selectedClient.name}</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {t("dashboard.selectClient")}
+                          </span>
+                        )}
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      </Button>
+
+                      {showClientDropdown && (
+                        <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 w-56 bg-card border rounded-2xl py-2 z-20 shadow-lg">
+                          {clients.map((client) => (
+                            <button
+                              key={client.id}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-sm"
+                              onClick={() => {
+                                timer.setClientId(client.id);
+                                // Reset task if it doesn't belong to this client
+                                const currentTask = tasks.find(t => t.id === timer.taskId);
+                                if (currentTask && currentTask.client_id !== null && currentTask.client_id !== client.id) {
+                                  timer.setTaskId(null);
+                                }
+                                setShowClientDropdown(false);
+                              }}
+                            >
+                              <div
+                                className="w-3.5 h-3.5 rounded-full"
+                                style={{ backgroundColor: client.color }}
+                              />
+                              <span className="font-medium">{client.name}</span>
+                            </button>
+                          ))}
+                          <div className="border-t border-border/50 my-2" />
+                          <Link
+                            to="/clients"
+                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-sm text-primary font-medium"
+                          >
+                            <Plus className="w-4 h-4" />
+                            {t("dashboard.newClient")}
+                          </Link>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link to="/clients">
+                      <Button variant="outline" className="rounded-2xl">
+                        <Plus className="w-4 h-4 mr-2" />
+                        {t("dashboard.addClient")}
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+
+                {/* Task selector */}
+                {filteredTasks.length > 0 && (
+                  <div className="relative">
                     <Button
                       variant="outline"
                       className="flex items-center gap-3 px-5 py-2.5 rounded-2xl border-border/60 bg-card/50 hover:bg-card hover:border-primary/30 transition-all"
-                      onClick={() => setShowClientDropdown(!showClientDropdown)}
+                      onClick={() => {
+                        setShowTaskDropdown(!showTaskDropdown);
+                        setShowClientDropdown(false);
+                      }}
                       disabled={timer.isRunning}
                     >
-                      {selectedClient ? (
-                        <>
-                          <div
-                            className="w-3.5 h-3.5 rounded-full ring-2 ring-white/20"
-                            style={{ backgroundColor: selectedClient.color }}
-                          />
-                          <span className="font-medium">{selectedClient.name}</span>
-                        </>
+                      {selectedTask ? (
+                        <span className="font-medium">{selectedTask.title}</span>
                       ) : (
                         <span className="text-muted-foreground">
-                          {t("dashboard.selectClient")}
+                          {t("dashboard.selectTask")}
                         </span>
                       )}
                       <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     </Button>
 
-                    {showClientDropdown && (
-                      <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 w-56 glass-premium rounded-2xl py-2 z-10 animate-scale-in">
-                        {clients.map((client) => (
+                    {showTaskDropdown && (
+                      <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 w-64 bg-card border rounded-2xl py-2 z-20 shadow-lg max-h-64 overflow-y-auto">
+                        <button
+                          className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-sm text-muted-foreground"
+                          onClick={() => {
+                            timer.setTaskId(null);
+                            setShowTaskDropdown(false);
+                          }}
+                        >
+                          {t("dashboard.noTask")}
+                        </button>
+                        <div className="border-t border-border/50 my-2" />
+                        {filteredTasks.map((task) => (
                           <button
-                            key={client.id}
+                            key={task.id}
                             className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-sm"
                             onClick={() => {
-                              timer.setClientId(client.id);
-                              setShowClientDropdown(false);
+                              timer.setTaskId(task.id);
+                              // If task has a client, also set that client
+                              if (task.client_id && task.client_id !== timer.clientId) {
+                                timer.setClientId(task.client_id);
+                              }
+                              setShowTaskDropdown(false);
                             }}
                           >
-                            <div
-                              className="w-3.5 h-3.5 rounded-full"
-                              style={{ backgroundColor: client.color }}
-                            />
-                            <span className="font-medium">{client.name}</span>
+                            <span className="font-medium truncate">{task.title}</span>
                           </button>
                         ))}
                         <div className="border-t border-border/50 my-2" />
                         <Link
-                          to="/clients"
+                          to="/tasks"
                           className="w-full px-4 py-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-sm text-primary font-medium"
                         >
                           <Plus className="w-4 h-4" />
-                          {t("dashboard.newClient")}
+                          {t("dashboard.newTask")}
                         </Link>
                       </div>
                     )}
-                  </>
-                ) : (
-                  <Link to="/clients">
-                    <Button variant="outline" className="rounded-2xl">
-                      <Plus className="w-4 h-4 mr-2" />
-                      {t("dashboard.addClient")}
-                    </Button>
-                  </Link>
+                  </div>
                 )}
               </div>
 
@@ -620,6 +719,7 @@ export default function Dashboard() {
         onOpenChange={setManualDialogOpen}
         onSubmit={handleManualEntry}
         clients={clients}
+        tasks={tasks}
         isLoading={savingManual}
       />
 

@@ -409,6 +409,21 @@ const translations: Record<string, string> = {
   "clientDetail.entryUpdated": "Entrée mise à jour",
   "clientDetail.entryDeleted": "Entrée supprimée",
   "clientDetail.errorLoading": "Erreur lors du chargement du client",
+  "clientDetail.tasks": "Tâches",
+  "clientDetail.viewAllTasks": "Voir tout",
+  "clientDetail.noTasks": "Aucune tâche pour ce client",
+  "clientDetail.createTask": "Créer tâche",
+  "clientDetail.viewMore": "Voir plus",
+
+  // Dashboard - Task selector
+  "dashboard.selectTask": "Sélectionner tâche",
+  "dashboard.noTask": "Aucune tâche",
+  "dashboard.newTask": "Nouvelle tâche",
+
+  // Manual Entry - Task
+  "manualEntry.task": "Tâche",
+  "manualEntry.selectTask": "Sélectionner tâche",
+  "manualEntry.noTask": "Aucune tâche",
 
   // Reports Page
   "reports.title": "Rapports",
