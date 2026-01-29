@@ -11,7 +11,8 @@ import {
   X,
   LogOut,
   ChevronLeft,
-  Sparkles
+  Sparkles,
+  ListTodo
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +31,7 @@ interface DashboardLayoutProps {
 const navigation = [
   { key: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
   { key: "nav.clients", href: "/clients", icon: Users },
+  { key: "nav.tasks", href: "/tasks", icon: ListTodo },
   { key: "nav.timesheet", href: "/timesheet", icon: Calendar },
   { key: "nav.reports", href: "/reports", icon: BarChart3 },
   { key: "nav.settings", href: "/settings", icon: Settings },

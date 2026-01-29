@@ -152,6 +152,50 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_entries: {
         Row: {
           client_id: string | null
@@ -163,6 +207,7 @@ export type Database = {
           entry_type: string
           id: string
           start_time: string
+          task_id: string | null
           updated_at: string
           user_id: string
         }
@@ -176,6 +221,7 @@ export type Database = {
           entry_type?: string
           id?: string
           start_time: string
+          task_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -189,6 +235,7 @@ export type Database = {
           entry_type?: string
           id?: string
           start_time?: string
+          task_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -198,6 +245,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -210,7 +264,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      task_status: "todo" | "in_progress" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -337,6 +391,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      task_status: ["todo", "in_progress", "completed"],
+    },
   },
 } as const
