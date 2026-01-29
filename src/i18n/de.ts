@@ -680,6 +680,23 @@ const translations: Record<string, string> = {
   "trialExpired.securePayment": "Sichere Zahlung",
   "trialExpired.contactUs": "Fragen? Kontaktiere uns unter",
   "trialExpired.signOut": "Abmelden",
+
+  // Checkout Success
+  "checkout.verifying": "Überprüfung...",
+  "checkout.verifyingDesc": "Wir überprüfen Ihre Zahlung. Einen Moment bitte...",
+  "checkout.successTitle": "Willkommen bei Tempora Pro! 🎉",
+  "checkout.successDesc": "Ihr Abonnement wurde erfolgreich aktiviert. Sie haben jetzt Zugang zu allen Pro-Funktionen!",
+  "checkout.processingTitle": "Zahlung erhalten",
+  "checkout.processingDesc": "Wir verarbeiten Ihr Abonnement. Dies kann einige Sekunden dauern.",
+  "checkout.unlocked": "Sie haben freigeschaltet:",
+  "checkout.feature1": "Unbegrenzte Timer und Zeiterfassung",
+  "checkout.feature2": "Professionelle Berichte und PDF-Exporte",
+  "checkout.feature3": "Erweiterte Kundenverwaltung",
+  "checkout.feature4": "Prioritäts-Support",
+  "checkout.pleaseWait": "Bitte warten...",
+  "checkout.startWorking": "Arbeit beginnen",
+  "checkout.gotIt": "Verstanden",
+  "checkout.refreshStatus": "Abonnementstatus aktualisieren",
 };
 
 export default translations;

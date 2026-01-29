@@ -682,6 +682,23 @@ const translations: Record<string, string> = {
   "trialExpired.securePayment": "Secure payment",
   "trialExpired.contactUs": "Questions? Contact us at",
   "trialExpired.signOut": "Sign out",
+
+  // Checkout Success
+  "checkout.verifying": "Verifying...",
+  "checkout.verifyingDesc": "We're verifying your payment. Just a moment...",
+  "checkout.successTitle": "Welcome to Tempora Pro! 🎉",
+  "checkout.successDesc": "Your subscription has been activated successfully. You now have access to all Pro features!",
+  "checkout.processingTitle": "Payment received",
+  "checkout.processingDesc": "We're processing your subscription. This may take a few seconds.",
+  "checkout.unlocked": "You've unlocked:",
+  "checkout.feature1": "Unlimited timers and time tracking",
+  "checkout.feature2": "Professional reports and PDF exports",
+  "checkout.feature3": "Advanced client management",
+  "checkout.feature4": "Priority support",
+  "checkout.pleaseWait": "Please wait...",
+  "checkout.startWorking": "Start working",
+  "checkout.gotIt": "Got it",
+  "checkout.refreshStatus": "Refresh subscription status",
 };
 
 export default translations;
