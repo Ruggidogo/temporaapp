@@ -153,12 +153,15 @@ export function TaskDialog({
           {/* Client */}
           <div className="space-y-2">
             <Label>{t("tasks.clientLabel")}</Label>
-            <Select value={clientId} onValueChange={setClientId}>
+            <Select 
+              value={clientId || "none"} 
+              onValueChange={(v) => setClientId(v === "none" ? "" : v)}
+            >
               <SelectTrigger className="rounded-xl">
                 <SelectValue placeholder={t("tasks.selectClient")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t("tasks.noClient")}</SelectItem>
+                <SelectItem value="none">{t("tasks.noClient")}</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     <div className="flex items-center gap-2">
