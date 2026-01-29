@@ -67,14 +67,29 @@ serve(async (req) => {
     });
     
     const hasActiveSub = subscriptions.data.length > 0;
-    let productId = null;
-    let subscriptionEnd = null;
+    let productId: string | null = null;
+    let subscriptionEnd: string | null = null;
     let plan = "trial";
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      productId = subscription.items.data[0].price.product as string;
+      
+      // Safely handle current_period_end
+      if (subscription.current_period_end) {
+        try {
+          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+        } catch (e) {
+          logStep("Error parsing subscription end date", { error: e });
+        }
+      }
+      
+      // Safely extract product ID (can be string or object)
+      const priceProduct = subscription.items.data[0]?.price?.product;
+      if (typeof priceProduct === 'string') {
+        productId = priceProduct;
+      } else if (priceProduct && typeof priceProduct === 'object' && 'id' in priceProduct) {
+        productId = (priceProduct as { id: string }).id;
+      }
       
       // Map product to plan
       if (productId === "prod_TnRgBKbBCWmRW5") {
