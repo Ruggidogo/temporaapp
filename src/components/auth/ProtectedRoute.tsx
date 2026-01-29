@@ -46,5 +46,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/trial-expired" replace />;
   }
 
+  // If user became Pro (or has an active subscription), don't let them stay on /trial-expired
+  if (
+    location.pathname === '/trial-expired' &&
+    (subscription.subscribed || profile?.plan === 'pro')
+  ) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 };
