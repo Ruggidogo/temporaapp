@@ -36,6 +36,12 @@ interface Client {
   color: string;
 }
 
+interface Task {
+  id: string;
+  title: string;
+  client_id: string | null;
+}
+
 interface ManualEntryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -44,9 +50,11 @@ interface ManualEntryDialogProps {
     startTime: string;
     endTime: string;
     clientId: string | null;
+    taskId: string | null;
     description: string;
   }) => void;
   clients: Client[];
+  tasks: Task[];
   isLoading?: boolean;
 }
 
@@ -57,6 +65,7 @@ export function ManualEntryDialog({
   onOpenChange,
   onSubmit,
   clients,
+  tasks,
   isLoading,
 }: ManualEntryDialogProps) {
   const { language, t } = useLanguage();
@@ -67,6 +76,7 @@ export function ManualEntryDialog({
     startTime: z.string().regex(timeRegex, t("manualEntry.invalidTimeFormat")),
     endTime: z.string().regex(timeRegex, t("manualEntry.invalidTimeFormat")),
     clientId: z.string().nullable(),
+    taskId: z.string().nullable(),
     description: z.string().max(500).optional(),
   }).refine((data) => {
     const [startH, startM] = data.startTime.split(":").map(Number);
@@ -83,6 +93,7 @@ export function ManualEntryDialog({
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [clientId, setClientId] = useState<string | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -92,10 +103,16 @@ export function ManualEntryDialog({
       setStartTime("09:00");
       setEndTime("10:00");
       setClientId(clients.length > 0 ? clients[0].id : null);
+      setTaskId(null);
       setDescription("");
       setErrors({});
     }
   }, [open, clients]);
+
+  // Filter tasks by selected client
+  const filteredTasks = tasks.filter(
+    (task) => !clientId || task.client_id === clientId || task.client_id === null
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +122,7 @@ export function ManualEntryDialog({
       startTime,
       endTime,
       clientId,
+      taskId,
       description: description.trim(),
     };
 
@@ -218,7 +236,15 @@ export function ManualEntryDialog({
             <Label>{t("manualEntry.client")}</Label>
             <Select
               value={clientId || "none"}
-              onValueChange={(v) => setClientId(v === "none" ? null : v)}
+              onValueChange={(v) => {
+                const newClientId = v === "none" ? null : v;
+                setClientId(newClientId);
+                // Reset task if it doesn't belong to new client
+                const currentTask = tasks.find(t => t.id === taskId);
+                if (currentTask && currentTask.client_id !== null && currentTask.client_id !== newClientId) {
+                  setTaskId(null);
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t("manualEntry.selectClient")} />
@@ -239,6 +265,37 @@ export function ManualEntryDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Task selector */}
+          {filteredTasks.length > 0 && (
+            <div className="space-y-2">
+              <Label>{t("manualEntry.task")}</Label>
+              <Select
+                value={taskId || "none"}
+                onValueChange={(v) => {
+                  const newTaskId = v === "none" ? null : v;
+                  setTaskId(newTaskId);
+                  // If task has a client, also set that client
+                  const selectedTask = tasks.find(t => t.id === newTaskId);
+                  if (selectedTask?.client_id && selectedTask.client_id !== clientId) {
+                    setClientId(selectedTask.client_id);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("manualEntry.selectTask")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t("manualEntry.noTask")}</SelectItem>
+                  {filteredTasks.map((task) => (
+                    <SelectItem key={task.id} value={task.id}>
+                      {task.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Description */}
           <div className="space-y-2">

@@ -409,6 +409,21 @@ const translations: Record<string, string> = {
   "clientDetail.entryUpdated": "Entry updated",
   "clientDetail.entryDeleted": "Entry deleted",
   "clientDetail.errorLoading": "Error loading client",
+  "clientDetail.tasks": "Tasks",
+  "clientDetail.viewAllTasks": "View all",
+  "clientDetail.noTasks": "No tasks for this client",
+  "clientDetail.createTask": "Create task",
+  "clientDetail.viewMore": "View more",
+
+  // Dashboard - Task selector
+  "dashboard.selectTask": "Select task",
+  "dashboard.noTask": "No task",
+  "dashboard.newTask": "New task",
+
+  // Manual Entry - Task
+  "manualEntry.task": "Task",
+  "manualEntry.selectTask": "Select task",
+  "manualEntry.noTask": "No task",
 
   // Reports Page
   "reports.title": "Reports",

@@ -28,6 +28,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EditEntryDialog } from "@/components/timesheet/EditEntryDialog";
 import { DeleteEntryDialog } from "@/components/timesheet/DeleteEntryDialog";
 import { SendReportDialog } from "@/components/reports/SendReportDialog";
+import { ClientTasksSection } from "@/components/clients/ClientTasksSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -374,6 +375,9 @@ export default function ClientDetail() {
             <p className="text-xs sm:text-sm text-muted-foreground">{client.notes}</p>
           </div>
         )}
+
+        {/* Tasks Section */}
+        <ClientTasksSection clientId={clientId!} />
 
         {/* Filters */}
         <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
