@@ -197,7 +197,7 @@ export default function ClientDetail() {
     setIsSubmitting(true);
 
     try {
-      const dateStr = data.date.toISOString().split("T")[0];
+      const dateStr = format(data.date, "yyyy-MM-dd");
       const [startH, startM] = data.startTime.split(":").map(Number);
       const [endH, endM] = data.endTime.split(":").map(Number);
 

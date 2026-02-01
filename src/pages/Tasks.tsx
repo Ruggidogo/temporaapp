@@ -167,7 +167,7 @@ export default function Tasks() {
             title: data.title,
             description: data.description || null,
             status: data.status,
-            due_date: data.due_date ? data.due_date.toISOString().split("T")[0] : null,
+            due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : null,
             client_id: data.client_id,
           })
           .eq("id", selectedTask.id)
@@ -185,7 +185,7 @@ export default function Tasks() {
           title: data.title,
           description: data.description || null,
           status: data.status,
-          due_date: data.due_date ? data.due_date.toISOString().split("T")[0] : null,
+          due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : null,
           client_id: data.client_id,
         });
 

@@ -28,6 +28,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
 
 interface Client {
   id: string;
@@ -110,7 +111,7 @@ export default function Dashboard() {
     if (!user) return;
 
     try {
-      const today = new Date().toISOString().split("T")[0];
+      const today = format(new Date(), "yyyy-MM-dd");
 
       const [clientsRes, entriesRes, tasksRes] = await Promise.all([
         supabase
@@ -195,7 +196,7 @@ export default function Dashboard() {
     setSavingManual(true);
 
     try {
-      const dateStr = data.date.toISOString().split("T")[0];
+      const dateStr = format(data.date, "yyyy-MM-dd");
       const [startH, startM] = data.startTime.split(":").map(Number);
       const [endH, endM] = data.endTime.split(":").map(Number);
 
@@ -279,7 +280,7 @@ export default function Dashboard() {
     setIsEditing(true);
 
     try {
-      const dateStr = data.date.toISOString().split("T")[0];
+      const dateStr = format(data.date, "yyyy-MM-dd");
       const [startH, startM] = data.startTime.split(":").map(Number);
       const [endH, endM] = data.endTime.split(":").map(Number);
 

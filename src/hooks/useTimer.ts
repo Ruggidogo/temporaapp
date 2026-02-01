@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 interface TimerState {
   isRunning: boolean;
@@ -96,7 +97,7 @@ export function useTimer() {
         end_time: endTime.toISOString(),
         duration_seconds: durationSeconds,
         entry_type: "timer",
-        date: state.startTime.toISOString().split("T")[0],
+        date: format(state.startTime, "yyyy-MM-dd"),
       });
 
       if (error) throw error;
