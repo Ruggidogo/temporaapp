@@ -56,6 +56,7 @@ interface ManualEntryDialogProps {
   clients: Client[];
   tasks: Task[];
   isLoading?: boolean;
+  defaultClientId?: string | null;
 }
 
 const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
@@ -67,6 +68,7 @@ export function ManualEntryDialog({
   clients,
   tasks,
   isLoading,
+  defaultClientId,
 }: ManualEntryDialogProps) {
   const { language, t } = useLanguage();
   const locale = dateLocales[language] || enUS;
@@ -102,12 +104,12 @@ export function ManualEntryDialog({
       setDate(new Date());
       setStartTime("09:00");
       setEndTime("10:00");
-      setClientId(clients.length > 0 ? clients[0].id : null);
+      setClientId(defaultClientId ?? (clients.length > 0 ? clients[0].id : null));
       setTaskId(null);
       setDescription("");
       setErrors({});
     }
-  }, [open, clients]);
+  }, [open, clients, defaultClientId]);
 
   // Filter tasks by selected client
   const filteredTasks = tasks.filter(

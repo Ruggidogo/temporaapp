@@ -414,6 +414,8 @@ const translations: Record<string, string> = {
   "clientDetail.noTasks": "Sin tareas para este cliente",
   "clientDetail.createTask": "Crear tarea",
   "clientDetail.viewMore": "Ver más",
+  "clientDetail.addManualEntry": "Añadir horas",
+  "clientDetail.entryAdded": "Horas añadidas correctamente",
 
   // Dashboard - Task selector
   "dashboard.selectTask": "Seleccionar tarea",
