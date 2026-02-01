@@ -414,6 +414,8 @@ const translations: Record<string, string> = {
   "clientDetail.noTasks": "Keine Aufgaben für diesen Kunden",
   "clientDetail.createTask": "Aufgabe erstellen",
   "clientDetail.viewMore": "Mehr anzeigen",
+  "clientDetail.addManualEntry": "Stunden hinzufügen",
+  "clientDetail.entryAdded": "Stunden erfolgreich hinzugefügt",
 
   // Dashboard - Task selector
   "dashboard.selectTask": "Aufgabe auswählen",

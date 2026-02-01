@@ -23,11 +23,13 @@ import {
   Mail,
   FileText,
   Euro,
+  Plus,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { EditEntryDialog } from "@/components/timesheet/EditEntryDialog";
 import { DeleteEntryDialog } from "@/components/timesheet/DeleteEntryDialog";
 import { SendReportDialog } from "@/components/reports/SendReportDialog";
+import { ManualEntryDialog } from "@/components/dashboard/ManualEntryDialog";
 import { ClientTasksSection } from "@/components/clients/ClientTasksSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,6 +46,12 @@ interface Client {
   color: string;
   hourly_rate: number | null;
   notes: string | null;
+}
+
+interface Task {
+  id: string;
+  title: string;
+  client_id: string | null;
 }
 
 interface TimeEntry {
@@ -81,6 +89,7 @@ export default function ClientDetail() {
   const locale = dateLocales[language] || enUS;
   const [client, setClient] = useState<Client | null>(null);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [periodFilter, setPeriodFilter] = useState("all");
@@ -89,6 +98,8 @@ export default function ClientDetail() {
   const [deletingEntry, setDeletingEntry] = useState<TimeEntry | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
+  const [savingManual, setSavingManual] = useState(false);
 
   useEffect(() => {
     if (user && clientId) {
@@ -101,7 +112,7 @@ export default function ClientDetail() {
     setLoading(true);
     
     try {
-      const [clientRes, entriesRes] = await Promise.all([
+      const [clientRes, entriesRes, tasksRes] = await Promise.all([
         supabase
           .from("clients")
           .select("*")
@@ -112,7 +123,20 @@ export default function ClientDetail() {
           .select("*")
           .eq("client_id", clientId)
           .order("start_time", { ascending: false }),
+        supabase
+          .from("tasks")
+          .select("id, title, client_id")
+          .or(`client_id.eq.${clientId},client_id.is.null`)
+          .order("created_at", { ascending: false }),
       ]);
+
+      if (clientRes.error) throw clientRes.error;
+      if (entriesRes.error) throw entriesRes.error;
+      if (tasksRes.error) throw tasksRes.error;
+
+      setClient(clientRes.data);
+      setEntries(entriesRes.data || []);
+      setTasks(tasksRes.data || []);
 
       if (clientRes.error) throw clientRes.error;
       if (entriesRes.error) throw entriesRes.error;
@@ -257,6 +281,54 @@ export default function ClientDetail() {
     }
   };
 
+  const handleManualEntry = async (data: {
+    date: Date;
+    startTime: string;
+    endTime: string;
+    clientId: string | null;
+    taskId: string | null;
+    description: string;
+  }) => {
+    if (!user) return;
+    setSavingManual(true);
+
+    try {
+      const dateStr = format(data.date, "yyyy-MM-dd");
+      const [startH, startM] = data.startTime.split(":").map(Number);
+      const [endH, endM] = data.endTime.split(":").map(Number);
+
+      const startDate = new Date(data.date);
+      startDate.setHours(startH, startM, 0, 0);
+
+      const endDate = new Date(data.date);
+      endDate.setHours(endH, endM, 0, 0);
+
+      const durationSeconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
+
+      const { error } = await supabase.from("time_entries").insert({
+        user_id: user.id,
+        client_id: data.clientId,
+        task_id: data.taskId,
+        description: data.description || null,
+        date: dateStr,
+        start_time: startDate.toISOString(),
+        end_time: endDate.toISOString(),
+        duration_seconds: durationSeconds,
+        entry_type: "manual",
+      });
+
+      if (error) throw error;
+
+      toast.success(t("clientDetail.entryAdded"));
+      setManualEntryOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setSavingManual(false);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -312,13 +384,23 @@ export default function ClientDetail() {
               </div>
             </div>
             
-            <Button 
-              onClick={() => setReportDialogOpen(true)}
-              className="btn-gradient rounded-xl w-full sm:w-auto"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              {t("clientDetail.sendReport")}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button 
+                onClick={() => setManualEntryOpen(true)}
+                variant="outline"
+                className="rounded-xl w-full sm:w-auto"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {t("clientDetail.addManualEntry")}
+              </Button>
+              <Button 
+                onClick={() => setReportDialogOpen(true)}
+                className="btn-gradient rounded-xl w-full sm:w-auto"
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                {t("clientDetail.sendReport")}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -514,6 +596,17 @@ export default function ClientDetail() {
         open={reportDialogOpen}
         onOpenChange={setReportDialogOpen}
         clients={client ? [client] : []}
+        defaultClientId={client?.id}
+      />
+
+      {/* Manual Entry Dialog */}
+      <ManualEntryDialog
+        open={manualEntryOpen}
+        onOpenChange={setManualEntryOpen}
+        onSubmit={handleManualEntry}
+        clients={client ? [client] : []}
+        tasks={tasks}
+        isLoading={savingManual}
         defaultClientId={client?.id}
       />
     </DashboardLayout>
