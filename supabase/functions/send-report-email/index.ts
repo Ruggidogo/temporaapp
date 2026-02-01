@@ -84,7 +84,13 @@ const COLORS = {
   border: [226, 232, 240] as [number, number, number],
 };
 
-async function loadImageAsBase64(url: string): Promise<string | null> {
+interface ImageData {
+  base64: string;
+  width: number;
+  height: number;
+}
+
+async function loadImageAsBase64(url: string): Promise<ImageData | null> {
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
@@ -95,7 +101,41 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
     for (let i = 0; i < uint8Array.length; i++) {
       binary += String.fromCharCode(uint8Array[i]);
     }
-    return btoa(binary);
+    const base64 = btoa(binary);
+    
+    // Try to get image dimensions from PNG header
+    // PNG signature + IHDR chunk contains width and height
+    let width = 100;
+    let height = 100;
+    
+    // Check for PNG signature
+    if (uint8Array[0] === 0x89 && uint8Array[1] === 0x50) {
+      // PNG: width at offset 16, height at offset 20 (big-endian 32-bit)
+      width = (uint8Array[16] << 24) | (uint8Array[17] << 16) | (uint8Array[18] << 8) | uint8Array[19];
+      height = (uint8Array[20] << 24) | (uint8Array[21] << 16) | (uint8Array[22] << 8) | uint8Array[23];
+    }
+    // Check for JPEG signature
+    else if (uint8Array[0] === 0xFF && uint8Array[1] === 0xD8) {
+      // JPEG: need to parse SOF0 marker for dimensions
+      let offset = 2;
+      while (offset < uint8Array.length - 10) {
+        if (uint8Array[offset] === 0xFF) {
+          const marker = uint8Array[offset + 1];
+          // SOF0, SOF1, SOF2 markers contain image dimensions
+          if (marker >= 0xC0 && marker <= 0xC2) {
+            height = (uint8Array[offset + 5] << 8) | uint8Array[offset + 6];
+            width = (uint8Array[offset + 7] << 8) | uint8Array[offset + 8];
+            break;
+          }
+          const length = (uint8Array[offset + 2] << 8) | uint8Array[offset + 3];
+          offset += 2 + length;
+        } else {
+          offset++;
+        }
+      }
+    }
+    
+    return { base64, width, height };
   } catch (error) {
     console.error("Error loading image:", error);
     return null;
@@ -108,7 +148,7 @@ function renderPremiumHeader(
   dateTo: string, 
   selectedClientName?: string,
   selectedTasks?: string[],
-  logoBase64?: string | null
+  logoData?: ImageData | null
 ): number {
   const pageWidth = doc.internal.pageSize.width;
   const centerX = pageWidth / 2;
@@ -125,17 +165,41 @@ function renderPremiumHeader(
   
   // Logo on the left if available
   let titleX = centerX;
-  if (logoBase64) {
+  if (logoData) {
     try {
+      // Calculate logo dimensions maintaining aspect ratio
+      const maxWidth = 35;
+      const maxHeight = 35;
+      let logoWidth = logoData.width;
+      let logoHeight = logoData.height;
+      
+      // Scale to fit within max dimensions while maintaining aspect ratio
+      const aspectRatio = logoWidth / logoHeight;
+      if (logoWidth > maxWidth) {
+        logoWidth = maxWidth;
+        logoHeight = logoWidth / aspectRatio;
+      }
+      if (logoHeight > maxHeight) {
+        logoHeight = maxHeight;
+        logoWidth = logoHeight * aspectRatio;
+      }
+      
+      // Calculate positions for centering in the box
+      const boxSize = 40;
+      const boxX = 12;
+      const boxY = 7.5;
+      const logoX = boxX + (boxSize - logoWidth) / 2;
+      const logoY = boxY + (boxSize - logoHeight) / 2;
+      
       // Add white rounded background for logo
       doc.setFillColor(...COLORS.white);
-      doc.roundedRect(15, 10, 40, 35, 3, 3, 'F');
+      doc.roundedRect(boxX, boxY, boxSize, boxSize, 4, 4, 'F');
       
-      // Add logo image
-      doc.addImage(`data:image/png;base64,${logoBase64}`, 'PNG', 18, 13, 34, 29);
+      // Add logo image with correct proportions
+      doc.addImage(`data:image/png;base64,${logoData.base64}`, 'PNG', logoX, logoY, logoWidth, logoHeight);
       
       // Shift title slightly to the right to balance
-      titleX = (pageWidth + 50) / 2;
+      titleX = (pageWidth + 55) / 2;
     } catch (e) {
       console.error("Error adding logo to PDF:", e);
     }
@@ -453,7 +517,7 @@ function generatePdf(
   selectedClientName?: string,
   selectedTaskNames?: string[],
   pdfLayout?: string[],
-  logoBase64?: string | null
+  logoData?: ImageData | null
 ): string {
   // Start with PORTRAIT orientation for first page (summary + client breakdown)
   const doc = new jsPDF({ orientation: 'portrait' });
@@ -463,7 +527,7 @@ function generatePdf(
     : ["summary", "clientBreakdown", "dailyDetails"];
   
   // Premium Header with logo
-  let yPos = renderPremiumHeader(doc, dateFrom, dateTo, selectedClientName, selectedTaskNames, logoBase64);
+  let yPos = renderPremiumHeader(doc, dateFrom, dateTo, selectedClientName, selectedTaskNames, logoData);
   
   // Greeting
   doc.setTextColor(...COLORS.dark);
@@ -556,9 +620,9 @@ const handler = async (req: Request): Promise<Response> => {
     const profile = profileRes.data;
     
     // Load logo if available
-    let logoBase64: string | null = null;
+    let logoData: ImageData | null = null;
     if (profile?.logo_url) {
-      logoBase64 = await loadImageAsBase64(profile.logo_url);
+      logoData = await loadImageAsBase64(profile.logo_url);
     }
     const clients = clientsRes.data || [];
     const tasks = tasksRes.data || [];
@@ -731,7 +795,7 @@ const handler = async (req: Request): Promise<Response> => {
           selectedClient?.name,
           selectedTaskNames,
           pdfLayout,
-          logoBase64
+          logoData
         );
         
         emailOptions.attachments = [
