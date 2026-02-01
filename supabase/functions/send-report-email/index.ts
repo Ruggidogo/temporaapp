@@ -34,6 +34,7 @@ interface ReportEmailRequest {
   dateFrom: string;
   dateTo: string;
   clientId?: string;
+  taskIds?: string[];
   includePdf?: boolean;
   pdfLayout?: string[];
 }
@@ -338,7 +339,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { recipientEmail, recipientName, subject, dateFrom, dateTo, clientId, includePdf, pdfLayout }: ReportEmailRequest = await req.json();
+    const { recipientEmail, recipientName, subject, dateFrom, dateTo, clientId, taskIds, includePdf, pdfLayout }: ReportEmailRequest = await req.json();
 
     if (!recipientEmail || !dateFrom || !dateTo) {
       return new Response(JSON.stringify({ error: "Parametri mancanti" }), {
@@ -368,6 +369,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (clientId) {
       entriesQuery = entriesQuery.eq("client_id", clientId);
+    }
+
+    // Filter by task IDs if provided
+    if (taskIds && taskIds.length > 0) {
+      entriesQuery = entriesQuery.in("task_id", taskIds);
     }
 
     const { data: entries } = await entriesQuery;
