@@ -15,6 +15,7 @@ const corsHeaders = {
 interface TimeEntry {
   id: string;
   client_id: string | null;
+  task_id: string | null;
   description: string | null;
   duration_seconds: number | null;
   date: string;
@@ -25,6 +26,11 @@ interface Client {
   name: string;
   color: string;
   hourly_rate: number | null;
+}
+
+interface Task {
+  id: string;
+  title: string;
 }
 
 interface ReportEmailRequest {
@@ -48,115 +54,231 @@ function formatDuration(seconds: number): string {
   return `${minutes}m`;
 }
 
-function formatDate(dateStr: string): string {
+function formatDatePdf(dateStr: string): string {
+  const date = new Date(dateStr);
+  const day = date.getDate().toString().padStart(2, '0');
+  const months = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+function formatDateEmail(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function renderSummarySection(doc: jsPDF, yPos: number, totalSeconds: number, totalValue: number): number {
-  if (yPos > 230) {
-    doc.addPage();
-    yPos = 20;
+// Premium color palette
+const COLORS = {
+  primary: [99, 102, 241] as [number, number, number],
+  primaryLight: [238, 242, 255] as [number, number, number],
+  secondary: [139, 92, 246] as [number, number, number],
+  accent: [245, 158, 11] as [number, number, number],
+  accentLight: [254, 243, 226] as [number, number, number],
+  success: [16, 185, 129] as [number, number, number],
+  successLight: [236, 253, 245] as [number, number, number],
+  dark: [15, 23, 42] as [number, number, number],
+  gray: [100, 116, 139] as [number, number, number],
+  grayLight: [248, 250, 252] as [number, number, number],
+  white: [255, 255, 255] as [number, number, number],
+  border: [226, 232, 240] as [number, number, number],
+};
+
+function renderPremiumHeader(
+  doc: jsPDF, 
+  dateFrom: string, 
+  dateTo: string, 
+  selectedClientName?: string,
+  selectedTasks?: string[]
+): number {
+  // Gradient header background
+  doc.setFillColor(...COLORS.primary);
+  doc.rect(0, 0, 210, 50, 'F');
+  
+  // Subtle secondary gradient overlay
+  doc.setFillColor(...COLORS.secondary);
+  doc.setGState(new (doc as any).GState({ opacity: 0.3 }));
+  doc.rect(105, 0, 105, 50, 'F');
+  doc.setGState(new (doc as any).GState({ opacity: 1 }));
+  
+  // Title
+  doc.setTextColor(...COLORS.white);
+  doc.setFontSize(26);
+  doc.setFont("helvetica", "bold");
+  doc.text("REPORT ORE", 105, 22, { align: "center" });
+  
+  // Date range with elegant styling
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${formatDatePdf(dateFrom)} - ${formatDatePdf(dateTo)}`, 105, 34, { align: "center" });
+  
+  // Client name if selected
+  if (selectedClientName) {
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255, 0.9);
+    doc.text(`Cliente: ${selectedClientName}`, 105, 44, { align: "center" });
   }
-  
-  doc.setFillColor(240, 244, 255);
-  doc.roundedRect(20, yPos, 80, 35, 3, 3, 'F');
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(99, 102, 241);
-  doc.text(formatDuration(totalSeconds), 60, yPos + 18, { align: "center" });
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 116, 139);
-  doc.text("Ore totali", 60, yPos + 28, { align: "center" });
-  
-  doc.setFillColor(254, 243, 226);
-  doc.roundedRect(110, yPos, 80, 35, 3, 3, 'F');
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(245, 158, 11);
-  doc.text(`€${totalValue.toFixed(0)}`, 150, yPos + 18, { align: "center" });
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 116, 139);
-  doc.text("Valore totale", 150, yPos + 28, { align: "center" });
-  
-  return yPos + 50;
+
+  return 60;
 }
 
-function renderClientBreakdownSection(
+function renderSummaryCards(
+  doc: jsPDF, 
+  yPos: number, 
+  totalSeconds: number, 
+  totalValue: number,
+  entriesCount: number
+): number {
+  if (yPos > 220) {
+    doc.addPage();
+    yPos = 25;
+  }
+  
+  const cardWidth = 55;
+  const cardHeight = 40;
+  const startX = 20;
+  const gap = 5;
+  
+  // Card 1: Total Hours
+  doc.setFillColor(...COLORS.primaryLight);
+  doc.roundedRect(startX, yPos, cardWidth, cardHeight, 4, 4, 'F');
+  doc.setFillColor(...COLORS.primary);
+  doc.roundedRect(startX, yPos, 4, cardHeight, 2, 0, 'F');
+  
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.primary);
+  doc.text(formatDuration(totalSeconds), startX + 12, yPos + 20);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.gray);
+  doc.text("Ore Totali", startX + 12, yPos + 32);
+  
+  // Card 2: Total Value
+  doc.setFillColor(...COLORS.accentLight);
+  doc.roundedRect(startX + cardWidth + gap, yPos, cardWidth, cardHeight, 4, 4, 'F');
+  doc.setFillColor(...COLORS.accent);
+  doc.roundedRect(startX + cardWidth + gap, yPos, 4, cardHeight, 2, 0, 'F');
+  
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.accent);
+  doc.text(`€${totalValue.toFixed(0)}`, startX + cardWidth + gap + 12, yPos + 20);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.gray);
+  doc.text("Valore Totale", startX + cardWidth + gap + 12, yPos + 32);
+  
+  // Card 3: Entries count
+  doc.setFillColor(...COLORS.successLight);
+  doc.roundedRect(startX + (cardWidth + gap) * 2, yPos, cardWidth, cardHeight, 4, 4, 'F');
+  doc.setFillColor(...COLORS.success);
+  doc.roundedRect(startX + (cardWidth + gap) * 2, yPos, 4, cardHeight, 2, 0, 'F');
+  
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.success);
+  doc.text(`${entriesCount}`, startX + (cardWidth + gap) * 2 + 12, yPos + 20);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.gray);
+  doc.text("Attivita", startX + (cardWidth + gap) * 2 + 12, yPos + 32);
+  
+  return yPos + cardHeight + 15;
+}
+
+function renderClientBreakdown(
   doc: jsPDF, 
   yPos: number, 
   clientTotals: Record<string, { name: string; color: string; seconds: number; value: number }>,
   totalSeconds: number,
   totalValue: number
 ): number {
-  if (yPos > 220) {
+  if (yPos > 200) {
     doc.addPage();
-    yPos = 20;
+    yPos = 25;
   }
   
-  doc.setTextColor(0, 0, 0);
+  // Section title with accent bar
+  doc.setFillColor(...COLORS.primary);
+  doc.roundedRect(20, yPos, 4, 16, 2, 2, 'F');
+  doc.setTextColor(...COLORS.dark);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Riepilogo per cliente", 20, yPos);
+  doc.text("Riepilogo per Cliente", 30, yPos + 11);
   
-  yPos += 8;
+  yPos += 25;
   
   const clientTableData = Object.values(clientTotals)
     .sort((a, b) => b.seconds - a.seconds)
-    .map(c => [c.name, formatDuration(c.seconds), `€${c.value.toFixed(2)}`]);
+    .map(c => {
+      const percentage = totalSeconds > 0 ? Math.round((c.seconds / totalSeconds) * 100) : 0;
+      return [c.name, formatDuration(c.seconds), `${percentage}%`, `€${c.value.toFixed(2)}`];
+    });
   
-  clientTableData.push(["Totale", formatDuration(totalSeconds), `€${totalValue.toFixed(2)}`]);
+  clientTableData.push(["TOTALE", formatDuration(totalSeconds), "100%", `€${totalValue.toFixed(2)}`]);
   
   autoTable(doc, {
     startY: yPos,
-    head: [['Cliente', 'Ore', 'Valore']],
+    head: [['Cliente', 'Ore', '%', 'Valore']],
     body: clientTableData,
-    theme: 'grid',
+    theme: 'plain',
     headStyles: {
-      fillColor: [248, 250, 252],
-      textColor: [100, 116, 139],
+      fillColor: COLORS.grayLight,
+      textColor: COLORS.gray,
       fontStyle: 'bold',
-      fontSize: 10,
+      fontSize: 9,
+      cellPadding: 6,
     },
     bodyStyles: {
       fontSize: 10,
+      cellPadding: 5,
     },
     columnStyles: {
-      0: { cellWidth: 90 },
-      1: { cellWidth: 45, halign: 'right' },
-      2: { cellWidth: 45, halign: 'right' },
+      0: { cellWidth: 70 },
+      1: { cellWidth: 35, halign: 'right' },
+      2: { cellWidth: 25, halign: 'center' },
+      3: { cellWidth: 40, halign: 'right' },
+    },
+    alternateRowStyles: {
+      fillColor: [252, 252, 253],
     },
     didParseCell: function(data: any) {
       if (data.row.index === clientTableData.length - 1) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 244, 255];
+        data.cell.styles.fillColor = COLORS.primaryLight;
+        data.cell.styles.textColor = COLORS.primary;
       }
     },
+    margin: { left: 20, right: 20 },
   });
   
-  return (doc as any).lastAutoTable.finalY + 15;
+  return (doc as any).lastAutoTable.finalY + 20;
 }
 
-function renderDailyDetailsSection(
+function renderDailyDetails(
   doc: jsPDF,
   yPos: number,
   timeEntries: TimeEntry[],
-  clientsMap: Record<string, Client>
+  clientsMap: Record<string, Client>,
+  tasksMap: Record<string, Task>
 ): number {
-  if (yPos > 220) {
+  if (yPos > 200) {
     doc.addPage();
-    yPos = 20;
+    yPos = 25;
   }
   
-  doc.setTextColor(0, 0, 0);
+  // Section title with accent bar
+  doc.setFillColor(...COLORS.primary);
+  doc.roundedRect(20, yPos, 4, 16, 2, 2, 'F');
+  doc.setTextColor(...COLORS.dark);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Dettaglio attività per giorno", 20, yPos);
+  doc.text("Dettaglio Attivita", 30, yPos + 11);
   
-  yPos += 8;
+  yPos += 25;
   
+  // Group entries by date
   const entriesByDate: Record<string, TimeEntry[]> = {};
   timeEntries
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -167,69 +289,103 @@ function renderDailyDetailsSection(
       entriesByDate[entry.date].push(entry);
     });
   
-  const groupedData: (string | { content: string; styles?: any })[][] = [];
+  const tableData: (string | { content: string; styles?: any })[][] = [];
   
   Object.entries(entriesByDate).forEach(([date, entries]) => {
     const dayTotalSeconds = entries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
     
-    groupedData.push([
-      { content: `📅 ${formatDate(date)}`, styles: { fontStyle: 'bold', fillColor: [240, 244, 255], textColor: [99, 102, 241] } },
-      { content: '', styles: { fillColor: [240, 244, 255] } },
-      { content: '', styles: { fillColor: [240, 244, 255] } },
-      { content: '', styles: { fillColor: [240, 244, 255] } }
+    // Date row header - use simple arrow instead of emoji
+    tableData.push([
+      { content: `> ${formatDatePdf(date)}`, styles: { fontStyle: 'bold', fillColor: COLORS.primaryLight, textColor: COLORS.primary, fontSize: 10 } },
+      { content: '', styles: { fillColor: COLORS.primaryLight } },
+      { content: '', styles: { fillColor: COLORS.primaryLight } },
+      { content: '', styles: { fillColor: COLORS.primaryLight } },
+      { content: '', styles: { fillColor: COLORS.primaryLight } }
     ]);
     
     entries.forEach(entry => {
       const client = entry.client_id ? clientsMap[entry.client_id] : null;
-      const clientName = client?.name || "Senza cliente";
+      const task = entry.task_id ? tasksMap[entry.task_id] : null;
+      const clientName = client?.name || "-";
+      const taskName = task?.title || "-";
       const description = entry.description || "-";
-      const truncatedDesc = description.length > 50 ? description.substring(0, 47) + "..." : description;
-      groupedData.push([
+      const truncatedDesc = description.length > 35 ? description.substring(0, 32) + "..." : description;
+      const truncatedTask = taskName.length > 20 ? taskName.substring(0, 17) + "..." : taskName;
+      
+      tableData.push([
         '',
         clientName,
+        truncatedTask,
         truncatedDesc,
         formatDuration(entry.duration_seconds || 0)
       ]);
     });
     
-    groupedData.push([
-      { content: '', styles: { fillColor: [248, 250, 252] } },
-      { content: '', styles: { fillColor: [248, 250, 252] } },
-      { content: 'Subtotale giorno', styles: { fontStyle: 'bold', halign: 'right', fillColor: [248, 250, 252] } },
-      { content: formatDuration(dayTotalSeconds), styles: { fontStyle: 'bold', halign: 'right', fillColor: [248, 250, 252] } }
+    // Subtotal row
+    tableData.push([
+      { content: '', styles: { fillColor: COLORS.grayLight } },
+      { content: '', styles: { fillColor: COLORS.grayLight } },
+      { content: '', styles: { fillColor: COLORS.grayLight } },
+      { content: 'Subtotale', styles: { fontStyle: 'bold', halign: 'right', fillColor: COLORS.grayLight, fontSize: 9 } },
+      { content: formatDuration(dayTotalSeconds), styles: { fontStyle: 'bold', halign: 'right', fillColor: COLORS.grayLight } }
     ]);
   });
   
   autoTable(doc, {
     startY: yPos,
-    head: [['Data', 'Cliente', 'Descrizione', 'Durata']],
-    body: groupedData,
+    head: [['Data', 'Cliente', 'Task', 'Descrizione', 'Durata']],
+    body: tableData,
     theme: 'plain',
     headStyles: {
-      fillColor: [99, 102, 241],
-      textColor: [255, 255, 255],
+      fillColor: COLORS.primary,
+      textColor: COLORS.white,
       fontStyle: 'bold',
       fontSize: 9,
+      cellPadding: 5,
     },
     bodyStyles: {
       fontSize: 9,
+      cellPadding: 4,
     },
     columnStyles: {
-      0: { cellWidth: 35 },
-      1: { cellWidth: 40 },
-      2: { cellWidth: 75 },
-      3: { cellWidth: 25, halign: 'right' },
+      0: { cellWidth: 32 },
+      1: { cellWidth: 32 },
+      2: { cellWidth: 35 },
+      3: { cellWidth: 50 },
+      4: { cellWidth: 22, halign: 'right' },
     },
-    margin: { left: 20, right: 20 },
     didParseCell: function(data: any) {
       if (data.section === 'body') {
         data.cell.styles.lineWidth = 0.1;
-        data.cell.styles.lineColor = [226, 232, 240];
+        data.cell.styles.lineColor = COLORS.border;
       }
     },
+    margin: { left: 20, right: 20 },
   });
   
   return (doc as any).lastAutoTable.finalY;
+}
+
+function renderFooter(doc: jsPDF): void {
+  const pageCount = doc.getNumberOfPages();
+  
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Footer line
+    doc.setDrawColor(...COLORS.border);
+    doc.setLineWidth(0.5);
+    doc.line(20, pageHeight - 18, pageWidth - 20, pageHeight - 18);
+    
+    // Footer text
+    doc.setFontSize(8);
+    doc.setTextColor(...COLORS.gray);
+    doc.setFont("helvetica", "normal");
+    doc.text("Report generato con Tempora", 20, pageHeight - 10);
+    doc.text(`Pagina ${i} di ${pageCount}`, pageWidth - 20, pageHeight - 10, { align: "right" });
+  }
 }
 
 function generatePdf(
@@ -242,7 +398,9 @@ function generatePdf(
   totalValue: number,
   timeEntries: TimeEntry[],
   clientsMap: Record<string, Client>,
+  tasksMap: Record<string, Task>,
   selectedClientName?: string,
+  selectedTaskNames?: string[],
   pdfLayout?: string[]
 ): string {
   const doc = new jsPDF();
@@ -251,62 +409,48 @@ function generatePdf(
     ? pdfLayout 
     : ["summary", "clientBreakdown", "dailyDetails"];
   
-  // Header
-  doc.setFillColor(99, 102, 241);
-  doc.rect(0, 0, 210, 45, 'F');
+  // Premium Header
+  let yPos = renderPremiumHeader(doc, dateFrom, dateTo, selectedClientName, selectedTaskNames);
   
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
-  doc.setFont("helvetica", "bold");
-  doc.text("Report Ore", 105, 22, { align: "center" });
-  
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text(`${formatDate(dateFrom)} - ${formatDate(dateTo)}`, 105, 32, { align: "center" });
-  
-  if (selectedClientName) {
-    doc.setFontSize(10);
-    doc.text(`Cliente: ${selectedClientName}`, 105, 40, { align: "center" });
-  }
-  
-  doc.setTextColor(0, 0, 0);
-  
-  let yPos = 60;
+  // Greeting
+  doc.setTextColor(...COLORS.dark);
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
   const greeting = recipientName ? `Ciao ${recipientName},` : 'Ciao,';
   doc.text(greeting, 20, yPos);
-  yPos += 7;
+  yPos += 6;
   doc.text(`ecco il riepilogo delle ore lavorate inviato da ${senderName}.`, 20, yPos);
+  
+  // Selected tasks info
+  if (selectedTaskNames && selectedTaskNames.length > 0) {
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setTextColor(...COLORS.gray);
+    const tasksList = selectedTaskNames.length > 3 
+      ? `${selectedTaskNames.slice(0, 3).join(", ")} (+${selectedTaskNames.length - 3} altri)`
+      : selectedTaskNames.join(", ");
+    doc.text(`Task selezionati: ${tasksList}`, 20, yPos);
+  }
+  
   yPos += 15;
   
+  // Render sections based on layout
   for (const section of layout) {
     switch (section) {
       case "summary":
-        yPos = renderSummarySection(doc, yPos, totalSeconds, totalValue);
+        yPos = renderSummaryCards(doc, yPos, totalSeconds, totalValue, timeEntries.length);
         break;
       case "clientBreakdown":
-        yPos = renderClientBreakdownSection(doc, yPos, clientTotals, totalSeconds, totalValue);
+        yPos = renderClientBreakdown(doc, yPos, clientTotals, totalSeconds, totalValue);
         break;
       case "dailyDetails":
-        yPos = renderDailyDetailsSection(doc, yPos, timeEntries, clientsMap);
+        yPos = renderDailyDetails(doc, yPos, timeEntries, clientsMap, tasksMap);
         break;
     }
   }
   
-  // Footer
-  const finalY = yPos + 15;
-  const pageHeight = doc.internal.pageSize.height;
-  if (finalY > pageHeight - 20) {
-    doc.addPage();
-    doc.setFontSize(10);
-    doc.setTextColor(148, 163, 184);
-    doc.text("Report generato con Tempora", 105, 20, { align: "center" });
-  } else {
-    doc.setFontSize(10);
-    doc.setTextColor(148, 163, 184);
-    doc.text("Report generato con Tempora", 105, finalY, { align: "center" });
-  }
+  // Footer on all pages
+  renderFooter(doc);
   
   return doc.output('datauristring').split(',')[1];
 }
@@ -348,17 +492,18 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("name")
-      .eq("user_id", user.id)
-      .single();
+    // Fetch profile, clients, and tasks
+    const [profileRes, clientsRes, tasksRes] = await Promise.all([
+      supabase.from("profiles").select("name").eq("user_id", user.id).single(),
+      supabase.from("clients").select("*").eq("user_id", user.id),
+      supabase.from("tasks").select("id, title").eq("user_id", user.id),
+    ]);
 
-    const { data: clients } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("user_id", user.id);
+    const profile = profileRes.data;
+    const clients = clientsRes.data || [];
+    const tasks = tasksRes.data || [];
 
+    // Build entries query
     let entriesQuery = supabase
       .from("time_entries")
       .select("*")
@@ -371,7 +516,6 @@ const handler = async (req: Request): Promise<Response> => {
       entriesQuery = entriesQuery.eq("client_id", clientId);
     }
 
-    // Filter by task IDs if provided
     if (taskIds && taskIds.length > 0) {
       entriesQuery = entriesQuery.in("task_id", taskIds);
     }
@@ -379,9 +523,15 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: entries } = await entriesQuery;
 
     const timeEntries: TimeEntry[] = entries || [];
+    
+    // Create lookup maps
     const clientsMap: Record<string, Client> = {};
-    (clients || []).forEach(c => { clientsMap[c.id] = c; });
+    clients.forEach(c => { clientsMap[c.id] = c; });
+    
+    const tasksMap: Record<string, Task> = {};
+    tasks.forEach(t => { tasksMap[t.id] = t; });
 
+    // Calculate totals
     const totalSeconds = timeEntries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
     
     const clientTotals: Record<string, { name: string; color: string; seconds: number; value: number }> = {};
@@ -401,7 +551,11 @@ const handler = async (req: Request): Promise<Response> => {
     const totalValue = Object.values(clientTotals).reduce((acc, c) => acc + c.value, 0);
     const senderName = profile?.name || user.email?.split("@")[0] || "Utente";
     const selectedClient = clientId ? clientsMap[clientId] : null;
+    
+    // Get selected task names
+    const selectedTaskNames = taskIds?.map(id => tasksMap[id]?.title).filter(Boolean) || [];
 
+    // Build email HTML
     const clientRows = Object.values(clientTotals)
       .sort((a, b) => b.seconds - a.seconds)
       .map(c => `
@@ -423,6 +577,10 @@ const handler = async (req: Request): Promise<Response> => {
       ? `<p style="margin: 16px 0 0 0; padding: 12px; background: #f0f4ff; border-radius: 8px; font-size: 14px; color: #6366f1;">📎 Report PDF allegato a questa email</p>`
       : '';
 
+    const tasksNote = selectedTaskNames.length > 0
+      ? `<p style="margin: 8px 0 0 0; font-size: 13px; color: #64748b;">Task: ${selectedTaskNames.join(", ")}</p>`
+      : '';
+
     const emailHtml = `
       <!DOCTYPE html>
       <html>
@@ -435,7 +593,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 32px; border-radius: 16px 16px 0 0; text-align: center;">
             <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">📊 Report Ore</h1>
             <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">
-              ${formatDate(dateFrom)} - ${formatDate(dateTo)}
+              ${formatDateEmail(dateFrom)} - ${formatDateEmail(dateTo)}
             </p>
             ${selectedClient ? `<p style="color: rgba(255,255,255,0.8); margin: 4px 0 0 0; font-size: 14px;">Cliente: ${selectedClient.name}</p>` : ''}
           </div>
@@ -445,8 +603,9 @@ const handler = async (req: Request): Promise<Response> => {
               ${recipientName ? `Ciao ${recipientName},` : 'Ciao,'}<br>
               ecco il riepilogo delle ore lavorate inviato da <strong>${senderName}</strong>.
             </p>
+            ${tasksNote}
             
-            <div style="display: flex; gap: 16px; margin-bottom: 32px;">
+            <div style="display: flex; gap: 16px; margin: 24px 0 32px 0;">
               <div style="flex: 1; background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); padding: 20px; border-radius: 12px; text-align: center;">
                 <p style="margin: 0; font-size: 28px; font-weight: 700; color: #6366f1;">${formatDuration(totalSeconds)}</p>
                 <p style="margin: 4px 0 0 0; font-size: 14px; color: #64748b;">Ore totali</p>
@@ -492,7 +651,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailOptions: any = {
       from: "Tempora <onboarding@resend.dev>",
       to: [recipientEmail],
-      subject: subject || `Report ore: ${formatDate(dateFrom)} - ${formatDate(dateTo)}`,
+      subject: subject || `Report ore: ${formatDateEmail(dateFrom)} - ${formatDateEmail(dateTo)}`,
       html: emailHtml,
     };
 
@@ -508,7 +667,9 @@ const handler = async (req: Request): Promise<Response> => {
           totalValue,
           timeEntries,
           clientsMap,
+          tasksMap,
           selectedClient?.name,
+          selectedTaskNames,
           pdfLayout
         );
         
