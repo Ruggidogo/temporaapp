@@ -91,35 +91,38 @@ function renderPremiumHeader(
   selectedClientName?: string,
   selectedTasks?: string[]
 ): number {
-  // Gradient header background
+  const pageWidth = doc.internal.pageSize.width;
+  const centerX = pageWidth / 2;
+  
+  // Gradient header background - adapts to page width
   doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, 210, 50, 'F');
+  doc.rect(0, 0, pageWidth, 45, 'F');
   
   // Subtle secondary gradient overlay
   doc.setFillColor(...COLORS.secondary);
   doc.setGState(new (doc as any).GState({ opacity: 0.3 }));
-  doc.rect(105, 0, 105, 50, 'F');
+  doc.rect(centerX, 0, centerX, 45, 'F');
   doc.setGState(new (doc as any).GState({ opacity: 1 }));
   
   // Title
   doc.setTextColor(...COLORS.white);
-  doc.setFontSize(26);
+  doc.setFontSize(24);
   doc.setFont("helvetica", "bold");
-  doc.text("REPORT ORE", 105, 22, { align: "center" });
+  doc.text("REPORT ORE", centerX, 20, { align: "center" });
   
   // Date range with elegant styling
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.text(`${formatDatePdf(dateFrom)} - ${formatDatePdf(dateTo)}`, 105, 34, { align: "center" });
+  doc.text(`${formatDatePdf(dateFrom)} - ${formatDatePdf(dateTo)}`, centerX, 30, { align: "center" });
   
   // Client name if selected
   if (selectedClientName) {
     doc.setFontSize(10);
     doc.setTextColor(255, 255, 255, 0.9);
-    doc.text(`Cliente: ${selectedClientName}`, 105, 44, { align: "center" });
+    doc.text(`Cliente: ${selectedClientName}`, centerX, 40, { align: "center" });
   }
 
-  return 60;
+  return 55;
 }
 
 function renderSummaryCards(
@@ -129,7 +132,8 @@ function renderSummaryCards(
   totalValue: number,
   entriesCount: number
 ): number {
-  if (yPos > 220) {
+  const pageHeight = doc.internal.pageSize.height;
+  if (yPos > pageHeight - 60) {
     doc.addPage();
     yPos = 25;
   }
@@ -194,7 +198,8 @@ function renderClientBreakdown(
   totalSeconds: number,
   totalValue: number
 ): number {
-  if (yPos > 200) {
+  const pageHeight = doc.internal.pageSize.height;
+  if (yPos > pageHeight - 80) {
     doc.addPage();
     yPos = 25;
   }
@@ -263,7 +268,10 @@ function renderDailyDetails(
   clientsMap: Record<string, Client>,
   tasksMap: Record<string, Task>
 ): number {
-  if (yPos > 200) {
+  const pageWidth = doc.internal.pageSize.width;
+  const isLandscape = pageWidth > 250;
+  
+  if (yPos > (isLandscape ? 140 : 200)) {
     doc.addPage();
     yPos = 25;
   }
@@ -294,9 +302,9 @@ function renderDailyDetails(
   Object.entries(entriesByDate).forEach(([date, entries]) => {
     const dayTotalSeconds = entries.reduce((acc, e) => acc + (e.duration_seconds || 0), 0);
     
-    // Date row header - use simple arrow instead of emoji
+    // Date row header - clean date without ">"
     tableData.push([
-      { content: `> ${formatDatePdf(date)}`, styles: { fontStyle: 'bold', fillColor: COLORS.primaryLight, textColor: COLORS.primary, fontSize: 10 } },
+      { content: formatDatePdf(date), styles: { fontStyle: 'bold', fillColor: COLORS.primaryLight, textColor: COLORS.primary, fontSize: 10 } },
       { content: '', styles: { fillColor: COLORS.primaryLight } },
       { content: '', styles: { fillColor: COLORS.primaryLight } },
       { content: '', styles: { fillColor: COLORS.primaryLight } },
@@ -309,14 +317,12 @@ function renderDailyDetails(
       const clientName = client?.name || "-";
       const taskName = task?.title || "-";
       const description = entry.description || "-";
-      const truncatedDesc = description.length > 35 ? description.substring(0, 32) + "..." : description;
-      const truncatedTask = taskName.length > 20 ? taskName.substring(0, 17) + "..." : taskName;
       
       tableData.push([
         '',
         clientName,
-        truncatedTask,
-        truncatedDesc,
+        taskName,
+        description,
         formatDuration(entry.duration_seconds || 0)
       ]);
     });
@@ -331,6 +337,7 @@ function renderDailyDetails(
     ]);
   });
   
+  // Landscape layout - more space for description
   autoTable(doc, {
     startY: yPos,
     head: [['Data', 'Cliente', 'Task', 'Descrizione', 'Durata']],
@@ -347,11 +354,17 @@ function renderDailyDetails(
       fontSize: 9,
       cellPadding: 4,
     },
-    columnStyles: {
+    columnStyles: isLandscape ? {
+      0: { cellWidth: 35 },
+      1: { cellWidth: 40 },
+      2: { cellWidth: 50 },
+      3: { cellWidth: 'auto' }, // Description takes remaining space
+      4: { cellWidth: 25, halign: 'right' },
+    } : {
       0: { cellWidth: 32 },
       1: { cellWidth: 32 },
       2: { cellWidth: 35 },
-      3: { cellWidth: 50 },
+      3: { cellWidth: 'auto' },
       4: { cellWidth: 22, halign: 'right' },
     },
     didParseCell: function(data: any) {
@@ -361,6 +374,7 @@ function renderDailyDetails(
       }
     },
     margin: { left: 20, right: 20 },
+    tableWidth: 'auto',
   });
   
   return (doc as any).lastAutoTable.finalY;
@@ -403,7 +417,8 @@ function generatePdf(
   selectedTaskNames?: string[],
   pdfLayout?: string[]
 ): string {
-  const doc = new jsPDF();
+  // Create PDF in landscape orientation for more space
+  const doc = new jsPDF({ orientation: 'landscape' });
   
   const layout = pdfLayout && pdfLayout.length > 0 
     ? pdfLayout 
