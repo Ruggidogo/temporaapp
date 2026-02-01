@@ -24,7 +24,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Mail, Send, Loader2, Calendar, User, FileText, Settings2, ChevronDown, GripVertical } from "lucide-react";
+import { Mail, Send, Loader2, Calendar, User, FileText, Settings2, ChevronDown, GripVertical, CalendarDays } from "lucide-react";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, Locale } from "date-fns";
@@ -73,7 +76,9 @@ export function SendReportDialog({
   const [recipientName, setRecipientName] = useState("");
   const [subject, setSubject] = useState("");
   const [selectedClient, setSelectedClient] = useState(defaultClientId || "all");
-  const [selectedPeriod, setSelectedPeriod] = useState(defaultPeriod);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>(defaultPeriod);
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined);
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined);
   const [includePdf, setIncludePdf] = useState(true);
   const [pdfSections, setPdfSections] = useState<PdfSection[]>([
     { id: "summary", label: "summary", enabled: true },
@@ -89,6 +94,7 @@ export function SendReportDialog({
     { label: t("sendReport.thisMonth"), value: "month" },
     { label: t("sendReport.last7Days"), value: "last7" },
     { label: t("sendReport.last30Days"), value: "last30" },
+    { label: t("sendReport.customPeriod"), value: "custom" },
   ];
 
   const getSectionLabel = (id: string) => {
@@ -127,6 +133,18 @@ export function SendReportDialog({
         return { from: format(subDays(today, 6), "yyyy-MM-dd"), to: format(today, "yyyy-MM-dd") };
       case "last30":
         return { from: format(subDays(today, 29), "yyyy-MM-dd"), to: format(today, "yyyy-MM-dd") };
+      case "custom":
+        if (customDateFrom && customDateTo) {
+          return { 
+            from: format(customDateFrom, "yyyy-MM-dd"), 
+            to: format(customDateTo, "yyyy-MM-dd") 
+          };
+        }
+        // Fallback to this week if custom dates not set
+        return { 
+          from: format(startOfWeek(today, { locale }), "yyyy-MM-dd"), 
+          to: format(endOfWeek(today, { locale }), "yyyy-MM-dd") 
+        };
       default:
         return { 
           from: format(startOfWeek(today, { locale }), "yyyy-MM-dd"), 
@@ -240,7 +258,7 @@ export function SendReportDialog({
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 {t("sendReport.period")}
               </Label>
-              <Select value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as typeof selectedPeriod)}>
+              <Select value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v)}>
                 <SelectTrigger className="h-11 bg-muted/50 border-border/60">
                   <SelectValue />
                 </SelectTrigger>
@@ -250,6 +268,67 @@ export function SendReportDialog({
                   ))}
                 </SelectContent>
               </Select>
+              
+              {/* Custom date pickers */}
+              {selectedPeriod === "custom" && (
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">{t("sendReport.dateFrom")}</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full h-10 justify-start text-left font-normal bg-muted/50 border-border/60",
+                            !customDateFrom && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarDays className="mr-2 h-4 w-4" />
+                          {customDateFrom ? format(customDateFrom, "d MMM yyyy", { locale }) : t("sendReport.selectDate")}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={customDateFrom}
+                          onSelect={setCustomDateFrom}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                          disabled={(date) => customDateTo ? date > customDateTo : false}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">{t("sendReport.dateTo")}</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full h-10 justify-start text-left font-normal bg-muted/50 border-border/60",
+                            !customDateTo && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarDays className="mr-2 h-4 w-4" />
+                          {customDateTo ? format(customDateTo, "d MMM yyyy", { locale }) : t("sendReport.selectDate")}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={customDateTo}
+                          onSelect={setCustomDateTo}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                          disabled={(date) => customDateFrom ? date < customDateFrom : false}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
+              
               <p className="text-xs text-muted-foreground">{periodLabel}</p>
             </div>
           )}
