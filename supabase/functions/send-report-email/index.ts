@@ -417,8 +417,8 @@ function generatePdf(
   selectedTaskNames?: string[],
   pdfLayout?: string[]
 ): string {
-  // Create PDF in landscape orientation for more space
-  const doc = new jsPDF({ orientation: 'landscape' });
+  // Start with PORTRAIT orientation for first page (summary + client breakdown)
+  const doc = new jsPDF({ orientation: 'portrait' });
   
   const layout = pdfLayout && pdfLayout.length > 0 
     ? pdfLayout 
@@ -449,19 +449,20 @@ function generatePdf(
   
   yPos += 15;
   
-  // Render sections based on layout
+  // Render summary and client breakdown on first page (portrait)
   for (const section of layout) {
-    switch (section) {
-      case "summary":
-        yPos = renderSummaryCards(doc, yPos, totalSeconds, totalValue, timeEntries.length);
-        break;
-      case "clientBreakdown":
-        yPos = renderClientBreakdown(doc, yPos, clientTotals, totalSeconds, totalValue);
-        break;
-      case "dailyDetails":
-        yPos = renderDailyDetails(doc, yPos, timeEntries, clientsMap, tasksMap);
-        break;
+    if (section === "summary") {
+      yPos = renderSummaryCards(doc, yPos, totalSeconds, totalValue, timeEntries.length);
+    } else if (section === "clientBreakdown") {
+      yPos = renderClientBreakdown(doc, yPos, clientTotals, totalSeconds, totalValue);
     }
+  }
+  
+  // Add new page in LANDSCAPE for daily details
+  if (layout.includes("dailyDetails") && timeEntries.length > 0) {
+    doc.addPage('a4', 'landscape');
+    yPos = 25;
+    renderDailyDetails(doc, yPos, timeEntries, clientsMap, tasksMap);
   }
   
   // Footer on all pages
