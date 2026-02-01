@@ -84,45 +84,82 @@ const COLORS = {
   border: [226, 232, 240] as [number, number, number],
 };
 
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    return btoa(binary);
+  } catch (error) {
+    console.error("Error loading image:", error);
+    return null;
+  }
+}
+
 function renderPremiumHeader(
   doc: jsPDF, 
   dateFrom: string, 
   dateTo: string, 
   selectedClientName?: string,
-  selectedTasks?: string[]
+  selectedTasks?: string[],
+  logoBase64?: string | null
 ): number {
   const pageWidth = doc.internal.pageSize.width;
   const centerX = pageWidth / 2;
   
   // Gradient header background - adapts to page width
   doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, pageWidth, 45, 'F');
+  doc.rect(0, 0, pageWidth, 55, 'F');
   
   // Subtle secondary gradient overlay
   doc.setFillColor(...COLORS.secondary);
   doc.setGState(new (doc as any).GState({ opacity: 0.3 }));
-  doc.rect(centerX, 0, centerX, 45, 'F');
+  doc.rect(centerX, 0, centerX, 55, 'F');
   doc.setGState(new (doc as any).GState({ opacity: 1 }));
+  
+  // Logo on the left if available
+  let titleX = centerX;
+  if (logoBase64) {
+    try {
+      // Add white rounded background for logo
+      doc.setFillColor(...COLORS.white);
+      doc.roundedRect(15, 10, 40, 35, 3, 3, 'F');
+      
+      // Add logo image
+      doc.addImage(`data:image/png;base64,${logoBase64}`, 'PNG', 18, 13, 34, 29);
+      
+      // Shift title slightly to the right to balance
+      titleX = (pageWidth + 50) / 2;
+    } catch (e) {
+      console.error("Error adding logo to PDF:", e);
+    }
+  }
   
   // Title
   doc.setTextColor(...COLORS.white);
   doc.setFontSize(24);
   doc.setFont("helvetica", "bold");
-  doc.text("REPORT ORE", centerX, 20, { align: "center" });
+  doc.text("REPORT ORE", titleX, 25, { align: "center" });
   
   // Date range with elegant styling
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
-  doc.text(`${formatDatePdf(dateFrom)} - ${formatDatePdf(dateTo)}`, centerX, 30, { align: "center" });
+  doc.text(`${formatDatePdf(dateFrom)} - ${formatDatePdf(dateTo)}`, titleX, 36, { align: "center" });
   
   // Client name if selected
   if (selectedClientName) {
     doc.setFontSize(10);
     doc.setTextColor(255, 255, 255, 0.9);
-    doc.text(`Cliente: ${selectedClientName}`, centerX, 40, { align: "center" });
+    doc.text(`Cliente: ${selectedClientName}`, titleX, 47, { align: "center" });
   }
 
-  return 55;
+  return 65;
 }
 
 function renderSummaryCards(
@@ -415,7 +452,8 @@ function generatePdf(
   tasksMap: Record<string, Task>,
   selectedClientName?: string,
   selectedTaskNames?: string[],
-  pdfLayout?: string[]
+  pdfLayout?: string[],
+  logoBase64?: string | null
 ): string {
   // Start with PORTRAIT orientation for first page (summary + client breakdown)
   const doc = new jsPDF({ orientation: 'portrait' });
@@ -424,8 +462,8 @@ function generatePdf(
     ? pdfLayout 
     : ["summary", "clientBreakdown", "dailyDetails"];
   
-  // Premium Header
-  let yPos = renderPremiumHeader(doc, dateFrom, dateTo, selectedClientName, selectedTaskNames);
+  // Premium Header with logo
+  let yPos = renderPremiumHeader(doc, dateFrom, dateTo, selectedClientName, selectedTaskNames, logoBase64);
   
   // Greeting
   doc.setTextColor(...COLORS.dark);
@@ -510,12 +548,18 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Fetch profile, clients, and tasks
     const [profileRes, clientsRes, tasksRes] = await Promise.all([
-      supabase.from("profiles").select("name").eq("user_id", user.id).single(),
+      supabase.from("profiles").select("name, logo_url").eq("user_id", user.id).single(),
       supabase.from("clients").select("*").eq("user_id", user.id),
       supabase.from("tasks").select("id, title").eq("user_id", user.id),
     ]);
 
     const profile = profileRes.data;
+    
+    // Load logo if available
+    let logoBase64: string | null = null;
+    if (profile?.logo_url) {
+      logoBase64 = await loadImageAsBase64(profile.logo_url);
+    }
     const clients = clientsRes.data || [];
     const tasks = tasksRes.data || [];
 
@@ -686,7 +730,8 @@ const handler = async (req: Request): Promise<Response> => {
           tasksMap,
           selectedClient?.name,
           selectedTaskNames,
-          pdfLayout
+          pdfLayout,
+          logoBase64
         );
         
         emailOptions.attachments = [
