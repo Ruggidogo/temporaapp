@@ -635,6 +635,11 @@ const translations: Record<string, string> = {
   "sendReport.emailRequired": "Please enter an email address",
   "sendReport.success": "Report sent successfully!",
   "sendReport.error": "Error sending report",
+  "sendReport.allTasks": "All tasks",
+  "sendReport.tasksSelected": "tasks selected",
+  "sendReport.selectTasksDesc": "Select tasks to include in the report",
+  "sendReport.selectAll": "Select all",
+  "sendReport.deselectAll": "Deselect all",
 
   // Manual Entry Dialog
   "manualEntry.title": "Manual entry",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Mail, Send, Loader2, Calendar, User, FileText, Settings2, ChevronDown, GripVertical, CalendarDays } from "lucide-react";
+import { Mail, Send, Loader2, Calendar, User, FileText, Settings2, ChevronDown, GripVertical, CalendarDays, ListTodo } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, Locale } from "date-fns";
 import { it, enUS, es, fr, de } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const dateLocales: Record<string, Locale> = { it, en: enUS, es, fr, de };
 
@@ -43,6 +44,11 @@ interface Client {
   color: string;
 }
 
+interface Task {
+  id: string;
+  title: string;
+}
+
 interface SendReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -51,6 +57,7 @@ interface SendReportDialogProps {
   defaultPeriod?: "today" | "yesterday" | "week" | "month" | "last7" | "last30";
   defaultDateFrom?: string;
   defaultDateTo?: string;
+  availableTasks?: Task[];
 }
 
 interface PdfSection {
@@ -67,8 +74,10 @@ export function SendReportDialog({
   defaultPeriod = "week",
   defaultDateFrom,
   defaultDateTo,
+  availableTasks,
 }: SendReportDialogProps) {
   const { language, t } = useLanguage();
+  const { user } = useAuth();
   const locale = dateLocales[language] || enUS;
 
   const [sending, setSending] = useState(false);
@@ -86,6 +95,63 @@ export function SendReportDialog({
     { id: "dailyDetails", label: "dailyDetails", enabled: true },
   ]);
   const [pdfOptionsOpen, setPdfOptionsOpen] = useState(false);
+  
+  // Task selection
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [taskSelectorOpen, setTaskSelectorOpen] = useState(false);
+
+  // Fetch tasks when client changes (only if not provided via props)
+  useEffect(() => {
+    if (availableTasks) {
+      setTasks(availableTasks);
+      return;
+    }
+    
+    if (selectedClient !== "all" && user) {
+      fetchTasksForClient(selectedClient);
+    } else {
+      setTasks([]);
+      setSelectedTaskIds([]);
+    }
+  }, [selectedClient, user, availableTasks]);
+
+  const fetchTasksForClient = async (clientId: string) => {
+    if (!user) return;
+    setTasksLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("id, title")
+        .eq("user_id", user.id)
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setTasks(data || []);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    } finally {
+      setTasksLoading(false);
+    }
+  };
+
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedTaskIds(prev =>
+      prev.includes(taskId)
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    );
+  };
+
+  const selectAllTasks = () => {
+    if (selectedTaskIds.length === tasks.length) {
+      setSelectedTaskIds([]);
+    } else {
+      setSelectedTaskIds(tasks.map(t => t.id));
+    }
+  };
 
   const periodOptions = [
     { label: t("sendReport.today"), value: "today" },
@@ -212,6 +278,7 @@ export function SendReportDialog({
           dateFrom: from,
           dateTo: to,
           clientId: selectedClient !== "all" ? selectedClient : undefined,
+          taskIds: selectedTaskIds.length > 0 ? selectedTaskIds : undefined,
           includePdf,
           pdfLayout,
         },
@@ -361,6 +428,65 @@ export function SendReportDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Task filter - only show when a client is selected and has tasks */}
+          {selectedClient !== "all" && tasks.length > 0 && (
+            <Collapsible open={taskSelectorOpen} onOpenChange={setTaskSelectorOpen}>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-between h-11 bg-muted/50 border-border/60"
+                  disabled={tasksLoading}
+                >
+                  <span className="flex items-center gap-2">
+                    <ListTodo className="w-4 h-4 text-muted-foreground" />
+                    {selectedTaskIds.length === 0 
+                      ? t("sendReport.allTasks")
+                      : selectedTaskIds.length === tasks.length
+                        ? t("sendReport.allTasks")
+                        : `${selectedTaskIds.length} ${t("sendReport.tasksSelected")}`
+                    }
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${taskSelectorOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-2">
+                <div className="space-y-2 p-3 rounded-lg bg-muted/30 border border-border/40 max-h-48 overflow-y-auto">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-muted-foreground">
+                      {t("sendReport.selectTasksDesc")}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={selectAllTasks}
+                      className="text-xs h-7 px-2"
+                    >
+                      {selectedTaskIds.length === tasks.length ? t("sendReport.deselectAll") : t("sendReport.selectAll")}
+                    </Button>
+                  </div>
+                  {tasks.map((task) => (
+                    <div 
+                      key={task.id}
+                      className="flex items-center gap-2 p-2 rounded-lg bg-background/60 border border-border/40"
+                    >
+                      <Checkbox
+                        id={`task-${task.id}`}
+                        checked={selectedTaskIds.includes(task.id)}
+                        onCheckedChange={() => toggleTaskSelection(task.id)}
+                      />
+                      <Label 
+                        htmlFor={`task-${task.id}`}
+                        className="text-sm flex-1 cursor-pointer truncate"
+                      >
+                        {task.title}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
 
           {/* Email */}
           <div className="space-y-2">
