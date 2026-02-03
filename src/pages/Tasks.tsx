@@ -294,7 +294,7 @@ export default function Tasks() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 tempora-animate-in">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 tempora-animate-in overflow-x-hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -448,12 +448,12 @@ export default function Tasks() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                             >
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="z-50 bg-popover">
                             <DropdownMenuItem
                               onClick={() => {
                                 setSelectedTask(task);

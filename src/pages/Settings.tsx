@@ -140,18 +140,18 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 lg:p-8 max-w-2xl mx-auto tempora-animate-in">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">{t("settings.title")}</h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto tempora-animate-in overflow-x-hidden">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("settings.title")}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             {t("settings.subtitle")}
           </p>
         </div>
 
-        <div className="space-y-6 stagger-children">
+        <div className="space-y-4 sm:space-y-6 stagger-children">
           {/* Subscription Card */}
           <div className={cn(
-            "relative overflow-hidden rounded-2xl border p-6 transition-all",
+            "relative overflow-hidden rounded-2xl border p-4 sm:p-6 transition-all",
             isPro 
               ? "border-success/30 bg-gradient-to-br from-success/5 to-emerald-500/5" 
               : "border-primary/30 bg-gradient-to-br from-primary/5 to-purple-500/5"
@@ -163,39 +163,39 @@ export default function Settings() {
             )} />
             
             <div className="relative">
-              <div className="flex items-start justify-between gap-4 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg",
+                    "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0",
                     isPro 
                       ? "bg-gradient-to-r from-success to-emerald-400 shadow-success/30" 
                       : "bg-gradient-to-r from-primary to-purple-500 shadow-primary/30"
                   )}>
-                    <Crown className="w-6 h-6 text-white" />
+                    <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-lg">
+                    <h2 className="font-bold text-base sm:text-lg">
                       {isPro ? t("settings.plan.pro") : t("settings.plan.trial")}
                     </h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {isPro ? t("settings.plan.proDesc") : t("settings.plan.trialDesc")}
                     </p>
                   </div>
                 </div>
                 
                 {isPro && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30 text-sm font-medium text-success">
-                    <Check className="w-4 h-4" />
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30 text-xs sm:text-sm font-medium text-success w-fit">
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                     {t("settings.plan.active")}
                   </div>
                 )}
               </div>
 
               {/* Plan details */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                 {isPro && subscription.subscriptionEnd && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                     <span className="text-muted-foreground">{t("settings.plan.nextRenewal")}</span>
                     <span className="font-medium">
                       {format(new Date(subscription.subscriptionEnd), "d MMMM yyyy", { locale: it })}
@@ -204,8 +204,8 @@ export default function Settings() {
                 )}
                 
                 {isTrial && profile?.trial_ends_at && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                     <span className="text-muted-foreground">{t("settings.plan.trialExpires")}</span>
                     <span className={cn(
                       "font-medium",
@@ -218,8 +218,8 @@ export default function Settings() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 text-sm">
-                  <CreditCard className="w-4 h-4 text-muted-foreground" />
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                  <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                   <span className="text-muted-foreground">{t("settings.plan.price")}</span>
                   <span className="font-medium">
                     {isPro ? t("settings.plan.proPricing") : t("settings.plan.trialPricing")}
@@ -228,16 +228,16 @@ export default function Settings() {
               </div>
 
               {/* Features */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
                 {[
                   t("settings.features.unlimitedTimer"),
                   t("settings.features.unlimitedClients"),
                   t("settings.features.advancedReports"),
                   t("settings.features.exportPdfCsv")
                 ].map((feature) => (
-                  <div key={feature} className="flex items-center gap-2 text-sm">
+                  <div key={feature} className="flex items-center gap-2 text-xs sm:text-sm">
                     <Check className={cn(
-                      "w-4 h-4",
+                      "w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0",
                       isPro ? "text-success" : "text-primary"
                     )} />
                     <span>{feature}</span>
@@ -251,14 +251,14 @@ export default function Settings() {
           </div>
 
           {/* Profile Card */}
-          <div className="card-premium p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
-                <User className="w-5 h-5 text-primary" />
+          <div className="card-premium p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
-              <div>
-                <h2 className="font-bold text-lg">{t("settings.profile")}</h2>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <h2 className="font-bold text-base sm:text-lg">{t("settings.profile")}</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {t("settings.profileDesc")}
                 </p>
               </div>
@@ -349,14 +349,14 @@ export default function Settings() {
           </div>
 
           {/* Export Settings Card */}
-          <div className="card-premium p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-success/20 to-emerald-500/20 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-success" />
+          <div className="card-premium p-4 sm:p-6">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-success/20 to-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
               </div>
-              <div>
-                <h2 className="font-bold text-lg">{t("settings.export")}</h2>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <h2 className="font-bold text-base sm:text-lg">{t("settings.export")}</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {t("settings.exportDesc")}
                 </p>
               </div>
@@ -375,14 +375,14 @@ export default function Settings() {
           </div>
 
           {/* Session Card */}
-          <div className="card-premium p-6 border-destructive/20">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
-                <LogOut className="w-5 h-5 text-destructive" />
+          <div className="card-premium p-4 sm:p-6 border-destructive/20">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
               </div>
-              <div>
-                <h2 className="font-bold text-lg text-destructive">{t("settings.session")}</h2>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <h2 className="font-bold text-base sm:text-lg text-destructive">{t("settings.session")}</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {t("settings.sessionDesc")}
                 </p>
               </div>
