@@ -130,18 +130,18 @@ export function ClientTasksSection({ clientId }: ClientTasksSectionProps) {
 
   return (
     <div className="card-premium p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
         <div className="flex items-center gap-2">
-          <ListTodo className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-lg">{t("clientDetail.tasks")}</h3>
+          <ListTodo className="w-5 h-5 text-primary flex-shrink-0" />
+          <h3 className="font-semibold text-base sm:text-lg">{t("clientDetail.tasks")}</h3>
           {tasks.length > 0 && (
-            <Badge variant="secondary" className="ml-2">
+            <Badge variant="secondary" className="ml-1 sm:ml-2">
               {tasks.length}
             </Badge>
           )}
         </div>
         <Link to="/tasks">
-          <Button variant="ghost" size="sm" className="text-primary">
+          <Button variant="ghost" size="sm" className="text-primary w-full sm:w-auto">
             {t("clientDetail.viewAllTasks")}
             <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
@@ -174,13 +174,12 @@ export function ClientTasksSection({ clientId }: ClientTasksSectionProps) {
               <div
                 key={task.id}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-xl border bg-card/50 hover:bg-card transition-colors",
+                  "flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-xl border bg-card/50 hover:bg-card transition-colors",
                   task.status === "completed" && "opacity-60"
                 )}
               >
-                <StatusIcon className={cn("w-4 h-4 flex-shrink-0", statusConfig[task.status].color)} />
-                
-                <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <StatusIcon className={cn("w-4 h-4 flex-shrink-0", statusConfig[task.status].color)} />
                   <p className={cn(
                     "font-medium text-sm truncate",
                     task.status === "completed" && "line-through"
@@ -189,18 +188,18 @@ export function ClientTasksSection({ clientId }: ClientTasksSectionProps) {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0 ml-6 sm:ml-0">
                   {task.due_date && (
                     <Badge
                       variant={isOverdue ? "destructive" : isDueToday ? "default" : "outline"}
-                      className="text-xs"
+                      className="text-[10px] sm:text-xs"
                     >
                       <Calendar className="w-3 h-3 mr-1" />
                       {format(new Date(task.due_date), "d MMM", { locale: getLocale() })}
                     </Badge>
                   )}
                   {task.total_seconds > 0 && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-[10px] sm:text-xs">
                       <Clock className="w-3 h-3 mr-1" />
                       {formatDuration(task.total_seconds)}
                     </Badge>

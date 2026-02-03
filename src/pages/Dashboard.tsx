@@ -582,9 +582,9 @@ export default function Dashboard() {
 
         {/* Today's entries */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold tracking-tight">{t("dashboard.today")}</h2>
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t("dashboard.today")}</h2>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {t("dashboard.total")}{" "}
                 <span className="font-semibold text-primary">
@@ -592,20 +592,21 @@ export default function Dashboard() {
                 </span>
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               {todayEntries.length > 0 && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setReportDialogOpen(true)}
-                  className="rounded-xl hover:bg-primary/10 hover:border-primary/30"
+                  className="rounded-xl hover:bg-primary/10 hover:border-primary/30 flex-1 sm:flex-none"
                 >
                   <Mail className="w-4 h-4 mr-2" />
-                  {t("dashboard.sendReport")}
+                  <span className="hidden sm:inline">{t("dashboard.sendReport")}</span>
+                  <span className="sm:hidden">Report</span>
                 </Button>
               )}
               {clients.length > 0 && todayEntries.length > 0 && (
-              <div className="flex items-center gap-1.5 p-2 bg-muted/50 rounded-full">
+              <div className="hidden sm:flex items-center gap-1.5 p-2 bg-muted/50 rounded-full">
                 {clients.map((client) => {
                   const clientTime = todayEntries
                     .filter((e) => e.client_id === client.id)
@@ -647,11 +648,11 @@ export default function Dashboard() {
               todayEntries.map((entry) => {
                 const client = getClientById(entry.client_id);
                 return (
-                  <div key={entry.id} className="card-premium group hover-lift p-5">
-                    <div className="flex items-center gap-4">
+                  <div key={entry.id} className="card-premium group hover-lift p-4 sm:p-5">
+                    <div className="flex items-start sm:items-center gap-3 sm:gap-4">
                       {/* Color indicator */}
                       <div
-                        className="w-1.5 h-14 rounded-full"
+                        className="w-1 sm:w-1.5 h-12 sm:h-14 rounded-full flex-shrink-0"
                         style={{
                           background: `linear-gradient(180deg, ${client?.color || "#94a3b8"}, ${client?.color || "#94a3b8"}60)`,
                         }}
@@ -660,17 +661,27 @@ export default function Dashboard() {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold truncate">
+                          <span className="font-semibold text-sm sm:text-base truncate">
                             {client?.name || t("dashboard.noClient")}
                           </span>
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
                           {entry.description || t("dashboard.noDescription")}
                         </p>
+                        {/* Time info on mobile - inline */}
+                        <div className="flex items-center gap-2 mt-1 sm:hidden">
+                          <span className="text-sm font-bold text-primary">
+                            {formatDuration(entry.duration_seconds || 0)}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatTimeOfDay(entry.start_time)}
+                            {entry.end_time && ` - ${formatTimeOfDay(entry.end_time)}`}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Time info */}
-                      <div className="text-right">
+                      {/* Time info - desktop only */}
+                      <div className="hidden sm:block text-right flex-shrink-0">
                         <div className="text-lg font-bold text-gradient">
                           {formatDuration(entry.duration_seconds || 0)}
                         </div>
@@ -682,26 +693,26 @@ export default function Dashboard() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="rounded-xl hover:bg-primary/10"
+                          className="rounded-xl hover:bg-primary/10 h-8 w-8 sm:h-9 sm:w-9"
                           onClick={() => setEditingEntry(entry)}
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-destructive hover:bg-destructive/10 rounded-xl"
+                          className="text-destructive hover:bg-destructive/10 rounded-xl h-8 w-8 sm:h-9 sm:w-9"
                           onClick={() => handleDeleteEntry(entry.id)}
                           disabled={deletingId === entry.id}
                         >
                           {deletingId === entry.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                           ) : (
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           )}
                         </Button>
                       </div>
