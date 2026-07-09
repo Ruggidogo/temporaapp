@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 /// Manages the running timer state across app lifecycle.
 /// Persists start time in UserDefaults so it survives backgrounding.

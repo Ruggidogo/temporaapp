@@ -16,19 +16,26 @@ extension Color {
     static let temporaPurple           = Color(hex: "#A855F7")
 
     init(hex: String) {
-        var str = hex.trimmingCharacters(in: .alphanumerics.inverted)
-        if str.count == 6 { str = "FF" + str }
-        let value = UInt64((try? /([0-9A-Fa-f]{8})/.wholeMatch(in: str)?.output) != nil
-            ? UInt64(str, radix: 16) ?? 0
-            : 0) | {
-            var v: UInt64 = 0; Scanner(string: str).scanHexInt64(&v); return v
-        }()
+        let cleaned = hex.trimmingCharacters(in: .alphanumerics.inverted)
+        var value: UInt64 = 0
+        Scanner(string: cleaned).scanHexInt64(&value)
+
+        let r, g, b: UInt64
+        switch cleaned.count {
+        case 6:
+            r = (value >> 16) & 0xFF
+            g = (value >>  8) & 0xFF
+            b =  value        & 0xFF
+        default:
+            r = 0; g = 0; b = 0
+        }
+
         self.init(
             .sRGB,
-            red:     Double((value >> 16) & 0xFF) / 255,
-            green:   Double((value >>  8) & 0xFF) / 255,
-            blue:    Double( value        & 0xFF) / 255,
-            opacity: Double((value >> 24) & 0xFF) / 255
+            red:     Double(r) / 255,
+            green:   Double(g) / 255,
+            blue:    Double(b) / 255,
+            opacity: 1
         )
     }
 }
