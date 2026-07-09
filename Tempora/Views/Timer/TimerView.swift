@@ -13,8 +13,10 @@ struct TimerView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
+
                         modeToggle
-                            .padding(.top, 8)
+                            .padding(.top, 12)
+                            .padding(.horizontal)
 
                         if vm.inputMode == .timer {
                             timerSection
@@ -23,19 +25,26 @@ struct TimerView: View {
                         }
 
                         clientSection
-                            .padding(.top, 24)
+                            .padding(.top, 28)
 
                         descriptionField
                             .padding(.top, 16)
                             .padding(.horizontal)
 
+                        if let error = vm.errorMessage {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(Color.temporaError)
+                                .padding(.top, 8)
+                        }
+
                         actionButton
-                            .padding(.top, 24)
+                            .padding(.top, 20)
                             .padding(.horizontal)
 
                         if !vm.recentEntries.isEmpty {
                             recentSection
-                                .padding(.top, 32)
+                                .padding(.top, 36)
                         }
 
                         Spacer(minLength: 40)
@@ -46,16 +55,16 @@ struct TimerView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if vm.isRunning {
-                        runningBadge
-                    }
+                    if vm.isRunning { runningBadge }
                 }
             }
         }
-        .onAppear { vm.configure(context: context) }
+        .onAppear {
+            vm.configure(context: context)
+        }
     }
 
-    // MARK: - Subviews
+    // MARK: - Mode toggle
 
     private var modeToggle: some View {
         Picker("Modalità", selection: $vm.inputMode) {
@@ -63,69 +72,99 @@ struct TimerView: View {
             Text("Manuale").tag(TimerViewModel.InputMode.manual)
         }
         .pickerStyle(.segmented)
-        .padding(.horizontal)
+        .disabled(vm.isRunning)
     }
 
+    // MARK: - Timer section
+
     private var timerSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             TimerDisplay(
-                seconds: vm.timerService.elapsedSeconds,
+                seconds: vm.elapsedSeconds,
                 isRunning: vm.isRunning
             )
-            .padding(.top, 32)
+            .padding(.top, 36)
+            .padding(.bottom, 4)
 
             if vm.isRunning {
                 Text("In esecuzione…")
-                    .font(.caption)
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(Color.temporaSuccess)
+            } else {
+                Text("Pronto")
+                    .font(.caption)
+                    .foregroundStyle(Color.temporaTextMuted)
             }
         }
     }
 
-    private var manualSection: some View {
-        VStack(spacing: 16) {
-            DatePicker("Data", selection: $vm.manualDate, displayedComponents: .date)
-                .datePickerStyle(.compact)
-                .padding(.horizontal)
-                .padding(.top, 24)
+    // MARK: - Manual section
 
-            HStack {
+    private var manualSection: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 16) {
+                DatePicker("Data", selection: $vm.manualDate, displayedComponents: .date)
+                    .foregroundStyle(.white)
+
                 DatePicker("Inizio", selection: $vm.manualStart, displayedComponents: .hourAndMinute)
+                    .foregroundStyle(.white)
+
                 DatePicker("Fine", selection: $vm.manualEnd, displayedComponents: .hourAndMinute)
+                    .foregroundStyle(.white)
             }
-            .datePickerStyle(.compact)
+            .padding(16)
+            .temporaCard(padding: 0)
             .padding(.horizontal)
+            .padding(.top, 24)
 
             let mins = max(0, Int(vm.manualEnd.timeIntervalSince(vm.manualStart) / 60))
             Text("Durata: \(Formatters.duration(minutes: mins))")
-                .font(.subheadline)
+                .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.temporaTextSecondary)
+                .padding(.top, 12)
         }
     }
+
+    // MARK: - Client section
 
     private var clientSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Cliente")
+        VStack(alignment: .leading, spacing: 10) {
+            Text("CLIENTE")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Color.temporaTextMuted)
-                .textCase(.uppercase)
-                .tracking(0.8)
+                .tracking(1)
                 .padding(.horizontal)
 
-            ClientSelectorView(clients: vm.clients, selected: $vm.selectedClient)
+            if vm.clients.isEmpty {
+                Text("Aggiungi un cliente dalle Impostazioni")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.temporaTextMuted)
+                    .padding(.horizontal)
+            } else {
+                ClientSelectorView(clients: vm.clients, selected: $vm.selectedClient)
+            }
         }
     }
 
+    // MARK: - Description field
+
     private var descriptionField: some View {
-        TextField("Descrizione attività…", text: $vm.description)
-            .padding(14)
-            .background(Color.temporaSurfaceElevated)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.temporaBorder))
-            .foregroundStyle(.white)
-            .submitLabel(.done)
-            .onSubmit { hideKeyboard() }
+        HStack {
+            Image(systemName: "pencil")
+                .foregroundStyle(Color.temporaTextMuted)
+                .font(.subheadline)
+            TextField("Descrizione attività…", text: $vm.description)
+                .foregroundStyle(.white)
+                .submitLabel(.done)
+                .onSubmit { hideKeyboard() }
+        }
+        .padding(14)
+        .background(Color.temporaSurfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.temporaBorder))
     }
+
+    // MARK: - Action button
 
     private var actionButton: some View {
         Group {
@@ -137,7 +176,6 @@ struct TimerView: View {
                 ) {
                     vm.isRunning ? vm.stopTimer() : vm.startTimer()
                 }
-                .disabled(vm.selectedClient == nil && !vm.isRunning)
             } else {
                 PrimaryButton(
                     title: "Salva voce",
@@ -151,32 +189,35 @@ struct TimerView: View {
         }
     }
 
+    // MARK: - Recent entries
+
     private var recentSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Recenti")
+        VStack(alignment: .leading, spacing: 10) {
+            Text("RECENTI")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Color.temporaTextMuted)
-                .textCase(.uppercase)
-                .tracking(0.8)
+                .tracking(1)
                 .padding(.horizontal)
 
             VStack(spacing: 0) {
-                ForEach(vm.recentEntries, id: \.0.id) { entry, client in
-                    EntryRow(entry: entry, client: client)
-                        .padding(.horizontal, 12)
-                        .contentShape(Rectangle())
-                        .overlay(alignment: .trailing) {
-                            Button {
-                                vm.replay(entry: entry)
-                            } label: {
-                                Image(systemName: "play.circle.fill")
-                                    .font(.title3)
-                                    .foregroundStyle(Color.temporaIndigo)
-                            }
-                            .padding(.trailing, 12)
-                        }
+                ForEach(Array(vm.recentEntries.enumerated()), id: \.element.0.id) { idx, pair in
+                    let (entry, client) = pair
 
-                    if entry.id != vm.recentEntries.last?.0.id {
+                    HStack {
+                        EntryRow(entry: entry, client: client)
+
+                        Button {
+                            vm.replay(entry: entry)
+                        } label: {
+                            Image(systemName: "play.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(Color.temporaIndigo)
+                        }
+                        .padding(.trailing, 4)
+                    }
+                    .padding(.horizontal, 12)
+
+                    if idx < vm.recentEntries.count - 1 {
                         Divider()
                             .background(Color.temporaBorder)
                             .padding(.horizontal, 12)
@@ -190,11 +231,13 @@ struct TimerView: View {
         }
     }
 
+    // MARK: - Running badge
+
     private var runningBadge: some View {
         HStack(spacing: 4) {
             Circle()
                 .fill(Color.temporaError)
-                .frame(width: 8, height: 8)
+                .frame(width: 7, height: 7)
             Text("LIVE")
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(Color.temporaError)

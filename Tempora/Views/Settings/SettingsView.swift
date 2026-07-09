@@ -8,6 +8,8 @@ struct SettingsView: View {
     @State private var showAddClient = false
     @State private var clientToEdit: Client?
     @State private var showPaywall = false
+    @State private var showDeleteConfirm = false
+    @State private var clientToDelete: Client?
 
     var body: some View {
         NavigationStack {
@@ -18,6 +20,7 @@ struct SettingsView: View {
                     accountSection
                     clientsSection
                     preferencesSection
+                    dataSection
                     aboutSection
                 }
                 .listStyle(.insetGrouped)
@@ -33,15 +36,30 @@ struct SettingsView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }
+            .alert("Elimina cliente", isPresented: $showDeleteConfirm, presenting: clientToDelete) { client in
+                Button("Elimina", role: .destructive) { vm.deleteClient(id: client.id) }
+                Button("Annulla", role: .cancel) {}
+            } message: { client in
+                Text("Eliminare \"\(client.name)\"? Tutte le voci associate verranno eliminate.")
+            }
         }
         .onAppear { vm.configure(context: context) }
     }
 
-    // MARK: - Sections
+    // MARK: - Account
 
     private var accountSection: some View {
         Section("Account") {
-            HStack {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient.temporaPrimary)
+                        .frame(width: 44, height: 44)
+                    Text("T")
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(.white)
+                }
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Prova gratuita")
                         .font(.subheadline.weight(.semibold))
@@ -50,18 +68,22 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundStyle(Color.temporaWarning)
                 }
+
                 Spacer()
-                Button("Passa a Pro") { showPaywall = true }
+
+                Button("Pro") { showPaywall = true }
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
                     .background(LinearGradient.temporaPrimary)
                     .clipShape(Capsule())
             }
             .listRowBackground(Color.temporaSurfaceElevated)
         }
     }
+
+    // MARK: - Clients
 
     private var clientsSection: some View {
         Section {
@@ -70,33 +92,49 @@ struct SettingsView: View {
                     Circle()
                         .fill(Color(hex: client.color))
                         .frame(width: 12, height: 12)
-                    Text(client.name)
-                        .foregroundStyle(.white)
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(client.name)
+                            .foregroundStyle(client.isActive ? .white : Color.temporaTextMuted)
+                        if let rate = client.hourlyRate {
+                            Text("\(Formatters.currency(rate))/h")
+                                .font(.caption)
+                                .foregroundStyle(Color.temporaTextMuted)
+                        }
+                    }
+
                     Spacer()
+
                     if !client.isActive {
                         Text("Archiviato")
-                            .font(.caption)
+                            .font(.caption2.weight(.medium))
                             .foregroundStyle(Color.temporaTextMuted)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Color.temporaBorder)
+                            .clipShape(Capsule())
                     }
-                    if let rate = client.hourlyRate {
-                        Text("\(Formatters.currency(rate))/h")
-                            .font(.caption)
-                            .foregroundStyle(Color.temporaTextSecondary)
-                    }
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(Color.temporaTextMuted)
                 }
                 .listRowBackground(Color.temporaSurfaceElevated)
                 .contentShape(Rectangle())
                 .onTapGesture { clientToEdit = client }
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
-                        vm.deleteClient(id: client.id)
+                        clientToDelete = client
+                        showDeleteConfirm = true
                     } label: {
                         Label("Elimina", systemImage: "trash")
                     }
+
                     Button {
                         vm.archiveClient(id: client.id)
                     } label: {
-                        Label("Archivia", systemImage: "archivebox")
+                        Label(client.isActive ? "Archivia" : "Riattiva",
+                              systemImage: client.isActive ? "archivebox" : "arrow.uturn.left")
                     }
                     .tint(Color.temporaWarning)
                 }
@@ -107,27 +145,54 @@ struct SettingsView: View {
             } label: {
                 Label("Aggiungi cliente", systemImage: "plus.circle.fill")
                     .foregroundStyle(Color.temporaIndigo)
+                    .font(.subheadline.weight(.medium))
             }
             .listRowBackground(Color.temporaSurfaceElevated)
 
         } header: {
-            Text("Clienti")
+            HStack {
+                Text("Clienti")
+                Spacer()
+                Text("\(vm.clients.filter(\.isActive).count) attivi")
+                    .font(.caption)
+                    .foregroundStyle(Color.temporaTextMuted)
+            }
         }
     }
+
+    // MARK: - Preferences
 
     private var preferencesSection: some View {
         Section("Preferenze") {
             Toggle("Suono timer", isOn: $vm.timerSoundEnabled)
                 .tint(Color.temporaIndigo)
                 .listRowBackground(Color.temporaSurfaceElevated)
+                .foregroundStyle(.white)
                 .onChange(of: vm.timerSoundEnabled) { _, _ in vm.savePreferences() }
 
             Toggle("Feedback tattile", isOn: $vm.hapticFeedbackEnabled)
                 .tint(Color.temporaIndigo)
                 .listRowBackground(Color.temporaSurfaceElevated)
+                .foregroundStyle(.white)
                 .onChange(of: vm.hapticFeedbackEnabled) { _, _ in vm.savePreferences() }
         }
     }
+
+    // MARK: - Data
+
+    private var dataSection: some View {
+        Section("Dati") {
+            Button {
+                exportJSON()
+            } label: {
+                Label("Esporta dati (JSON)", systemImage: "square.and.arrow.up")
+                    .foregroundStyle(Color.temporaIndigo)
+            }
+            .listRowBackground(Color.temporaSurfaceElevated)
+        }
+    }
+
+    // MARK: - About
 
     private var aboutSection: some View {
         Section("Info") {
@@ -155,7 +220,24 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Helpers
+
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+
+    private func exportJSON() {
+        let ds = DataService(context: context)
+        let clients = (try? ds.fetchClients(activeOnly: false)) ?? []
+        let entries = (try? ds.fetchEntries()) ?? []
+        let service = ExportService()
+        guard let data = try? service.jsonData(entries: entries, clients: clients),
+              let str = String(data: data, encoding: .utf8) else { return }
+
+        let av = UIActivityViewController(activityItems: [str], applicationActivities: nil)
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let vc = scene.windows.first?.rootViewController {
+            vc.present(av, animated: true)
+        }
     }
 }

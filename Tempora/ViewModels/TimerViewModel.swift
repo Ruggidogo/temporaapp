@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import SwiftData
+import UIKit
 
 @MainActor
 final class TimerViewModel: ObservableObject {
@@ -11,20 +12,22 @@ final class TimerViewModel: ObservableObject {
     @Published var clients: [Client] = []
     @Published var recentEntries: [(TimeEntry, Client?)] = []
     @Published var inputMode: InputMode = .timer
+    @Published var errorMessage: String?
 
     // Manual entry fields
     @Published var manualDate: Date = Date()
-    @Published var manualStart: Date = Date()
+    @Published var manualStart: Date = Calendar.current.date(byAdding: .hour, value: -1, to: Date()) ?? Date()
     @Published var manualEnd: Date = Date()
 
     // MARK: - Services
     let timerService: TimerService
     private var dataService: DataService?
+    private var runningEntryId: UUID?
 
     var isRunning: Bool { timerService.isRunning }
     var elapsedSeconds: Int { timerService.elapsedSeconds }
 
-    enum InputMode { case timer, manual }
+    enum InputMode: String { case timer, manual }
 
     init() {
         self.timerService = TimerService()
@@ -34,36 +37,74 @@ final class TimerViewModel: ObservableObject {
         dataService = DataService(context: context)
         loadClients()
         loadRecentEntries()
+        restoreRunningEntry()
     }
 
-    // MARK: - Timer actions
+    // MARK: - Timer
 
     func startTimer() {
-        guard selectedClient != nil else { return }
+        guard let client = selectedClient else {
+            errorMessage = "Seleziona un cliente per iniziare"
+            return
+        }
+        errorMessage = nil
         timerService.start()
-    }
 
-    func stopTimer() {
-        guard let (start, end) = timerService.stop(),
-              let client = selectedClient else { return }
-
+        // Persist a running entry immediately so it survives app kills
         let entry = TimeEntry(
             clientId: client.id,
             description: description,
-            date: start.startOfDay,
-            startTime: start,
-            endTime: end,
+            date: Date().startOfDay,
+            startTime: timerService.startDate ?? Date(),
+            endTime: nil,
             entryType: .timer
         )
-        save(entry: entry)
+        if let saved = try? dataService?.saveEntry(entry) {
+            runningEntryId = entry.id
+            UserDefaults.standard.set(entry.id.uuidString, forKey: "running_entry_id")
+        }
+
+        Haptics.impact(.heavy)
+    }
+
+    func stopTimer() {
+        guard let (start, end) = timerService.stop() else { return }
+
+        // Complete the persisted running entry
+        if let idStr = UserDefaults.standard.string(forKey: "running_entry_id"),
+           let id = UUID(uuidString: idStr) {
+            var entry = TimeEntry(
+                id: id,
+                clientId: selectedClient?.id ?? UUID(),
+                description: description,
+                date: start.startOfDay,
+                startTime: start,
+                endTime: end,
+                entryType: .timer
+            )
+            try? dataService?.updateEntry(entry)
+            UserDefaults.standard.removeObject(forKey: "running_entry_id")
+            runningEntryId = nil
+        }
+
         description = ""
         loadRecentEntries()
+        Haptics.impact(.heavy)
     }
 
     // MARK: - Manual entry
 
     func saveManualEntry() {
-        guard let client = selectedClient else { return }
+        guard let client = selectedClient else {
+            errorMessage = "Seleziona un cliente"
+            return
+        }
+        guard manualEnd > manualStart else {
+            errorMessage = "L'orario di fine deve essere dopo l'inizio"
+            return
+        }
+        errorMessage = nil
+
         let entry = TimeEntry(
             clientId: client.id,
             description: description,
@@ -72,9 +113,12 @@ final class TimerViewModel: ObservableObject {
             endTime: manualEnd,
             entryType: .manual
         )
-        save(entry: entry)
+        try? dataService?.saveEntry(entry)
         description = ""
+        manualStart = Calendar.current.date(byAdding: .hour, value: -1, to: Date()) ?? Date()
+        manualEnd = Date()
         loadRecentEntries()
+        Haptics.notification(.success)
     }
 
     // MARK: - Replay
@@ -83,27 +127,34 @@ final class TimerViewModel: ObservableObject {
         description = entry.description
         selectedClient = clients.first { $0.id == entry.clientId }
         inputMode = .timer
-        timerService.start()
+        if !isRunning { startTimer() }
     }
 
-    // MARK: - Data
+    // MARK: - Data loading
 
-    private func loadClients() {
+    func loadClients() {
         clients = (try? dataService?.fetchClients()) ?? []
+        if selectedClient == nil { selectedClient = clients.first }
     }
 
-    private func loadRecentEntries() {
-        let entries = (try? dataService?.fetchEntries()) ?? []
+    func loadRecentEntries() {
+        let all = (try? dataService?.fetchEntries()) ?? []
         let clientMap = Dictionary(uniqueKeysWithValues: clients.map { ($0.id, $0) })
         recentEntries = Array(
-            entries
-                .filter { !$0.isRunning }
-                .prefix(5)
-                .map { ($0, clientMap[$0.clientId]) }
+            all.filter { !$0.isRunning }
+               .prefix(5)
+               .map { ($0, clientMap[$0.clientId]) }
         )
     }
 
-    private func save(entry: TimeEntry) {
-        try? dataService?.saveEntry(entry)
+    // MARK: - Restore running entry after app restart
+
+    private func restoreRunningEntry() {
+        guard let entry = try? dataService?.fetchRunningEntry() else { return }
+        selectedClient = clients.first { $0.id == entry.clientId }
+        description = entry.description
+        runningEntryId = entry.id
+        UserDefaults.standard.set(entry.id.uuidString, forKey: "running_entry_id")
+        // TimerService already restored elapsedSeconds from UserDefaults
     }
 }

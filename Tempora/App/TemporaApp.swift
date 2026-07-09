@@ -21,6 +21,11 @@ struct TemporaApp: App {
             ContentView()
                 .modelContainer(container)
                 .preferredColorScheme(.dark)
+                .task {
+                    await MainActor.run {
+                        SeedService.seedIfNeeded(context: container.mainContext)
+                    }
+                }
         }
     }
 }
