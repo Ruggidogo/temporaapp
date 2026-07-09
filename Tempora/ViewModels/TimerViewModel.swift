@@ -26,8 +26,8 @@ final class TimerViewModel: ObservableObject {
 
     enum InputMode { case timer, manual }
 
-    init(timerService: TimerService = TimerService()) {
-        self.timerService = timerService
+    init() {
+        self.timerService = TimerService()
     }
 
     func configure(context: ModelContext) {

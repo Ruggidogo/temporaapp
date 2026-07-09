@@ -62,7 +62,7 @@ final class ReportsViewModel: ObservableObject {
     }
 
     struct DailyPoint: Identifiable {
-        let id: Date
+        let id: UUID
         let date: Date
         let minutes: Int
         let clientId: UUID

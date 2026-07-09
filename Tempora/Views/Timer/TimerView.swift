@@ -5,7 +5,6 @@ struct TimerView: View {
 
     @Environment(\.modelContext) private var context
     @StateObject private var vm = TimerViewModel()
-    @StateObject private var timerService = TimerService()
 
     var body: some View {
         NavigationStack {
@@ -54,9 +53,6 @@ struct TimerView: View {
             }
         }
         .onAppear { vm.configure(context: context) }
-        .onReceive(timerService.$elapsedSeconds) { _ in
-            // forward tick events from timerService if used standalone
-        }
     }
 
     // MARK: - Subviews
