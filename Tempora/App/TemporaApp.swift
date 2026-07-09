@@ -3,13 +3,16 @@ import SwiftData
 
 @main
 struct TemporaApp: App {
+
     let container: ModelContainer
 
     init() {
         do {
-            container = try ModelContainer(for: ClientModel.self, TimeEntryModel.self, ProjectModel.self)
+            let schema = Schema([ClientModel.self, ProjectModel.self, TimeEntryModel.self])
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            container = try ModelContainer(for: schema, configurations: [config])
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            fatalError("Impossibile creare ModelContainer: \(error)")
         }
     }
 

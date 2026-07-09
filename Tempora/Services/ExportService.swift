@@ -1,37 +1,43 @@
 import Foundation
 
 final class ExportService {
-    func exportCSV(entries: [TimeEntry], clients: [Client]) -> String {
-        var rows = ["Data,Cliente,Descrizione,Inizio,Fine,Durata (min),Valore (EUR)"]
+
+    func csvString(entries: [TimeEntry], clients: [Client]) -> String {
         let clientMap = Dictionary(uniqueKeysWithValues: clients.map { ($0.id, $0) })
+        var rows = ["Data,Cliente,Descrizione,Inizio,Fine,Durata (min),Valore (EUR)"]
 
         for entry in entries {
             let client = clientMap[entry.clientId]
-            let value = entry.value(for: client).map { Formatters.formatCurrency($0) } ?? ""
-            rows.append([
-                Formatters.dateShort.string(from: entry.date),
-                client?.name ?? "",
-                entry.description,
-                Formatters.timeShort.string(from: entry.startTime),
-                entry.endTime.map { Formatters.timeShort.string(from: $0) } ?? "",
+            let rate = client?.hourlyRate
+            let valueStr = entry.value(hourlyRate: rate)
+                .map { Formatters.currency($0) } ?? ""
+
+            let row = [
+                Formatters.date(entry.date),
+                csvEscape(client?.name ?? ""),
+                csvEscape(entry.description),
+                Formatters.time(entry.startTime),
+                entry.endTime.map { Formatters.time($0) } ?? "",
                 "\(entry.calculatedDurationMinutes)",
-                value
-            ].joined(separator: ","))
+                valueStr
+            ].joined(separator: ",")
+            rows.append(row)
         }
         return rows.joined(separator: "\n")
     }
 
-    func exportJSON(entries: [TimeEntry], clients: [Client]) throws -> Data {
+    func jsonData(entries: [TimeEntry], clients: [Client]) throws -> Data {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try encoder.encode(ExportPayload(exportedAt: Date(), clients: clients, entries: entries))
+    }
 
-        let payload = ExportPayload(
-            exportedAt: Date(),
-            clients: clients,
-            entries: entries
-        )
-        return try encoder.encode(payload)
+    private func csvEscape(_ value: String) -> String {
+        if value.contains(",") || value.contains("\"") || value.contains("\n") {
+            return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
+        return value
     }
 }
 

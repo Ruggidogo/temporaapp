@@ -3,23 +3,32 @@ import StoreKit
 
 @MainActor
 final class StoreKitService: ObservableObject {
-    @Published var products: [Product] = []
-    @Published var purchasedProductIDs: Set<String> = []
 
     static let monthlyID = "com.tempora.app.pro.monthly"
-    static let yearlyID = "com.tempora.app.pro.yearly"
+    static let yearlyID  = "com.tempora.app.pro.yearly"
+
+    @Published private(set) var products: [Product] = []
+    @Published private(set) var purchasedIDs: Set<String> = []
+    @Published private(set) var isLoading = false
+
+    var isPro: Bool {
+        purchasedIDs.contains(Self.monthlyID) || purchasedIDs.contains(Self.yearlyID)
+    }
 
     init() {
-        Task { await load() }
+        Task { await loadProducts() }
+        Task { await refreshEntitlements() }
         listenForTransactions()
     }
 
-    func load() async {
+    func loadProducts() async {
+        isLoading = true
+        defer { isLoading = false }
         do {
             products = try await Product.products(for: [Self.monthlyID, Self.yearlyID])
                 .sorted { $0.price < $1.price }
         } catch {
-            print("StoreKit load error: \(error)")
+            print("[StoreKit] loadProducts error: \(error)")
         }
     }
 
@@ -27,9 +36,9 @@ final class StoreKitService: ObservableObject {
         let result = try await product.purchase()
         switch result {
         case .success(let verification):
-            guard case .verified(let transaction) = verification else { return false }
-            purchasedProductIDs.insert(transaction.productID)
-            await transaction.finish()
+            guard case .verified(let tx) = verification else { return false }
+            purchasedIDs.insert(tx.productID)
+            await tx.finish()
             return true
         case .userCancelled, .pending:
             return false
@@ -38,26 +47,27 @@ final class StoreKitService: ObservableObject {
         }
     }
 
-    func restorePurchases() async throws {
+    func restore() async throws {
         try await AppStore.sync()
-        for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result {
-                purchasedProductIDs.insert(transaction.productID)
-            }
-        }
+        await refreshEntitlements()
     }
 
-    var isPro: Bool {
-        purchasedProductIDs.contains(Self.monthlyID) ||
-        purchasedProductIDs.contains(Self.yearlyID)
+    private func refreshEntitlements() async {
+        var ids = Set<String>()
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let tx) = result {
+                ids.insert(tx.productID)
+            }
+        }
+        purchasedIDs = ids
     }
 
     private func listenForTransactions() {
         Task {
             for await result in Transaction.updates {
-                if case .verified(let transaction) = result {
-                    purchasedProductIDs.insert(transaction.productID)
-                    await transaction.finish()
+                if case .verified(let tx) = result {
+                    purchasedIDs.insert(tx.productID)
+                    await tx.finish()
                 }
             }
         }

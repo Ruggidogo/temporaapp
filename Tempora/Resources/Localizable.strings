@@ -1,0 +1,47 @@
+/* App name */
+"app.name" = "Tempora";
+"app.tagline" = "Il tuo tempo, valorizzato";
+
+/* Tabs */
+"tab.timer" = "Timer";
+"tab.history" = "Cronologia";
+"tab.reports" = "Report";
+"tab.settings" = "Impostazioni";
+
+/* Timer */
+"timer.start" = "START";
+"timer.stop" = "STOP";
+"timer.description_placeholder" = "Descrizione attività…";
+"timer.no_client" = "Seleziona un cliente per iniziare";
+"timer.recent" = "Recenti";
+"timer.mode.timer" = "Timer";
+"timer.mode.manual" = "Manuale";
+
+/* History */
+"history.empty.title" = "Nessuna voce trovata";
+"history.empty.subtitle" = "Avvia un timer o aggiungi una voce manuale.";
+"history.search" = "Cerca…";
+
+/* Reports */
+"reports.total_hours" = "Ore totali";
+"reports.total_value" = "Valore totale";
+"reports.by_client" = "Ore per cliente";
+"reports.daily" = "Andamento giornaliero";
+"reports.empty" = "Nessun dato per questo periodo";
+
+/* Settings */
+"settings.account" = "Account";
+"settings.clients" = "Clienti";
+"settings.preferences" = "Preferenze";
+"settings.about" = "Info";
+"settings.timer_sound" = "Suono timer";
+"settings.haptics" = "Feedback tattile";
+"settings.add_client" = "Aggiungi cliente";
+
+/* Paywall */
+"paywall.title" = "Tempora Pro";
+"paywall.cta" = "Abbonati ora";
+"paywall.restore" = "Ripristina acquisti";
+"paywall.monthly" = "Mensile";
+"paywall.yearly" = "Annuale";
+"paywall.save" = "RISPARMIA 17%%";

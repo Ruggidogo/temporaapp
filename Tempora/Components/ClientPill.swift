@@ -15,12 +15,19 @@ struct ClientPill: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
-        .background(isSelected ? Color(hex: client.color).opacity(0.25) : Color.temporaSurface)
+        .background(
+            isSelected
+                ? Color(hex: client.color).opacity(0.2)
+                : Color.temporaSurface
+        )
         .clipShape(Capsule())
         .overlay(
             Capsule()
-                .stroke(isSelected ? Color(hex: client.color) : Color.temporaBorder, lineWidth: 1)
+                .stroke(
+                    isSelected ? Color(hex: client.color) : Color.temporaBorder,
+                    lineWidth: 1
+                )
         )
-        .animation(.spring(response: 0.2), value: isSelected)
+        .animation(.spring(response: 0.25), value: isSelected)
     }
 }

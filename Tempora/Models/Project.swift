@@ -26,15 +26,15 @@ struct Project: Identifiable, Codable, Hashable {
 }
 
 enum ProjectStatus: String, Codable, CaseIterable {
-    case active
-    case completed
-    case paused
+    case active    = "active"
+    case completed = "completed"
+    case paused    = "paused"
 
     var label: String {
         switch self {
-        case .active: return "Attivo"
+        case .active:    return "Attivo"
         case .completed: return "Completato"
-        case .paused: return "In pausa"
+        case .paused:    return "In pausa"
         }
     }
 }

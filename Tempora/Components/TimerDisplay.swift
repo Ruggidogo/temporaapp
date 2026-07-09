@@ -4,21 +4,23 @@ struct TimerDisplay: View {
     let seconds: Int
     var isRunning: Bool = false
 
-    @State private var pulsing = false
+    @State private var scale: CGFloat = 1.0
 
     var body: some View {
-        Text(Formatters.formatDuration(seconds: seconds))
-            .font(.system(size: 72, weight: .light, design: .monospaced))
+        Text(Formatters.elapsed(seconds))
+            .font(.system(size: 72, weight: .thin, design: .monospaced))
             .foregroundStyle(.white)
-            .scaleEffect(pulsing ? 1.02 : 1.0)
-            .animation(
-                isRunning
-                    ? .easeInOut(duration: 1.2).repeatForever(autoreverses: true)
-                    : .default,
-                value: pulsing
-            )
+            .scaleEffect(scale)
             .onChange(of: isRunning) { _, running in
-                pulsing = running
+                if running {
+                    withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                        scale = 1.025
+                    }
+                } else {
+                    withAnimation(.spring(response: 0.3)) {
+                        scale = 1.0
+                    }
+                }
             }
     }
 }

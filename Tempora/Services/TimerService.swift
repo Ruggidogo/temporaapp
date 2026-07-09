@@ -1,33 +1,43 @@
 import Foundation
 
-// Manages background timer state, including app backgrounding persistence.
-
+/// Manages the running timer state across app lifecycle.
+/// Persists start time in UserDefaults so it survives backgrounding.
 @MainActor
 final class TimerService: ObservableObject {
-    @Published var isRunning = false
-    @Published var elapsedSeconds: Int = 0
 
-    private var startDate: Date?
-    private var timerTask: Task<Void, Never>?
+    @Published private(set) var isRunning = false
+    @Published private(set) var elapsedSeconds: Int = 0
 
-    private let startKey = "timer_start_date"
+    private(set) var startDate: Date?
+    private var tickTask: Task<Void, Never>?
+
+    private let startKey = "tempora_timer_start"
 
     init() {
-        restoreFromBackground()
+        if let saved = UserDefaults.standard.object(forKey: startKey) as? Date {
+            startDate = saved
+            isRunning = true
+            elapsedSeconds = Int(Date().timeIntervalSince(saved))
+            beginTicking()
+        }
     }
 
     func start() {
+        guard !isRunning else { return }
         let now = Date()
         startDate = now
         UserDefaults.standard.set(now, forKey: startKey)
         isRunning = true
-        scheduleTask()
+        elapsedSeconds = 0
+        beginTicking()
     }
 
+    /// Returns (start, end) so the caller can persist the entry.
+    @discardableResult
     func stop() -> (start: Date, end: Date)? {
         guard isRunning, let start = startDate else { return nil }
-        timerTask?.cancel()
-        timerTask = nil
+        tickTask?.cancel()
+        tickTask = nil
         isRunning = false
         elapsedSeconds = 0
         startDate = nil
@@ -35,26 +45,14 @@ final class TimerService: ObservableObject {
         return (start, Date())
     }
 
-    private func scheduleTask() {
-        timerTask = Task { [weak self] in
+    private func beginTicking() {
+        tickTask?.cancel()
+        tickTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
-                await MainActor.run { self?.tick() }
+                guard let self, let start = self.startDate else { break }
+                self.elapsedSeconds = Int(Date().timeIntervalSince(start))
             }
-        }
-    }
-
-    private func tick() {
-        guard let start = startDate else { return }
-        elapsedSeconds = Int(Date().timeIntervalSince(start))
-    }
-
-    private func restoreFromBackground() {
-        if let saved = UserDefaults.standard.object(forKey: startKey) as? Date {
-            startDate = saved
-            isRunning = true
-            tick()
-            scheduleTask()
         }
     }
 }

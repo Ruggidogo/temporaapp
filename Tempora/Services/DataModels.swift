@@ -1,39 +1,29 @@
 import Foundation
 import SwiftData
 
-// MARK: - SwiftData Models
+// MARK: - ClientModel
 
 @Model
 final class ClientModel {
     @Attribute(.unique) var id: UUID
     var name: String
     var color: String
-    var hourlyRateValue: Double?
+    var hourlyRateDouble: Double? // Decimal stored as Double (SwiftData limitation)
     var notes: String?
     var isActive: Bool
     var createdAt: Date
 
     @Relationship(deleteRule: .cascade, inverse: \TimeEntryModel.client)
-    var entries: [TimeEntryModel]?
+    var entries: [TimeEntryModel] = []
 
     @Relationship(deleteRule: .cascade, inverse: \ProjectModel.client)
-    var projects: [ProjectModel]?
-
-    init(from client: Client) {
-        self.id = client.id
-        self.name = client.name
-        self.color = client.color
-        self.hourlyRateValue = client.hourlyRate.map { NSDecimalNumber(decimal: $0).doubleValue }
-        self.notes = client.notes
-        self.isActive = client.isActive
-        self.createdAt = client.createdAt
-    }
+    var projects: [ProjectModel] = []
 
     init(
         id: UUID = UUID(),
         name: String,
         color: String = "#6366F1",
-        hourlyRateValue: Double? = nil,
+        hourlyRateDouble: Double? = nil,
         notes: String? = nil,
         isActive: Bool = true,
         createdAt: Date = Date()
@@ -41,15 +31,22 @@ final class ClientModel {
         self.id = id
         self.name = name
         self.color = color
-        self.hourlyRateValue = hourlyRateValue
+        self.hourlyRateDouble = hourlyRateDouble
         self.notes = notes
         self.isActive = isActive
         self.createdAt = createdAt
     }
 
-    var hourlyRate: Decimal? {
-        get { hourlyRateValue.map { Decimal($0) } }
-        set { hourlyRateValue = newValue.map { NSDecimalNumber(decimal: $0).doubleValue } }
+    convenience init(from client: Client) {
+        self.init(
+            id: client.id,
+            name: client.name,
+            color: client.color,
+            hourlyRateDouble: client.hourlyRate.map { NSDecimalNumber(decimal: $0).doubleValue },
+            notes: client.notes,
+            isActive: client.isActive,
+            createdAt: client.createdAt
+        )
     }
 
     func toClient() -> Client {
@@ -57,7 +54,7 @@ final class ClientModel {
             id: id,
             name: name,
             color: color,
-            hourlyRate: hourlyRate,
+            hourlyRate: hourlyRateDouble.map { Decimal($0) },
             notes: notes,
             isActive: isActive,
             createdAt: createdAt
@@ -65,11 +62,64 @@ final class ClientModel {
     }
 }
 
+// MARK: - ProjectModel
+
+@Model
+final class ProjectModel {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var projectDescription: String?
+    var status: String
+    var createdAt: Date
+    var client: ClientModel?
+
+    @Relationship(deleteRule: .nullify, inverse: \TimeEntryModel.project)
+    var entries: [TimeEntryModel] = []
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        projectDescription: String? = nil,
+        status: String = ProjectStatus.active.rawValue,
+        createdAt: Date = Date(),
+        client: ClientModel? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.projectDescription = projectDescription
+        self.status = status
+        self.createdAt = createdAt
+        self.client = client
+    }
+
+    convenience init(from project: Project, client: ClientModel?) {
+        self.init(
+            id: project.id,
+            name: project.name,
+            projectDescription: project.description,
+            status: project.status.rawValue,
+            createdAt: project.createdAt,
+            client: client
+        )
+    }
+
+    func toProject() -> Project {
+        Project(
+            id: id,
+            clientId: client?.id ?? UUID(),
+            name: name,
+            description: projectDescription,
+            status: ProjectStatus(rawValue: status) ?? .active,
+            createdAt: createdAt
+        )
+    }
+}
+
+// MARK: - TimeEntryModel
+
 @Model
 final class TimeEntryModel {
     @Attribute(.unique) var id: UUID
-    var client: ClientModel?
-    var project: ProjectModel?
     var descriptionText: String
     var date: Date
     var startTime: Date
@@ -78,25 +128,11 @@ final class TimeEntryModel {
     var entryType: String
     var tags: [String]
     var createdAt: Date
-
-    init(from entry: TimeEntry, client: ClientModel?, project: ProjectModel?) {
-        self.id = entry.id
-        self.client = client
-        self.project = project
-        self.descriptionText = entry.description
-        self.date = entry.date
-        self.startTime = entry.startTime
-        self.endTime = entry.endTime
-        self.durationMinutes = entry.durationMinutes
-        self.entryType = entry.entryType.rawValue
-        self.tags = entry.tags
-        self.createdAt = entry.createdAt
-    }
+    var client: ClientModel?
+    var project: ProjectModel?
 
     init(
         id: UUID = UUID(),
-        client: ClientModel? = nil,
-        project: ProjectModel? = nil,
         descriptionText: String = "",
         date: Date = Date(),
         startTime: Date = Date(),
@@ -104,11 +140,11 @@ final class TimeEntryModel {
         durationMinutes: Int? = nil,
         entryType: String = EntryType.timer.rawValue,
         tags: [String] = [],
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        client: ClientModel? = nil,
+        project: ProjectModel? = nil
     ) {
         self.id = id
-        self.client = client
-        self.project = project
         self.descriptionText = descriptionText
         self.date = date
         self.startTime = startTime
@@ -117,6 +153,24 @@ final class TimeEntryModel {
         self.entryType = entryType
         self.tags = tags
         self.createdAt = createdAt
+        self.client = client
+        self.project = project
+    }
+
+    convenience init(from entry: TimeEntry, client: ClientModel?, project: ProjectModel?) {
+        self.init(
+            id: entry.id,
+            descriptionText: entry.description,
+            date: entry.date,
+            startTime: entry.startTime,
+            endTime: entry.endTime,
+            durationMinutes: entry.durationMinutes,
+            entryType: entry.entryType.rawValue,
+            tags: entry.tags,
+            createdAt: entry.createdAt,
+            client: client,
+            project: project
+        )
     }
 
     func toTimeEntry() -> TimeEntry {
@@ -131,52 +185,6 @@ final class TimeEntryModel {
             durationMinutes: durationMinutes,
             entryType: EntryType(rawValue: entryType) ?? .timer,
             tags: tags,
-            createdAt: createdAt
-        )
-    }
-}
-
-@Model
-final class ProjectModel {
-    @Attribute(.unique) var id: UUID
-    var client: ClientModel?
-    var name: String
-    var projectDescription: String?
-    var status: String
-    var createdAt: Date
-
-    init(from project: Project, client: ClientModel?) {
-        self.id = project.id
-        self.client = client
-        self.name = project.name
-        self.projectDescription = project.description
-        self.status = project.status.rawValue
-        self.createdAt = project.createdAt
-    }
-
-    init(
-        id: UUID = UUID(),
-        client: ClientModel? = nil,
-        name: String,
-        projectDescription: String? = nil,
-        status: String = ProjectStatus.active.rawValue,
-        createdAt: Date = Date()
-    ) {
-        self.id = id
-        self.client = client
-        self.name = name
-        self.projectDescription = projectDescription
-        self.status = status
-        self.createdAt = createdAt
-    }
-
-    func toProject() -> Project {
-        Project(
-            id: id,
-            clientId: client?.id ?? UUID(),
-            name: name,
-            description: projectDescription,
-            status: ProjectStatus(rawValue: status) ?? .active,
             createdAt: createdAt
         )
     }

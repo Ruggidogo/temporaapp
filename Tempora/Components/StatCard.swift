@@ -5,29 +5,31 @@ struct StatCard: View {
     let value: String
     var delta: String? = nil
     var deltaPositive: Bool = true
+    var gradient: LinearGradient? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.caption.weight(.medium))
+            Text(title.uppercased())
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(Color.temporaTextMuted)
-                .textCase(.uppercase)
+                .tracking(0.8)
 
-            Text(value)
-                .font(.system(size: 34, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white)
+            if let gradient {
+                Text(value)
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(gradient)
+            } else {
+                Text(value)
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+            }
 
             if let delta {
-                HStack(spacing: 4) {
-                    Image(systemName: deltaPositive ? "arrow.up.right" : "arrow.down.right")
-                        .font(.caption2)
-                    Text(delta)
-                        .font(.caption)
-                }
-                .foregroundStyle(deltaPositive ? Color.temporaSuccess : Color.temporaError)
+                Label(delta, systemImage: deltaPositive ? "arrow.up.right" : "arrow.down.right")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(deltaPositive ? Color.temporaSuccess : Color.temporaError)
             }
         }
-        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .temporaCard()
     }

@@ -1,73 +1,108 @@
 import Foundation
-import Combine
+import SwiftData
 
 @MainActor
 final class TimerViewModel: ObservableObject {
-    @Published var isRunning = false
-    @Published var elapsedSeconds: Int = 0
+
+    // MARK: - Published state
     @Published var selectedClient: Client?
     @Published var description: String = ""
-    @Published var recentEntries: [TimeEntry] = []
     @Published var clients: [Client] = []
+    @Published var recentEntries: [(TimeEntry, Client?)] = []
+    @Published var inputMode: InputMode = .timer
 
-    private var timerTask: Task<Void, Never>?
-    private var startDate: Date?
+    // Manual entry fields
+    @Published var manualDate: Date = Date()
+    @Published var manualStart: Date = Date()
+    @Published var manualEnd: Date = Date()
+
+    // MARK: - Services
+    let timerService: TimerService
+    private var dataService: DataService?
+
+    var isRunning: Bool { timerService.isRunning }
+    var elapsedSeconds: Int { timerService.elapsedSeconds }
+
+    enum InputMode { case timer, manual }
+
+    init(timerService: TimerService = TimerService()) {
+        self.timerService = timerService
+    }
+
+    func configure(context: ModelContext) {
+        dataService = DataService(context: context)
+        loadClients()
+        loadRecentEntries()
+    }
+
+    // MARK: - Timer actions
 
     func startTimer() {
-        guard !isRunning else { return }
-        isRunning = true
-        startDate = Date()
-        elapsedSeconds = 0
-
-        let impact = UIImpactFeedbackGenerator(style: .heavy)
-        impact.impactOccurred()
-
-        timerTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1))
-                await MainActor.run {
-                    self?.tick()
-                }
-            }
-        }
+        guard selectedClient != nil else { return }
+        timerService.start()
     }
 
     func stopTimer() {
-        guard isRunning else { return }
-        timerTask?.cancel()
-        timerTask = nil
-        isRunning = false
+        guard let (start, end) = timerService.stop(),
+              let client = selectedClient else { return }
 
-        let impact = UIImpactFeedbackGenerator(style: .heavy)
-        impact.impactOccurred()
-
-        saveEntry()
-        elapsedSeconds = 0
+        let entry = TimeEntry(
+            clientId: client.id,
+            description: description,
+            date: start.startOfDay,
+            startTime: start,
+            endTime: end,
+            entryType: .timer
+        )
+        save(entry: entry)
+        description = ""
+        loadRecentEntries()
     }
+
+    // MARK: - Manual entry
+
+    func saveManualEntry() {
+        guard let client = selectedClient else { return }
+        let entry = TimeEntry(
+            clientId: client.id,
+            description: description,
+            date: manualDate.startOfDay,
+            startTime: manualStart,
+            endTime: manualEnd,
+            entryType: .manual
+        )
+        save(entry: entry)
+        description = ""
+        loadRecentEntries()
+    }
+
+    // MARK: - Replay
 
     func replay(entry: TimeEntry) {
         description = entry.description
         selectedClient = clients.first { $0.id == entry.clientId }
-        startTimer()
+        inputMode = .timer
+        timerService.start()
     }
 
-    private func tick() {
-        guard let start = startDate else { return }
-        elapsedSeconds = Int(Date().timeIntervalSince(start))
+    // MARK: - Data
+
+    private func loadClients() {
+        clients = (try? dataService?.fetchClients()) ?? []
     }
 
-    private func saveEntry() {
-        guard let client = selectedClient, let start = startDate else { return }
-        let entry = TimeEntry(
-            clientId: client.id,
-            description: description,
-            date: Date(),
-            startTime: start,
-            endTime: Date(),
-            entryType: .timer
+    private func loadRecentEntries() {
+        let entries = (try? dataService?.fetchEntries()) ?? []
+        let clientMap = Dictionary(uniqueKeysWithValues: clients.map { ($0.id, $0) })
+        recentEntries = Array(
+            entries
+                .filter { !$0.isRunning }
+                .prefix(5)
+                .map { ($0, clientMap[$0.clientId]) }
         )
-        recentEntries.insert(entry, at: 0)
-        if recentEntries.count > 5 { recentEntries.removeLast() }
-        description = ""
+    }
+
+    private func save(entry: TimeEntry) {
+        try? dataService?.saveEntry(entry)
     }
 }

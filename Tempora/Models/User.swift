@@ -24,14 +24,13 @@ struct User: Identifiable, Codable {
         self.createdAt = createdAt
     }
 
-    var isTrialActive: Bool {
-        guard subscriptionStatus == .trial, let ends = trialEndsAt else { return false }
-        return ends > Date()
+    var trialDaysRemaining: Int {
+        guard subscriptionStatus == .trial, let ends = trialEndsAt else { return 0 }
+        return max(0, Calendar.current.dateComponents([.day], from: Date(), to: ends).day ?? 0)
     }
 
-    var trialDaysRemaining: Int {
-        guard let ends = trialEndsAt else { return 0 }
-        return max(0, Calendar.current.dateComponents([.day], from: Date(), to: ends).day ?? 0)
+    var isTrialActive: Bool {
+        subscriptionStatus == .trial && trialDaysRemaining > 0
     }
 
     var canEdit: Bool {
@@ -40,16 +39,16 @@ struct User: Identifiable, Codable {
 }
 
 enum SubscriptionStatus: String, Codable {
-    case trial
-    case active
-    case expired
-    case cancelled
+    case trial     = "trial"
+    case active    = "active"
+    case expired   = "expired"
+    case cancelled = "cancelled"
 
     var label: String {
         switch self {
-        case .trial: return "Prova gratuita"
-        case .active: return "Pro attivo"
-        case .expired: return "Scaduto"
+        case .trial:     return "Prova gratuita"
+        case .active:    return "Pro attivo"
+        case .expired:   return "Scaduto"
         case .cancelled: return "Cancellato"
         }
     }

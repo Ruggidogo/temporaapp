@@ -1,73 +1,62 @@
-# Welcome to your Lovable project
+# Tempora iOS
 
-## Project info
+*Il tuo tempo, valorizzato*
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+App nativa iOS per il tracciamento delle ore fatturabili. Costruita con SwiftUI + SwiftData.
 
-## How can I edit this code?
+## Stack tecnico
+- iOS 17+, SwiftUI, SwiftData
+- Swift Charts (report)
+- StoreKit 2 (abbonamenti)
+- Nessuna dipendenza esterna
 
-There are several ways of editing your application.
+## Struttura repository
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+Tempora/
+├── App/                  # Entry point + navigazione
+├── Models/               # Tipi Swift value (Client, Project, TimeEntry, User)
+├── Services/
+│   ├── DataModels.swift  # @Model SwiftData (ClientModel, ProjectModel, TimeEntryModel)
+│   ├── DataService.swift # CRUD via ModelContext
+│   ├── TimerService.swift# Timer async, persiste in background via UserDefaults
+│   ├── ExportService.swift
+│   ├── StoreKitService.swift
+│   └── SyncService.swift # Protocol stub per futuro Supabase
+├── ViewModels/           # @MainActor ObservableObject per ogni tab
+├── Views/
+│   ├── Timer/            # TimerView, ClientSelectorView
+│   ├── History/          # HistoryView, EntryDetailView
+│   ├── Reports/          # ReportsView (Swift Charts)
+│   └── Settings/         # SettingsView, ClientEditView, PaywallView
+├── Components/           # TimerDisplay, PrimaryButton, ClientPill, StatCard, EntryRow
+├── Utilities/            # Colors (Color(hex:)), Formatters, Extensions
+└── Resources/            # Assets.xcassets, Localizable.strings
 ```
 
-**Edit a file directly in GitHub**
+## Apertura in Xcode
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Crea un nuovo progetto Xcode → **App** (SwiftUI, no Storage)
+   - Product Name: `Tempora`
+   - Bundle ID: `com.tempora.app`
+   - Minimum Deployments: iOS 17.0
+2. Elimina i file generati da Xcode (`ContentView.swift`, `TemporaApp.swift`)
+3. **File → Add Files to "Tempora"** → seleziona la cartella `Tempora/` di questo repo → ✅ "Create groups"
+4. In **Signing & Capabilities** aggiungi:
+   - In-App Purchase (per StoreKit)
+5. ⌘B — deve compilare senza errori
 
-**Use GitHub Codespaces**
+## Ordine di sviluppo (priority roadmap)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. ✅ Step 1 — Struttura progetto + SwiftData models
+2. Step 2 — TimerView funzionante + persistenza
+3. Step 3 — HistoryView con lista voci
+4. Step 4 — Gestione clienti in Settings
+5. Step 5 — ReportsView con Swift Charts
+6. Step 6 — Export CSV/PDF
+7. Step 7 — Paywall + StoreKit 2
+8. Step 8 — Polish e animazioni
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Bundle ID prodotti StoreKit
+- `com.tempora.app.pro.monthly`
+- `com.tempora.app.pro.yearly`

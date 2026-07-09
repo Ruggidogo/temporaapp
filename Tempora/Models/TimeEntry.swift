@@ -8,7 +8,7 @@ struct TimeEntry: Identifiable, Codable, Hashable {
     var date: Date
     var startTime: Date
     var endTime: Date?
-    var durationMinutes: Int?
+    var durationMinutes: Int?  // Used for manual entries
     var entryType: EntryType
     var tags: [String]
     let createdAt: Date
@@ -44,32 +44,22 @@ struct TimeEntry: Identifiable, Codable, Hashable {
     }
 
     var calculatedDurationMinutes: Int {
-        if let duration = durationMinutes {
-            return duration
-        }
-        guard let end = endTime else {
-            return Int(Date().timeIntervalSince(startTime) / 60)
-        }
-        return Int(end.timeIntervalSince(startTime) / 60)
+        if let d = durationMinutes { return d }
+        let end = endTime ?? Date()
+        return max(0, Int(end.timeIntervalSince(startTime) / 60))
     }
 
-    func value(for client: Client?) -> Decimal? {
-        guard let rate = client?.hourlyRate else { return nil }
+    func value(hourlyRate: Decimal?) -> Decimal? {
+        guard let rate = hourlyRate else { return nil }
         let hours = Decimal(calculatedDurationMinutes) / 60
-        return (rate * hours).rounded(scale: 2)
+        var result = rate * hours
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &result, 2, .plain)
+        return rounded
     }
 }
 
-enum EntryType: String, Codable {
-    case timer
-    case manual
-}
-
-private extension Decimal {
-    func rounded(scale: Int) -> Decimal {
-        var result = Decimal()
-        var source = self
-        NSDecimalRound(&result, &source, scale, .plain)
-        return result
-    }
+enum EntryType: String, Codable, CaseIterable {
+    case timer  = "timer"
+    case manual = "manual"
 }
