@@ -23,6 +23,7 @@ final class TimerViewModel: ObservableObject {
     let timerService: TimerService
     private var dataService: DataService?
     private var runningEntryId: UUID?
+    private var cancellables = Set<AnyCancellable>()
 
     var isRunning: Bool { timerService.isRunning }
     var elapsedSeconds: Int { timerService.elapsedSeconds }
@@ -31,6 +32,10 @@ final class TimerViewModel: ObservableObject {
 
     init() {
         self.timerService = TimerService()
+        // Propaga i cambiamenti di TimerService alla view
+        timerService.objectWillChange
+            .sink { [weak self] in self?.objectWillChange.send() }
+            .store(in: &cancellables)
     }
 
     func configure(context: ModelContext) {
