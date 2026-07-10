@@ -2,146 +2,114 @@ import SwiftUI
 import SwiftData
 
 struct TimerView: View {
-
     @Environment(\.modelContext) private var context
     @StateObject private var vm = TimerViewModel()
+    @State private var showManual = false
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.temporaBackground.ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 0) {
+                VStack(spacing: 0) {
+                    Spacer()
 
-                        modeToggle
-                            .padding(.top, 12)
-                            .padding(.horizontal)
+                    // Timer display
+                    timerDisplay
 
-                        if vm.inputMode == .timer {
-                            timerSection
-                        } else {
-                            manualSection
-                        }
+                    Spacer()
 
-                        clientSection
-                            .padding(.top, 28)
+                    // Client pills
+                    clientRow
+                        .padding(.bottom, 20)
 
-                        descriptionField
-                            .padding(.top, 16)
-                            .padding(.horizontal)
+                    // Description
+                    descriptionField
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 28)
 
-                        if let error = vm.errorMessage {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundStyle(Color.temporaError)
-                                .padding(.top, 8)
-                        }
+                    // START / STOP
+                    mainButton
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 16)
 
-                        actionButton
-                            .padding(.top, 20)
-                            .padding(.horizontal)
+                    // Manual link
+                    Button("Aggiungi manualmente") { showManual = true }
+                        .font(.footnote)
+                        .foregroundStyle(Color.temporaTextMuted)
+                        .padding(.bottom, 24)
 
-                        if !vm.recentEntries.isEmpty {
-                            recentSection
-                                .padding(.top, 36)
-                        }
-
-                        Spacer(minLength: 40)
+                    // Recent
+                    if !vm.recentEntries.isEmpty {
+                        recentList
+                            .padding(.bottom, 8)
                     }
                 }
             }
             .navigationTitle("Tempora")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    if vm.isRunning { runningBadge }
-                }
+            .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showManual) {
+                ManualEntrySheet(vm: vm)
             }
         }
         .onAppear {
-            vm.configure(context: context)
+            vm.setup(context: context)
         }
     }
 
-    // MARK: - Mode toggle
+    // MARK: - Timer display
 
-    private var modeToggle: some View {
-        Picker("Modalità", selection: $vm.inputMode) {
-            Text("Timer").tag(TimerViewModel.InputMode.timer)
-            Text("Manuale").tag(TimerViewModel.InputMode.manual)
+    private var timerDisplay: some View {
+        VStack(spacing: 8) {
+            Text(Formatters.elapsed(vm.elapsedSeconds))
+                .font(.system(size: 80, weight: .thin, design: .monospaced))
+                .foregroundStyle(.white)
+                .contentTransition(.numericText())
+                .scaleEffect(vm.isRunning ? 1.02 : 1.0)
+                .animation(
+                    vm.isRunning
+                        ? .easeInOut(duration: 1.4).repeatForever(autoreverses: true)
+                        : .spring(response: 0.3),
+                    value: vm.isRunning
+                )
+
+            if vm.isRunning, let client = vm.selectedClient {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(Color(hex: client.color))
+                        .frame(width: 7, height: 7)
+                    Text(client.name)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.temporaTextSecondary)
+                }
+                .transition(.opacity)
+            }
         }
-        .pickerStyle(.segmented)
-        .disabled(vm.isRunning)
+        .animation(.easeInOut(duration: 0.2), value: vm.isRunning)
     }
 
-    // MARK: - Timer section
+    // MARK: - Client row
 
-    private var timerSection: some View {
-        VStack(spacing: 6) {
-            TimerDisplay(
-                seconds: vm.elapsedSeconds,
-                isRunning: vm.isRunning
-            )
-            .padding(.top, 36)
-            .padding(.bottom, 4)
-
-            if vm.isRunning {
-                Text("In esecuzione…")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(Color.temporaSuccess)
-            } else {
-                Text("Pronto")
+    private var clientRow: some View {
+        Group {
+            if vm.clients.isEmpty {
+                Text("Aggiungi un cliente dal tab Clienti")
                     .font(.caption)
                     .foregroundStyle(Color.temporaTextMuted)
-            }
-        }
-    }
-
-    // MARK: - Manual section
-
-    private var manualSection: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 16) {
-                DatePicker("Data", selection: $vm.manualDate, displayedComponents: .date)
-                    .foregroundStyle(.white)
-
-                DatePicker("Inizio", selection: $vm.manualStart, displayedComponents: .hourAndMinute)
-                    .foregroundStyle(.white)
-
-                DatePicker("Fine", selection: $vm.manualEnd, displayedComponents: .hourAndMinute)
-                    .foregroundStyle(.white)
-            }
-            .padding(16)
-            .temporaCard(padding: 0)
-            .padding(.horizontal)
-            .padding(.top, 24)
-
-            let mins = max(0, Int(vm.manualEnd.timeIntervalSince(vm.manualStart) / 60))
-            Text("Durata: \(Formatters.duration(minutes: mins))")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(Color.temporaTextSecondary)
-                .padding(.top, 12)
-        }
-    }
-
-    // MARK: - Client section
-
-    private var clientSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("CLIENTE")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.temporaTextMuted)
-                .tracking(1)
-                .padding(.horizontal)
-
-            if vm.clients.isEmpty {
-                Text("Aggiungi un cliente dalle Impostazioni")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.temporaTextMuted)
-                    .padding(.horizontal)
             } else {
-                ClientSelectorView(clients: vm.clients, selected: $vm.selectedClient)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(vm.clients) { client in
+                            ClientPill(client: client, isSelected: vm.selectedClient?.id == client.id)
+                                .onTapGesture {
+                                    withAnimation(.spring(response: 0.2)) {
+                                        vm.selectedClient = client
+                                    }
+                                }
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                }
             }
         }
     }
@@ -149,98 +117,174 @@ struct TimerView: View {
     // MARK: - Description field
 
     private var descriptionField: some View {
-        HStack {
-            Image(systemName: "pencil")
-                .foregroundStyle(Color.temporaTextMuted)
-                .font(.subheadline)
-            TextField("Descrizione attività…", text: $vm.description)
-                .foregroundStyle(.white)
-                .submitLabel(.done)
-                .onSubmit { hideKeyboard() }
-        }
-        .padding(14)
-        .background(Color.temporaSurfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.temporaBorder))
+        TextField("Su cosa stai lavorando?", text: $vm.entryDescription)
+            .font(.subheadline)
+            .foregroundStyle(.white)
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color.temporaSurface)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.temporaBorder))
+            .submitLabel(.done)
     }
 
-    // MARK: - Action button
+    // MARK: - Main button
 
-    private var actionButton: some View {
-        Group {
-            if vm.inputMode == .timer {
-                PrimaryButton(
-                    title: vm.isRunning ? "STOP" : "START",
-                    systemImage: vm.isRunning ? "stop.fill" : "play.fill",
-                    color: vm.isRunning ? .temporaError : .temporaSuccess
-                ) {
-                    vm.isRunning ? vm.stopTimer() : vm.startTimer()
-                }
-            } else {
-                PrimaryButton(
-                    title: "Salva voce",
-                    systemImage: "checkmark",
-                    color: .temporaIndigo
-                ) {
-                    vm.saveManualEntry()
-                }
-                .disabled(vm.selectedClient == nil)
+    private var mainButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.3)) {
+                vm.toggleTimer()
             }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: vm.isRunning ? "stop.fill" : "play.fill")
+                    .font(.title3.weight(.semibold))
+                Text(vm.isRunning ? "Stop" : "Start")
+                    .font(.title3.weight(.semibold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .background(vm.isRunning ? Color.temporaError : Color.temporaSuccess)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .animation(.spring(response: 0.25), value: vm.isRunning)
         }
+        .buttonStyle(SpringButtonStyle())
+        .disabled(vm.selectedClient == nil && !vm.isRunning)
+        .opacity(vm.selectedClient == nil && !vm.isRunning ? 0.4 : 1)
     }
 
-    // MARK: - Recent entries
+    // MARK: - Recent list
 
-    private var recentSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("RECENTI")
+    private var recentList: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Recenti")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Color.temporaTextMuted)
-                .tracking(1)
-                .padding(.horizontal)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 8)
 
-            VStack(spacing: 0) {
-                ForEach(Array(vm.recentEntries.enumerated()), id: \.element.0.id) { idx, pair in
-                    let (entry, client) = pair
+            ForEach(Array(vm.recentEntries.enumerated()), id: \.element.entry.id) { i, pair in
+                HStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color(hex: pair.client?.color ?? "#6366F1"))
+                        .frame(width: 3, height: 36)
 
-                    HStack {
-                        EntryRow(entry: entry, client: client)
-
-                        Button {
-                            vm.replay(entry: entry)
-                        } label: {
-                            Image(systemName: "play.circle.fill")
-                                .font(.title3)
-                                .foregroundStyle(Color.temporaIndigo)
-                        }
-                        .padding(.trailing, 4)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(pair.entry.description.isEmpty ? "—" : pair.entry.description)
+                            .font(.subheadline)
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                        Text(pair.client?.name ?? "")
+                            .font(.caption)
+                            .foregroundStyle(Color.temporaTextMuted)
                     }
-                    .padding(.horizontal, 12)
 
-                    if idx < vm.recentEntries.count - 1 {
-                        Divider()
-                            .background(Color.temporaBorder)
-                            .padding(.horizontal, 12)
+                    Spacer()
+
+                    Text(Formatters.duration(minutes: pair.entry.calculatedDurationMinutes))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(Color.temporaTextSecondary)
+
+                    Button {
+                        vm.replay(pair.entry)
+                    } label: {
+                        Image(systemName: "play.circle")
+                            .font(.title3)
+                            .foregroundStyle(Color.temporaIndigo)
                     }
                 }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+
+                if i < vm.recentEntries.count - 1 {
+                    Divider()
+                        .background(Color.temporaBorder)
+                        .padding(.leading, 24 + 3 + 12)
+                }
             }
-            .background(Color.temporaSurfaceElevated)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.temporaBorder))
-            .padding(.horizontal)
         }
     }
+}
 
-    // MARK: - Running badge
+// MARK: - Manual entry sheet
 
-    private var runningBadge: some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(Color.temporaError)
-                .frame(width: 7, height: 7)
-            Text("LIVE")
-                .font(.caption2.weight(.bold))
-                .foregroundStyle(Color.temporaError)
+private struct ManualEntrySheet: View {
+    @ObservedObject var vm: TimerViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var date = Date()
+    @State private var start = Calendar.current.date(byAdding: .hour, value: -1, to: Date())!
+    @State private var end = Date()
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.temporaBackground.ignoresSafeArea()
+                Form {
+                    Section("Cliente") {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(vm.clients) { client in
+                                    ClientPill(client: client, isSelected: vm.selectedClient?.id == client.id)
+                                        .onTapGesture { vm.selectedClient = client }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                        .listRowBackground(Color.temporaSurfaceElevated)
+                    }
+
+                    Section("Attività") {
+                        TextField("Descrizione", text: $vm.entryDescription)
+                            .foregroundStyle(.white)
+                            .listRowBackground(Color.temporaSurfaceElevated)
+                    }
+
+                    Section("Orari") {
+                        DatePicker("Data", selection: $date, displayedComponents: .date)
+                            .foregroundStyle(.white)
+                            .listRowBackground(Color.temporaSurfaceElevated)
+                        DatePicker("Inizio", selection: $start, displayedComponents: .hourAndMinute)
+                            .foregroundStyle(.white)
+                            .listRowBackground(Color.temporaSurfaceElevated)
+                        DatePicker("Fine", selection: $end, displayedComponents: .hourAndMinute)
+                            .foregroundStyle(.white)
+                            .listRowBackground(Color.temporaSurfaceElevated)
+
+                        let mins = max(0, Int(end.timeIntervalSince(start) / 60))
+                        LabeledContent("Durata", value: Formatters.duration(minutes: mins))
+                            .foregroundStyle(Color.temporaTextSecondary)
+                            .listRowBackground(Color.temporaSurfaceElevated)
+                    }
+                }
+                .scrollContentBackground(.hidden)
+            }
+            .navigationTitle("Voce manuale")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Annulla") { dismiss() }.foregroundStyle(Color.temporaTextMuted)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salva") {
+                        vm.saveManual(start: start, end: end, date: date)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.temporaIndigo)
+                    .disabled(vm.selectedClient == nil || end <= start)
+                }
+            }
         }
+    }
+}
+
+// MARK: - Button style
+
+private struct SpringButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.spring(response: 0.2), value: configuration.isPressed)
     }
 }
